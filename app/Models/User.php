@@ -59,9 +59,9 @@ class User extends Authenticatable
         'profile_photo_url',
     ];
 
-    public function role()
+    public function roles(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
-        return $this->belongsTo(Role::class);
+        return $this->BelongsToMany(Role::class);
     }
 
     public function hasRole(string $roleName): bool
@@ -73,4 +73,11 @@ class User extends Authenticatable
         }
         return $this->role->customId >= $roleNumber;
     }
+
+    public function hasOneRole(): bool
+    {
+        return count($this->roles) === 1;
+    }
+
+
 }

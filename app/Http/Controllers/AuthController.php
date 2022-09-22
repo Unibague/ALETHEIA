@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
@@ -21,10 +23,14 @@ class AuthController extends Controller
         return Socialite::driver('google')->redirect();
     }
 
-    public function handleGoogleCallback()
+    public function handleGoogleCallback(): \Illuminate\Http\RedirectResponse
     {
-        $googleUser = Socialite::driver('google')->user();
+        try {
+            $googleUser = Socialite::driver('google')->user();
 
+        } catch (\Exception $e) {
+            return redirect()->route('login');
+        }
         $user = User::where('email', $googleUser->email)->first();
 
         if (!$user) {
@@ -32,12 +38,23 @@ class AuthController extends Controller
                 'name' => $googleUser->name,
                 'email' => $googleUser->email,
                 'google_id' => $googleUser->id,
-                'password' => 'automatic_generate_password'
+                'password' => Hash::make('automatic_generated_password'),
             ]);
-        }
 
+            //Assign the default role (student)
+            $role = Role::where('name', 'student')->first();
+            Role::assignRole($user->id, $role->id);
+        }
+        //log the user in
         Auth::login($user);
 
-        return redirect()->route('landing');
+        //Check if the user has more than one role
+        if ($user->hasOneRole()) {
+            return redirect()->route('landing');
+        }
+        return redirect()->route('pickRole');
+
     }
+
+
 }
