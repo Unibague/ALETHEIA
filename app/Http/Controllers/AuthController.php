@@ -43,8 +43,9 @@ class AuthController extends Controller
             ]);
 
             //Assign the default role (student)
-            $role = Role::where('name', 'student')->first();
+            $role = Role::where('name', 'estudiante')->first();
             Role::assignRole($user->id, $role->id);
+            session(['role' => $role->id]);
         }
         //log the user in
         Auth::login($user);
