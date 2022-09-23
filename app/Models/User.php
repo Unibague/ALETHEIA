@@ -59,6 +59,22 @@ class User extends Authenticatable
         'profile_photo_url',
     ];
 
+    public function role()
+    {
+        $user = auth()->user();
+        $actualRole = session('role');
+
+        //Check if is still valid
+        $userRoles = $user->roles;
+
+        foreach ($userRoles as $role) {
+            if ($actualRole === $role->id) {
+                return $actualRole->customId;
+            }
+        }
+        return redirect()->route('pickRole');
+    }
+
     public function roles(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
         return $this->BelongsToMany(Role::class);

@@ -38,7 +38,7 @@ class HandleInertiaRequests extends Middleware
     {
         return array_merge(parent::share($request), [
             'user.customRoleId' => function () use ($request) {
-                return $request->user() ? $request->user()->role->customId : 0;
+                return $request->user() ? $request->user()->role() : 0;
             },
         ]);
     }

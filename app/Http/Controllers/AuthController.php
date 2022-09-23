@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Inertia\Inertia;
 use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
@@ -53,6 +54,15 @@ class AuthController extends Controller
             return redirect()->route('landing');
         }
         return redirect()->route('pickRole');
+    }
+
+    public function pickRole()
+    {
+        $user = Auth::user();
+        $roles = $user->roles;
+
+        return Inertia::render('Auth/PickRole');
+
 
     }
 

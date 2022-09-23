@@ -32,13 +32,16 @@ Route::resource('api/roles', \App\Http\Controllers\Roles\ApiRoleController::clas
 
 //Get all users
 Route::get('/users', [\App\Http\Controllers\Users\UserController::class, 'index'])->middleware(['auth', 'isAdmin'])->name('users.index');
+
 //users api
 Route::resource('api/users', \App\Http\Controllers\Users\ApiUserController::class, [
     'as' => 'api'
 ])->middleware('auth');
+
+
 //Update user role
 Route::patch('/api/users/{user}/roles', [\App\Http\Controllers\Users\ApiUserController::class, 'updateUserRole'])->middleware('auth')->name('api.users.roles.update');
-Route::get('/api/users/{user}/roles', [\App\Http\Controllers\Users\ApiUserController::class, 'getUserRole'])->middleware('auth')->name('api.users.roles.show');
+Route::get('/api/users/{user}/roles', [\App\Http\Controllers\Users\ApiUserController::class, 'getUserRoles'])->middleware('auth')->name('api.users.roles.show');
 
 /* >>>>>Roles routes <<<<<< */
 Route::get('landing', function () {
@@ -46,8 +49,8 @@ Route::get('landing', function () {
 })->name('landing');
 
 
-
 //Auth routes
 Route::get('login', [\App\Http\Controllers\AuthController::class, 'redirectGoogleLogin'])->name('login');
 Route::get('/google/callback', [\App\Http\Controllers\AuthController::class, 'handleGoogleCallback']);
+Route::get('/pickRole', [\App\Http\Controllers\AuthController::class, 'pickRole'])->name('pickRole');
 

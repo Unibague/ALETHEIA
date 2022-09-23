@@ -16,9 +16,9 @@ class ApiUserController extends Controller
         return User::with('role')->get();
     }
 
-    public function getUserRole()
+    public function getUserRoles()
     {
-        return auth()->user()->role->customId;
+        return auth()->user()->roles;
     }
 
     public function updateUserRole(User $user, UpdateUserRoleRequest $request)
