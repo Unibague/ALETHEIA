@@ -12,7 +12,6 @@ use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
 {
-    //
 
     public function handleRoleRedirect()
     {
@@ -52,6 +51,7 @@ class AuthController extends Controller
 
         //Check if the user has more than one role
         if ($user->hasOneRole()) {
+            session(['role' => $user->roles[0]->id]);
             return redirect()->route('landing');
         }
         return redirect()->route('pickRole');

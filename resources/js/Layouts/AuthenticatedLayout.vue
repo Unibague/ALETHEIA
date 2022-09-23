@@ -218,7 +218,6 @@ export default {
         Link
     },
     data: () => ({
-
         snackbar: {
             text: '...',
             status: false,
@@ -237,40 +236,62 @@ export default {
             ],
         dropdowns: [
             {
-                name: 'Dropdown 1 usuario',
-                role: 1,
+                name: 'Gestionar',
+                role: 10,
                 icon: 'mdi-cog-box',
                 items: [
                     {
-                        name: 'Item 1 dropdown',
+                        name: 'Periodos de evaluación',
                         href: route('roles.index'),
-                        role: 1,
-                        icon: 'mdi-calendar'
-                    },
-
-                ]
-
-            },
-            {
-                name: 'Dropdown 2 admin',
-                role: 3,
-                icon: 'mdi-cog-box',
-                items: [
-                    {
-                        name: 'Roles',
-                        href: route('roles.index'),
-                        role: 3,
+                        role: 10,
                         icon: 'mdi-cog-box'
                     },
                     {
-                        name: 'Usuarios',
+                        name: 'Periodos académicos',
                         href: route('users.index'),
-                        role: 3,
+                        role: 10,
+                        icon: 'mdi-account-cog'
+                    },
+                    {
+                        name: 'Unidades',
+                        href: route('users.index'),
+                        role: 10,
+                        icon: 'mdi-account-cog'
+                    },
+                    {
+                        name: 'Grupos',
+                        href: route('users.index'),
+                        role: 10,
+                        icon: 'mdi-account-cog'
+                    },
+                    {
+                        name: 'Docentes',
+                        href: route('users.index'),
+                        role: 10,
+                        icon: 'mdi-account-cog'
+                    },
+                    {
+                        name: 'Formularios',
+                        href: route('users.index'),
+                        role: 10,
                         icon: 'mdi-account-cog'
                     },
                 ]
-
             },
+            {
+                name: 'Generar',
+                role: 10,
+                icon: 'mdi-cog-box',
+                items: [
+                    {
+                        name: 'Reportes',
+                        href: route('roles.index'),
+                        role: 10,
+                        icon: 'mdi-cog-box'
+                    },
+                ]
+            },
+
         ],
         group: null,
         initials: '',
@@ -279,11 +300,9 @@ export default {
         logout() {
             this.$inertia.post(route('logout'));
         },
-
         triggerFunction(functionName) {
             this[functionName]();
         },
-
     },
 
     async created() {
@@ -291,7 +310,6 @@ export default {
         let name = this.$page.props.user.name;
         let splitName = name.split(' ');
         this.initials = `${splitName[0].charAt(0)}${splitName[1].charAt(0)}`;
-
     }
 
 }

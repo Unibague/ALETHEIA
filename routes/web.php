@@ -47,7 +47,7 @@ Route::post('/api/users/{user}/roles/select', [\App\Http\Controllers\Users\ApiUs
 /* >>>>>Roles routes <<<<<< */
 Route::get('landing', function () {
     return Inertia::render('SuperTest');
-})->name('landing');
+})->name('landing')->middleware(['auth']);
 
 
 //Auth routes
