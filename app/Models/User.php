@@ -63,13 +63,11 @@ class User extends Authenticatable
     {
         $user = auth()->user();
         $actualRole = session('role');
-
         //Check if is still valid
         $userRoles = $user->roles;
-
         foreach ($userRoles as $role) {
             if ($actualRole === $role->id) {
-                return $actualRole->customId;
+                return $role->customId;
             }
         }
         return redirect()->route('pickRole');

@@ -16,10 +16,26 @@ class ApiUserController extends Controller
         return User::with('role')->get();
     }
 
+    public function selectRole(Request $request)
+    {
+        $role = $request->input('role');
+        //Check if the user has the role.
+        $userRoles = auth()->user()->roles;
+
+        foreach ($userRoles as $Userrole) {
+            if ($Userrole->id === $role) {
+                session(['role' => $role]);
+                return response()->json();
+            }
+        }
+        return response()->json(['message' => 'No tienes asignado el rol seleccionado'], 403);
+    }
+
     public function getUserRoles()
     {
         return auth()->user()->roles;
     }
+
 
     public function updateUserRole(User $user, UpdateUserRoleRequest $request)
     {

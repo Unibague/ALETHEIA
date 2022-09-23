@@ -57,7 +57,7 @@ export default {
         Link
     },
     data: () => ({
-        siteName: 'Limbo',
+        siteName: 'ALETHEIA',
     }),
 
     methods: {

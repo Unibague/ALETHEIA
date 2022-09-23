@@ -224,20 +224,21 @@ export default {
             status: false,
             timeout: 3000
         },
-
         drawer: false,
         menu:
-            [{
-                name: 'Item individual',
-                href: route('roles.index'),
-                role: 1,
-                icon: 'mdi-calendar'
-            },],
+            [
+                {
+                    name: 'Cambiar Rol',
+                    href: route('pickRole'),
+                    role: 1,
+                    icon: 'mdi-calendar'
+                },
+
+            ],
         dropdowns: [
             {
                 name: 'Dropdown 1 usuario',
                 role: 1,
-                active: false,
                 icon: 'mdi-cog-box',
                 items: [
                     {
@@ -253,7 +254,6 @@ export default {
             {
                 name: 'Dropdown 2 admin',
                 role: 3,
-                active: false,
                 icon: 'mdi-cog-box',
                 items: [
                     {
@@ -283,6 +283,7 @@ export default {
         triggerFunction(functionName) {
             this[functionName]();
         },
+
     },
 
     async created() {

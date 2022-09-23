@@ -1,5 +1,16 @@
 <template>
     <AuthenticatedLayout>
+        <!--Snackbars-->
+        <v-snackbar
+            v-model="snackbar.status"
+            :timeout="snackbar.timeout"
+            color="red accent-2"
+            top
+            right
+        >
+            {{ snackbar.text }}
+
+        </v-snackbar>
 
        Bienvenido al inicio de un nuevo proyecto
     </AuthenticatedLayout>
@@ -17,6 +28,9 @@ export default {
         ConfirmDialog
     },
     data: () => ({
+        snackbar:{
+
+        },
         showDialog: false
     }),
     methods: {}

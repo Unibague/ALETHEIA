@@ -42,6 +42,7 @@ Route::resource('api/users', \App\Http\Controllers\Users\ApiUserController::clas
 //Update user role
 Route::patch('/api/users/{user}/roles', [\App\Http\Controllers\Users\ApiUserController::class, 'updateUserRole'])->middleware('auth')->name('api.users.roles.update');
 Route::get('/api/users/{user}/roles', [\App\Http\Controllers\Users\ApiUserController::class, 'getUserRoles'])->middleware('auth')->name('api.users.roles.show');
+Route::post('/api/users/{user}/roles/select', [\App\Http\Controllers\Users\ApiUserController::class, 'selectRole'])->middleware('auth')->name('api.users.roles.selectRole');
 
 /* >>>>>Roles routes <<<<<< */
 Route::get('landing', function () {
