@@ -21,7 +21,7 @@ class CreateGroupsTable extends Migration
             $table->string('group');
             $table->enum('degree', ['pregrado','posgrado']);
             $table->foreignId('service_area_id')->constrained();
-            $table->foreignId('teacher_id');
+            $table->foreignId('teacher_id')->nullable();
             $table->foreign('teacher_id')->references('id')->on('users');
             $table->enum('hour_type',['normal','cátedra','cátedra adicional','cátedra administrativa']);
             $table->timestamps();

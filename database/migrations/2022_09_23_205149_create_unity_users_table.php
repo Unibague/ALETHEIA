@@ -17,7 +17,7 @@ class CreateUnityUsersTable extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained();
             $table->foreignId('unity_id')->constrained();
-            $table->foreignId('assessment_period_id')->constrained();
+
             $table->foreignId('role_id')->constrained();
             $table->timestamps();
         });

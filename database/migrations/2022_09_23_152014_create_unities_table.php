@@ -18,6 +18,7 @@ class CreateUnitiesTable extends Migration
             $table->string('name');
             $table->string('code');
             $table->boolean('is_custom');
+            $table->foreignId('assessment_period_id')->constrained();
             $table->timestamps();
         });
     }
