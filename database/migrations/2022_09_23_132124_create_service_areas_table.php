@@ -17,6 +17,7 @@ class CreateServiceAreasTable extends Migration
             $table->id();
             $table->string('name');
             $table->string('code');
+            $table->foreignId('assessment_period_id')->constrained();
             $table->timestamps();
         });
     }

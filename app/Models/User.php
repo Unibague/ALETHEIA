@@ -95,6 +95,30 @@ class User extends Authenticatable
     {
         return count($this->roles) === 1;
     }
+    public function teacherProfile(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(TeacherProfile::class);
+    }
+    //TODO: Terminar
+    public function unityAssessments(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(UnityAssessment::class);
+    }
+    public function unities(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Unity::class);
+    }
 
-
+    public function formAnswers(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(FormAnswers::class);
+    }
+    public function groups(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Group::class);
+    }
+    public function teacherGroups(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Group::class,'teacher_id','id');
+    }
 }
