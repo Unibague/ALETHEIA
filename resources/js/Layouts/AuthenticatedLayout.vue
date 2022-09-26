@@ -276,6 +276,18 @@ export default {
                         role: 10,
                         icon: 'mdi-account-cog'
                     },
+                    {
+                        name: 'Usuarios',
+                        href: route('users.index'),
+                        role: 10,
+                        icon: 'mdi-account-cog'
+                    },
+                    {
+                        name: 'Roles',
+                        href: route('roles.index'),
+                        role: 10,
+                        icon: 'mdi-account-cog'
+                    },
                 ]
             },
             {

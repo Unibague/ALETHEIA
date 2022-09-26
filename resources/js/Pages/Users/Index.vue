@@ -26,6 +26,12 @@
                 :items-per-page="5"
                 class="elevation-1"
             >
+                <template v-slot:item.roles="{ item }">
+                   <span v-for="(role) in item.roles" :key="item.id">
+                       {{role.name}},
+                   </span>
+                </template>
+
                 <template v-slot:item.actions="{ item }">
                     <v-icon
                         class="mr-2 primario--text"
@@ -83,19 +89,6 @@
                     </v-card-actions>
                 </v-card>
             </v-dialog>
-            <!------------Seccion de dialogos ---------->
-
-            <!------------Seccion de Overlays ---------->
-
-            <!--            <v-overlay :value="isLoading"
-                                   absolute
-                                   opacity="1">
-                            <v-progress-circular
-                                indeterminate
-                                size="64"
-                            ></v-progress-circular>
-                        </v-overlay>-->
-            <!------------Seccion de Overlays ---------->
 
         </v-container>
 
@@ -121,7 +114,7 @@ export default {
                 {text: 'ID', value: 'id'},
                 {text: 'Nombre', value: 'name'},
                 {text: 'Correo electrónico', value: 'email'},
-                {text: 'Rol', value: 'role.name'},
+                {text: 'Roles', value: 'roles'},
                 {text: 'Acciones', value: 'actions', sortable: false},
             ],
             users: [],

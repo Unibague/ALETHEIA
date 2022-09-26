@@ -67,10 +67,13 @@ class User extends Authenticatable
         $userRoles = $user->roles;
         foreach ($userRoles as $role) {
             if ($actualRole === $role->id) {
-                return $role->customId;
+                return $role;
             }
         }
-        return redirect()->route('pickRole');
+        return (object)[
+            'name' => 'no role',
+            'customId' => 0
+        ];
     }
 
     public function roles(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
@@ -85,7 +88,7 @@ class User extends Authenticatable
         } catch (\RuntimeException $e) {
             return false;
         }
-        return $this->role->customId >= $roleNumber;
+        return $this->role()->customId >= $roleNumber;
     }
 
     public function hasOneRole(): bool

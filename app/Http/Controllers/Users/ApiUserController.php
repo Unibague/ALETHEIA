@@ -13,7 +13,7 @@ class ApiUserController extends Controller
 {
     public function index(GetAllUsersRequest $request)
     {
-        return User::with('role')->get();
+        return User::with('roles')->get();
     }
 
     public function selectRole(Request $request)
@@ -24,6 +24,7 @@ class ApiUserController extends Controller
 
         foreach ($userRoles as $Userrole) {
             if ($Userrole->id === $role) {
+                //The user has the role, assign it
                 session(['role' => $role]);
                 return response()->json();
             }
@@ -37,7 +38,7 @@ class ApiUserController extends Controller
     }
 
 
-    public function updateUserRole(User $user, UpdateUserRoleRequest $request)
+    public function updateUserRole(User $user, UpdateUserRoleRequest $request): \Illuminate\Http\JsonResponse
     {
         $user->role_id = $request->roleId;
         $user->save();
