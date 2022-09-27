@@ -1,15 +1,23 @@
 <template>
     <AuthenticatedLayout>
         <!--Snackbars-->
-        <v-snackbar
+         <v-snackbar
             v-model="snackbar.status"
             :timeout="snackbar.timeout"
-            color="red accent-2"
+            :color="snackbar.color + ' accent-2'"
             top
             right
         >
             {{ snackbar.text }}
-
+            <template v-slot:action="{ attrs }">
+                <v-btn
+                    text
+                    v-bind="attrs"
+                    @click="snackbar.status = false"
+                >
+                    Cerrar
+                </v-btn>
+            </template>
         </v-snackbar>
 
         <v-container>
@@ -121,10 +129,11 @@ export default {
             roles: [],
             //Snackbars
             snackbar: {
-                text: '...',
-                status: false,
-                timeout: 3000
-            },
+            text: "",
+            color: 'red',
+            status: false,
+            timeout: 2000,
+        },
             //Dialogs
             editUserDialog: false,
             //User models

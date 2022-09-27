@@ -1,15 +1,23 @@
 <template>
     <AuthenticatedLayout>
         <!--Snackbars-->
-        <v-snackbar
+         <v-snackbar
             v-model="snackbar.status"
             :timeout="snackbar.timeout"
-            color="red accent-2"
+            :color="snackbar.color + ' accent-2'"
             top
             right
         >
             {{ snackbar.text }}
-
+            <template v-slot:action="{ attrs }">
+                <v-btn
+                    text
+                    v-bind="attrs"
+                    @click="snackbar.status = false"
+                >
+                    Cerrar
+                </v-btn>
+            </template>
         </v-snackbar>
 
        Bienvenido al inicio de un nuevo proyecto

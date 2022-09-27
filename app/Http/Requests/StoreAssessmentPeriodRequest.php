@@ -13,7 +13,8 @@ class StoreAssessmentPeriodRequest extends FormRequest
      */
     public function authorize()
     {
-        return false;
+        $user = auth()->user();
+        return $user->hasRole('administrador');
     }
 
     /**

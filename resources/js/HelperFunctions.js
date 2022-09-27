@@ -30,4 +30,8 @@ const showSnackbar = (snackbar, text, color = 'green', timeout = 3000) => {
     snackbar.status = true;
     snackbar.text = text;
 }
-export {prepareErrorText, checkIfModelHasEmptyProperties, clearModelProperties,showSnackbar}
+
+const toObject = (object) => {
+    console.log(Object.keys(object));
+}
+export {prepareErrorText, checkIfModelHasEmptyProperties, clearModelProperties, showSnackbar}

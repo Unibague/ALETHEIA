@@ -61,7 +61,7 @@ class User extends Authenticatable
 
     public function role()
     {
-        $user = auth()->user();
+        $user = $this;
         $actualRole = session('role');
         //Check if is still valid
         $userRoles = $user->roles;

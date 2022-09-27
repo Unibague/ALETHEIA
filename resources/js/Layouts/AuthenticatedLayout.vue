@@ -1,14 +1,22 @@
 <template>
     <GeneralLayout>
-        <v-snackbar
+         <v-snackbar
             v-model="snackbar.status"
             :timeout="snackbar.timeout"
-            color="red accent-2"
+            :color="snackbar.color + ' accent-2'"
             top
             right
         >
             {{ snackbar.text }}
-
+            <template v-slot:action="{ attrs }">
+                <v-btn
+                    text
+                    v-bind="attrs"
+                    @click="snackbar.status = false"
+                >
+                    Cerrar
+                </v-btn>
+            </template>
         </v-snackbar>
 
         <template v-slot:custom-v-app-bar-icon>
@@ -242,7 +250,7 @@ export default {
                 items: [
                     {
                         name: 'Periodos de evaluación',
-                        href: route('roles.index'),
+                        href: route('assessmentPeriods.index.view'),
                         role: 10,
                         icon: 'mdi-cog-box'
                     },
