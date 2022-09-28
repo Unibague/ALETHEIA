@@ -5,28 +5,20 @@ namespace App\Http\Controllers;
 use App\Models\Unity;
 use App\Http\Requests\StoreUnityRequest;
 use App\Http\Requests\UpdateUnityRequest;
+use Illuminate\Http\JsonResponse;
 
 class UnityController extends Controller
 {
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return JsonResponse
      */
-    public function index()
+    public function index(): JsonResponse
     {
-        //
+        return response()->json(Unity::all());
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
 
     /**
      * Store a newly created resource in storage.
@@ -46,17 +38,6 @@ class UnityController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function show(Unity $unity)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Unity  $unity
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Unity $unity)
     {
         //
     }

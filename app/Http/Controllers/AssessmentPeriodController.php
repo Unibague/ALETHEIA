@@ -14,14 +14,14 @@ class AssessmentPeriodController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return
+     * @return JsonResponse
      */
-    public function index()
+    public function index(): JsonResponse
     {
         return response()->json(AssessmentPeriod::all());
     }
 
-    public function setActive(SetActiveAssessmentPeriodRequest $request, AssessmentPeriod $assessmentPeriod)
+    public function setActive(SetActiveAssessmentPeriodRequest $request, AssessmentPeriod $assessmentPeriod): JsonResponse
     {
         //Detect previous assessment period
         try {
