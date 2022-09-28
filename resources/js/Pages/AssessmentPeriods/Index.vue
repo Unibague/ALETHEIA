@@ -1,23 +1,7 @@
 <template>
     <AuthenticatedLayout>
-        <v-snackbar
-            v-model="snackbar.status"
-            :timeout="snackbar.timeout"
-            :color="snackbar.color + ' accent-2'"
-            top
-            right
-        >
-            {{ snackbar.text }}
-            <template v-slot:action="{ attrs }">
-                <v-btn
-                    text
-                    v-bind="attrs"
-                    @click="snackbar.status = false"
-                >
-                    Cerrar
-                </v-btn>
-            </template>
-        </v-snackbar>
+        <Snackbar :timeout="snackbar.timeout" :text="snackbar.text" :type="snackbar.type"
+                  :show="snackbar.status" @closeSnackbar="snackbar.status = false"></Snackbar>
 
         <v-container>
             <div class="d-flex flex-column align-end mb-8">
@@ -26,10 +10,12 @@
                     <v-btn
                         color="primario"
                         class="grey--text text--lighten-4"
-                        @click="setAssessmentPeriodDialogToCreateOrUpdate('create')"
+                        @click="setAssessmentPeriodDialogToCreateOrEdit('create')"
                     >
                         Crear nuevo periodo
                     </v-btn>
+
+
                 </div>
 
             </div>
@@ -42,11 +28,12 @@
                 :items="roles"
                 :items-per-page="5"
                 class="elevation-1"
+                :item-class="getRowColor"
             >
                 <template v-slot:item.actions="{ item }">
                     <v-icon
                         class="mr-2 primario--text"
-                        @click="openEditAssessmentPeriodModal(item)"
+                        @click="setAssessmentPeriodDialogToCreateOrEdit('edit',item)"
                     >
                         mdi-pencil
                     </v-icon>
@@ -56,13 +43,19 @@
                     >
                         mdi-delete
                     </v-icon>
+                    <v-icon v-if="!(item.active)"
+                            class="mr-2 primario--text"
+                            @click="setAssessmentPeriodAsActive(item.id)"
+                    >
+                        mdi-cursor-default-click
+                    </v-icon>
                 </template>
             </v-data-table>
             <!--Acaba tabla-->
 
             <!------------Seccion de dialogos ---------->
-            <!--Crear rol -->
 
+            <!--Crear o editar assessmentPeriod -->
             <v-dialog
                 v-model="createOrEditDialog.dialogStatus"
                 persistent
@@ -70,6 +63,8 @@
             >
                 <v-card>
                     <v-card-title>
+                        <span>
+                        </span>
                         <span class="text-h5">Crear un nuevo periodo académico</span>
                     </v-card-title>
                     <v-card-text>
@@ -116,14 +111,16 @@
                                     <span class="subtitle-1">
                                         Fecha de inicio par
                                     </span>
-                                    <v-date-picker v-model="$data[createOrEditDialog.model].colleagueStartDate" full-width>
+                                    <v-date-picker v-model="$data[createOrEditDialog.model].colleagueStartDate"
+                                                   full-width>
                                     </v-date-picker>
                                 </v-col>
                                 <v-col cols="12" :md="6" class="d-flex flex-column">
                                     <span class="subtitle-1">
                                         Fecha de finalización par
                                     </span>
-                                    <v-date-picker v-model="$data[createOrEditDialog.model].colleagueEndDate" full-width>
+                                    <v-date-picker v-model="$data[createOrEditDialog.model].colleagueEndDate"
+                                                   full-width>
                                     </v-date-picker>
                                 </v-col>
                                 <v-col cols="12">
@@ -168,13 +165,14 @@
                         <v-btn
                             color="primario"
                             text
-                            @click="createAssessmentPeriod"
+                            @click="handleSelectedMethod"
                         >
                             Guardar cambios
                         </v-btn>
                     </v-card-actions>
                 </v-card>
             </v-dialog>
+
             <!--Confirmar borrar rol-->
             <confirm-dialog
                 :show="deleteAssessmentPeriodDialog"
@@ -200,15 +198,17 @@
 <script>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import {InertiaLink} from "@inertiajs/inertia-vue";
-import {prepareErrorText} from "@/HelperFunctions"
+import {prepareErrorText, showSnackbar} from "@/HelperFunctions"
 import ConfirmDialog from "@/Components/ConfirmDialog";
 import AssessmentPeriod from "@/models/AssessmentPeriod";
+import Snackbar from "@/Components/Snackbar";
 
 export default {
     components: {
         ConfirmDialog,
         AuthenticatedLayout,
         InertiaLink,
+        Snackbar,
     },
     data: () => {
         return {
@@ -221,22 +221,22 @@ export default {
                 {text: 'Fecha de fin par', value: 'colleague_end_date'},
                 {text: 'Fecha de inicio jefe', value: 'boss_start_date'},
                 {text: 'Fecha de fin jefe', value: 'boss_start_date'},
-                {text: 'sin escalafón', value: 'boss_start_date',sortable: false},
-                {text: 'Auxiliar', value: 'boss_start_date',sortable: false},
-                {text: 'Asistente', value: 'boss_start_date',sortable: false},
-                {text: 'Asociado', value: 'boss_start_date',sortable: false},
-                {text: 'Titular', value: 'boss_start_date',sortable: false},
+                {text: 'sin escalafón', value: 'done_by_none', sortable: false},
+                {text: 'Auxiliar', value: 'done_by_none', sortable: false},
+                {text: 'Asistente', value: 'done_by_assistant', sortable: false},
+                {text: 'Asociado', value: 'done_by_associated', sortable: false},
+                {text: 'Titular', value: 'done_by_head_teacher', sortable: false},
                 {text: 'Acciones', value: 'actions', sortable: false},
             ],
             roles: [],
             //AssessmentPeriods models
-            newAssessmentPeriod: new AssessmentPeriod('Hola', '2021-02-04'),
-            editedAssessmentPeriod: null,
+            newAssessmentPeriod: new AssessmentPeriod(),
+            editedAssessmentPeriod: new AssessmentPeriod(),
             deletedAssessmentPeriodId: 0,
             //Snackbars
             snackbar: {
                 text: "",
-                color: 'red',
+                type: 'alert',
                 status: false,
                 timeout: 2000,
             },
@@ -247,9 +247,7 @@ export default {
                 method: 'createAssessmentPeriod',
                 dialogStatus: false,
             },
-
             isLoading: true,
-
         }
     },
     async created() {
@@ -258,40 +256,42 @@ export default {
     },
 
     methods: {
-        openEditAssessmentPeriodModal: function (role) {
-            this.editedAssessmentPeriod = {...role};
-            this.editAssessmentPeriodDialog = true;
+        setAssessmentPeriodAsActive: async function (assessmentPeriodId) {
+            try {
+                let request = await axios.post(route('api.assessmentPeriods.setActive', {'assessmentPeriod': assessmentPeriodId}));
+                this.createOrEditDialog.dialogStatus = false;
+                showSnackbar(this.snackbar, request.data.message, 'success');
+                this.getAllAssessmentPeriods();
+
+            } catch (e) {
+                showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
+            }
+        },
+        getRowColor: function (item) {
+            return item.active ? 'green lighten-5' : '';
+        },
+        handleSelectedMethod: function () {
+            this[this.createOrEditDialog.method]();
         },
         editAssessmentPeriod: async function () {
             //Verify request
-            if (this.editedAssessmentPeriod.name === '' || this.editedAssessmentPeriod.id === '') {
-                this.snackbar.text = 'Debes proporcionar un nombre y Id para el nuevo rol';
-                this.snackbar.status = true;
+            if (this.editedAssessmentPeriod.hasEmptyProperties()) {
+                showSnackbar(this.snackbar, 'Debes diligenciar todos los campos obligatorios', 'red', 2000);
                 return;
             }
             //Recollect information
-            let data = {
-                id: this.editedAssessmentPeriod.id,
-                name: this.editedAssessmentPeriod.name,
-                customId: this.editedAssessmentPeriod.customId
-            }
+            let data = this.editedAssessmentPeriod.toObjectRequest();
 
             try {
-                let request = await axios.patch(route('api.roles.update', {'role': this.editedAssessmentPeriod.id}), data);
-                this.editAssessmentPeriodDialog = false;
-                this.snackbar.text = request.data.message;
-                this.snackbar.status = true;
+                let request = await axios.patch(route('api.assessmentPeriods.update', {'assessmentPeriod': this.editedAssessmentPeriod.id}), data);
+                this.createOrEditDialog.dialogStatus = false;
+                showSnackbar(this.snackbar, request.data.message, 'success');
                 this.getAllAssessmentPeriods();
 
                 //Clear role information
-                this.editedAssessmentPeriod = {
-                    id: '',
-                    name: '',
-                    customId: '',
-                };
+                this.editedAssessmentPeriod = new AssessmentPeriod();
             } catch (e) {
-                this.snackbar.text = prepareErrorText(e);
-                this.snackbar.status = true;
+                showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
             }
         },
 
@@ -299,18 +299,14 @@ export default {
             this.deletedAssessmentPeriodId = role.id;
             this.deleteAssessmentPeriodDialog = true;
         },
-
-        deleteAssessmentPeriod: async function (roleId) {
+        deleteAssessmentPeriod: async function (assessmentPeriodId) {
             try {
-                let request = await axios.delete(route('api.roles.destroy', {role: roleId}));
+                let request = await axios.delete(route('api.assessmentPeriods.destroy', {assessmentPeriod: assessmentPeriodId}));
                 this.deleteAssessmentPeriodDialog = false;
-                this.snackbar.text = request.data.message;
-                this.snackbar.status = true;
+                showSnackbar(this.snackbar, request.data.message, 'success');
                 this.getAllAssessmentPeriods();
-
             } catch (e) {
-                this.snackbar.text = e.response.data.message;
-                this.snackbar.status = true;
+                showSnackbar(this.snackbar, e.response.data.message, 'red', 3000);
             }
 
         },
@@ -318,8 +314,7 @@ export default {
             let request = await axios.get(route('api.assessmentPeriods.index'));
             this.roles = request.data;
         },
-        setAssessmentPeriodDialogToCreateOrUpdate(which) {
-
+        setAssessmentPeriodDialogToCreateOrEdit(which, item = null) {
             if (which === 'create') {
                 this.createOrEditDialog.method = 'createAssessmentPeriod';
                 this.createOrEditDialog.model = 'newAssessmentPeriod';
@@ -327,6 +322,7 @@ export default {
             }
 
             if (which === 'edit') {
+                this.editedAssessmentPeriod = AssessmentPeriod.fromModel(item);
                 this.createOrEditDialog.method = 'editAssessmentPeriod';
                 this.createOrEditDialog.model = 'editedAssessmentPeriod';
                 this.createOrEditDialog.dialogStatus = true;
@@ -334,32 +330,23 @@ export default {
 
         },
         createAssessmentPeriod: async function () {
-            if (this.newAssessmentPeriod.name === '' || this.newAssessmentPeriod.id === '') {
-                this.snackbar.text = 'Debes proporcionar un nombre y Id para el nuevo rol';
-                this.snackbar.status = true;
+            if (this.newAssessmentPeriod.hasEmptyProperties()) {
+                showSnackbar(this.snackbar, 'Debes diligenciar todos los campos obligatorios', 'red', 2000);
                 return;
             }
+            let data = this.newAssessmentPeriod.toObjectRequest();
 
-            let data = {
-                name: this.newAssessmentPeriod.name,
-                customId: this.newAssessmentPeriod.id
-            }
             //Clear role information
-            this.newAssessmentPeriod = {
-                name: '',
-                id: ''
-            }
+            // this.newAssessmentPeriod = new AssessmentPeriod();
+
             try {
-                let request = await axios.post(route('api.roles.index'), data);
-                this.createAssessmentPeriodDialog = false;
-                this.snackbar.text = request.data.message;
-                this.snackbar.status = true;
+                let request = await axios.post(route('api.assessmentPeriods.store'), data);
+                this.createOrEditDialog.dialogStatus = false;
+                showSnackbar(this.snackbar, request.data.message, 'success', 2000);
                 this.getAllAssessmentPeriods();
             } catch (e) {
-                this.snackbar.text = e.response.data.message;
-                this.snackbar.status = true;
+                showSnackbar(this.snackbar, e.response.data.message, 'alert', 3000);
             }
-
         }
     },
 

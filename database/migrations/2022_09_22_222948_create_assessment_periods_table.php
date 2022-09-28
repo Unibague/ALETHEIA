@@ -26,8 +26,8 @@ class CreateAssessmentPeriodsTable extends Migration
             $table->boolean('done_by_auxiliary');
             $table->boolean('done_by_assistant');
             $table->boolean('done_by_associated');
-            $table->boolean('head_teacher');
-            $table->boolean('active');
+            $table->boolean('done_by_head_teacher');
+            $table->boolean('active')->default(0);
             $table->timestamps();
 
         });

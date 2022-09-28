@@ -12,7 +12,7 @@ const prepareErrorText = (e) => {
 }
 const checkIfModelHasEmptyProperties = (model) => {
     for (const modelKey in model) {
-        if (model[modelKey] === '' || model[modelKey] === undefined) {
+        if ((model[modelKey] === '' || model[modelKey] === undefined) && model.dataStructure[modelKey] === 'required') {
             return true;
         }
     }
@@ -24,14 +24,28 @@ const clearModelProperties = (model, setNull = false) => {
     }
 }
 
-const showSnackbar = (snackbar, text, color = 'green', timeout = 3000) => {
-    snackbar.color = color;
+const showSnackbar = (snackbar, text, type = 'success', timeout = 3000) => {
+
+    snackbar.type = type;
     snackbar.timeout = timeout;
     snackbar.status = true;
     snackbar.text = text;
 }
 
-const toObject = (object) => {
-    console.log(Object.keys(object));
+const toObjectRequest = (model) => {
+    const skipKeys = ['dataStructure'];
+    let object = {};
+    for (const modelKey in model) {
+        if (skipKeys.includes(modelKey)) continue;
+
+        object[camelToUnderscore(modelKey)] = model[modelKey];
+    }
+    return object;
 }
-export {prepareErrorText, checkIfModelHasEmptyProperties, clearModelProperties, showSnackbar}
+
+const camelToUnderscore = (key) => {
+    let result = key.replace(/([A-Z])/g, " $1");
+    return result.split(' ').join('_').toLowerCase();
+}
+
+export {prepareErrorText, checkIfModelHasEmptyProperties, clearModelProperties, showSnackbar, toObjectRequest}

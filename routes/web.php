@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+
 /*
 |--------------------------------------------------------------------------
 | Generic Routes
@@ -23,7 +24,7 @@ Route::inertia('/assessmentPeriods', 'AssessmentPeriods/Index')->middleware(['au
 Route::resource('api/assessmentPeriods', \App\Http\Controllers\AssessmentPeriodController::class, [
     'as' => 'api'
 ])->middleware('auth');
-
+Route::post('/api/assessmentPeriods/{assessmentPeriod}/setActive', [\App\Http\Controllers\AssessmentPeriodController::class, 'setActive'])->middleware(['auth', 'isAdmin'])->name('api.assessmentPeriods.setActive');
 
 
 /* >>>>>Roles routes <<<<<< */
