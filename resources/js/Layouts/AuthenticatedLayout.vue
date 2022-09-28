@@ -256,7 +256,7 @@ export default {
                     },
                     {
                         name: 'Periodos académicos',
-                        href: route('users.index'),
+                        href: route('academicPeriods.index.view'),
                         role: 10,
                         icon: 'mdi-account-cog'
                     },

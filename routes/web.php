@@ -27,6 +27,15 @@ Route::resource('api/assessmentPeriods', \App\Http\Controllers\AssessmentPeriodC
 Route::post('/api/assessmentPeriods/{assessmentPeriod}/setActive', [\App\Http\Controllers\AssessmentPeriodController::class, 'setActive'])->middleware(['auth', 'isAdmin'])->name('api.assessmentPeriods.setActive');
 
 
+/* >>>>>Academic Periods routes <<<<<< */
+Route::inertia('/academicPeriods', 'AcademicPeriods/Index')->middleware(['auth', 'isAdmin'])->name('academicPeriods.index.view');
+Route::resource('api/academicPeriods', \App\Http\Controllers\AcademicPeriodController::class, [
+    'as' => 'api'
+])->middleware('auth');
+
+Route::post('/api/academicPeriods/sync', [\App\Http\Controllers\AcademicPeriodController::class, 'sync'])->middleware(['auth'])->name('api.academicPeriods.sync');
+
+
 /* >>>>>Roles routes <<<<<< */
 //Get all roles
 Route::get('/roles', [\App\Http\Controllers\Roles\RoleController::class, 'index'])->middleware(['auth', 'isAdmin'])->name('roles.index');

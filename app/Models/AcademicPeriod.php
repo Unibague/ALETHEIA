@@ -39,18 +39,35 @@ use Illuminate\Database\Eloquent\Model;
  */
 class AcademicPeriod extends Model
 {
+
+    protected $guarded = [];
     use HasFactory;
+
     public function assessmentPeriod(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(AssessmentPeriod::class);
     }
+
     public function groups(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(Group::class);
     }
+
     public function forms(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(Form::class);
+    }
+
+    public static function createFakePeriods(): void
+    {
+        $academicPeriods = ['2022A', '2022B'];
+
+        $allPeriods = self::all()->count();
+        if ($allPeriods === 0) {
+            foreach ($academicPeriods as $academicPeriod) {
+                (new \Database\Seeders\AcademicPeriodSeeder)->run($academicPeriod);
+            }
+        }
     }
 
 }

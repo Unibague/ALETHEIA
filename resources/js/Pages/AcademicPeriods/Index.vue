@@ -5,14 +5,14 @@
 
         <v-container>
             <div class="d-flex flex-column align-end mb-8">
-                <h2 class="align-self-start">Gestionar periodos de evaluación</h2>
+                <h2 class="align-self-start">Sincronizar periodos académicos</h2>
                 <div>
                     <v-btn
                         color="primario"
                         class="grey--text text--lighten-4"
-                        @click="setAssessmentPeriodDialogToCreateOrEdit('create')"
+                        @click="syncPeriods"
                     >
-                        Crear nuevo periodo
+                        Sincronizar periodos
                     </v-btn>
 
 
@@ -33,21 +33,9 @@
                 <template v-slot:item.actions="{ item }">
                     <v-icon
                         class="mr-2 primario--text"
-                        @click="setAssessmentPeriodDialogToCreateOrEdit('edit',item)"
+                        @click="setAcademicPeriodDialogToCreateOrEdit('edit',item)"
                     >
                         mdi-pencil
-                    </v-icon>
-                    <v-icon
-                        class="primario--text"
-                        @click="confirmDeleteAssessmentPeriod(item)"
-                    >
-                        mdi-delete
-                    </v-icon>
-                    <v-icon v-if="!(item.active)"
-                            class="mr-2 primario--text"
-                            @click="setAssessmentPeriodAsActive(item.id)"
-                    >
-                        mdi-cursor-default-click
                     </v-icon>
                 </template>
             </v-data-table>
@@ -55,7 +43,7 @@
 
             <!------------Seccion de dialogos ---------->
 
-            <!--Crear o editar assessmentPeriod -->
+            <!--Crear o editar academicPeriod -->
             <v-dialog
                 v-model="createOrEditDialog.dialogStatus"
                 persistent
@@ -175,9 +163,9 @@
 
             <!--Confirmar borrar rol-->
             <confirm-dialog
-                :show="deleteAssessmentPeriodDialog"
-                @canceled-dialog="deleteAssessmentPeriodDialog = false"
-                @confirmed-dialog="deleteAssessmentPeriod(deletedAssessmentPeriodId)"
+                :show="deleteAcademicPeriodDialog"
+                @canceled-dialog="deleteAcademicPeriodDialog = false"
+                @confirmed-dialog="deleteAcademicPeriod(deletedAcademicPeriodId)"
             >
                 <template v-slot:title>
                     Estas a punto de eliminar el rol seleccionado
@@ -200,7 +188,7 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import {InertiaLink} from "@inertiajs/inertia-vue";
 import {prepareErrorText, showSnackbar} from "@/HelperFunctions"
 import ConfirmDialog from "@/Components/ConfirmDialog";
-import AssessmentPeriod from "@/models/AssessmentPeriod";
+import AcademicPeriod from "@/models/AcademicPeriod";
 import Snackbar from "@/Components/Snackbar";
 
 export default {
@@ -214,25 +202,19 @@ export default {
         return {
             //Table info
             headers: [
-                {text: 'Nombre del periodo', value: 'name'},
-                {text: 'Fecha de inicio autoevaluación', value: 'self_start_date'},
-                {text: 'Fecha de fin autoevaluación', value: 'self_end_date'},
-                {text: 'Fecha de inicio par', value: 'colleague_start_date'},
-                {text: 'Fecha de fin par', value: 'colleague_end_date'},
-                {text: 'Fecha de inicio jefe', value: 'boss_start_date'},
-                {text: 'Fecha de fin jefe', value: 'boss_start_date'},
-                {text: 'sin escalafón', value: 'done_by_none', sortable: false},
-                {text: 'Auxiliar', value: 'done_by_none', sortable: false},
-                {text: 'Asistente', value: 'done_by_assistant', sortable: false},
-                {text: 'Asociado', value: 'done_by_associated', sortable: false},
-                {text: 'Titular', value: 'done_by_head_teacher', sortable: false},
+                {text: 'Nombre del periodo académico', value: 'name'},
+                {text: 'Periodo de evaluación', value: 'assessment_period.name'},
+                {text: 'Fecha de inicio autoevaluación', value: 'class_start_date'},
+                {text: 'Fecha de fin autoevaluación', value: 'class_end_date'},
+                {text: 'Fecha de inicio autoevaluación', value: 'students_start_date'},
+                {text: 'Fecha de fin autoevaluación', value: 'students_end_date'},
                 {text: 'Acciones', value: 'actions', sortable: false},
             ],
             roles: [],
-            //AssessmentPeriods models
-            newAssessmentPeriod: new AssessmentPeriod(),
-            editedAssessmentPeriod: new AssessmentPeriod(),
-            deletedAssessmentPeriodId: 0,
+            //AcademicPeriods models
+            newAcademicPeriod: new AcademicPeriod(),
+            editedAcademicPeriod: new AcademicPeriod(),
+            deletedAcademicPeriodId: 0,
             //Snackbars
             snackbar: {
                 text: "",
@@ -241,108 +223,108 @@ export default {
                 timeout: 2000,
             },
             //Dialogs
-            deleteAssessmentPeriodDialog: false,
+            deleteAcademicPeriodDialog: false,
             createOrEditDialog: {
-                model: 'newAssessmentPeriod',
-                method: 'createAssessmentPeriod',
+                model: 'newAcademicPeriod',
+                method: 'createAcademicPeriod',
                 dialogStatus: false,
             },
             isLoading: true,
         }
     },
     async created() {
-        await this.getAllAssessmentPeriods();
+        await this.getAllAcademicPeriods();
         this.isLoading = false;
     },
 
     methods: {
-        setAssessmentPeriodAsActive: async function (assessmentPeriodId) {
+        syncPeriods: async function () {
             try {
-                let request = await axios.post(route('api.assessmentPeriods.setActive', {'assessmentPeriod': assessmentPeriodId}));
-                this.createOrEditDialog.dialogStatus = false;
+                let request = await axios.post(route('api.academicPeriods.sync'));
                 showSnackbar(this.snackbar, request.data.message, 'success');
-                this.getAllAssessmentPeriods();
+                this.getAllAcademicPeriods();
+
+                //Clear role information
+                this.editedAcademicPeriod = new AcademicPeriod();
             } catch (e) {
                 showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
             }
         },
-        getRowColor: function (item) {
-            return item.active ? 'green lighten-5' : '';
-        },
+
         handleSelectedMethod: function () {
             this[this.createOrEditDialog.method]();
         },
-        editAssessmentPeriod: async function () {
+        editAcademicPeriod: async function () {
             //Verify request
-            if (this.editedAssessmentPeriod.hasEmptyProperties()) {
-                showSnackbar(this.snackbar, 'Debes diligenciar todos los campos obligatorios', 'red', 2000);
+            if (this.editedAcademicPeriod.hasEmptyProperties()) {
+                showSnackbar(this.snackbar, 'Debes diligenciar todos los campos obligatorios', 'alert', 2000);
                 return;
             }
             //Recollect information
-            let data = this.editedAssessmentPeriod.toObjectRequest();
+            let data = this.editedAcademicPeriod.toObjectRequest();
 
             try {
-                let request = await axios.patch(route('api.assessmentPeriods.update', {'assessmentPeriod': this.editedAssessmentPeriod.id}), data);
+                let request = await axios.patch(route('api.academicPeriods.update', {'academicPeriod': this.editedAcademicPeriod.id}), data);
                 this.createOrEditDialog.dialogStatus = false;
                 showSnackbar(this.snackbar, request.data.message, 'success');
-                this.getAllAssessmentPeriods();
+                this.getAllAcademicPeriods();
 
                 //Clear role information
-                this.editedAssessmentPeriod = new AssessmentPeriod();
+                this.editedAcademicPeriod = new AcademicPeriod();
             } catch (e) {
                 showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
             }
         },
 
-        confirmDeleteAssessmentPeriod: function (role) {
-            this.deletedAssessmentPeriodId = role.id;
-            this.deleteAssessmentPeriodDialog = true;
+        confirmDeleteAcademicPeriod: function (role) {
+            this.deletedAcademicPeriodId = role.id;
+            this.deleteAcademicPeriodDialog = true;
         },
-        deleteAssessmentPeriod: async function (assessmentPeriodId) {
+        deleteAcademicPeriod: async function (academicPeriodId) {
             try {
-                let request = await axios.delete(route('api.assessmentPeriods.destroy', {assessmentPeriod: assessmentPeriodId}));
-                this.deleteAssessmentPeriodDialog = false;
+                let request = await axios.delete(route('api.academicPeriods.destroy', {academicPeriod: academicPeriodId}));
+                this.deleteAcademicPeriodDialog = false;
                 showSnackbar(this.snackbar, request.data.message, 'success');
-                this.getAllAssessmentPeriods();
+                this.getAllAcademicPeriods();
             } catch (e) {
                 showSnackbar(this.snackbar, e.response.data.message, 'red', 3000);
             }
 
         },
-        getAllAssessmentPeriods: async function () {
-            let request = await axios.get(route('api.assessmentPeriods.index'));
+        getAllAcademicPeriods: async function () {
+            let request = await axios.get(route('api.academicPeriods.index'));
             this.roles = request.data;
         },
-        setAssessmentPeriodDialogToCreateOrEdit(which, item = null) {
+        setAcademicPeriodDialogToCreateOrEdit(which, item = null) {
             if (which === 'create') {
-                this.createOrEditDialog.method = 'createAssessmentPeriod';
-                this.createOrEditDialog.model = 'newAssessmentPeriod';
+                this.createOrEditDialog.method = 'createAcademicPeriod';
+                this.createOrEditDialog.model = 'newAcademicPeriod';
                 this.createOrEditDialog.dialogStatus = true;
             }
 
             if (which === 'edit') {
-                this.editedAssessmentPeriod = AssessmentPeriod.fromModel(item);
-                this.createOrEditDialog.method = 'editAssessmentPeriod';
-                this.createOrEditDialog.model = 'editedAssessmentPeriod';
+                this.editedAcademicPeriod = AcademicPeriod.fromModel(item);
+                this.createOrEditDialog.method = 'editAcademicPeriod';
+                this.createOrEditDialog.model = 'editedAcademicPeriod';
                 this.createOrEditDialog.dialogStatus = true;
             }
 
         },
-        createAssessmentPeriod: async function () {
-            if (this.newAssessmentPeriod.hasEmptyProperties()) {
+        createAcademicPeriod: async function () {
+            if (this.newAcademicPeriod.hasEmptyProperties()) {
                 showSnackbar(this.snackbar, 'Debes diligenciar todos los campos obligatorios', 'red', 2000);
                 return;
             }
-            let data = this.newAssessmentPeriod.toObjectRequest();
+            let data = this.newAcademicPeriod.toObjectRequest();
 
             //Clear role information
-            // this.newAssessmentPeriod = new AssessmentPeriod();
+            // this.newAcademicPeriod = new AcademicPeriod();
 
             try {
-                let request = await axios.post(route('api.assessmentPeriods.store'), data);
+                let request = await axios.post(route('api.academicPeriods.store'), data);
                 this.createOrEditDialog.dialogStatus = false;
                 showSnackbar(this.snackbar, request.data.message, 'success', 2000);
-                this.getAllAssessmentPeriods();
+                this.getAllAcademicPeriods();
             } catch (e) {
                 showSnackbar(this.snackbar, e.response.data.message, 'alert', 3000);
             }
