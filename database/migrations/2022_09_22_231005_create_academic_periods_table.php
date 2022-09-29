@@ -16,11 +16,11 @@ class CreateAcademicPeriodsTable extends Migration
         Schema::create('academic_periods', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->dateTime('class_start_date');
-            $table->dateTime('class_end_date');
-            $table->dateTime('students_start_date');
-            $table->dateTime('students_end_date');
-            $table->foreignId('assessment_period_id')->constrained();
+            $table->date('class_start_date');
+            $table->date('class_end_date');
+            $table->date('students_start_date')->nullable();
+            $table->date('students_end_date')->nullable();
+            $table->foreignId('assessment_period_id')->nullable()->constrained();
             $table->timestamps();
         });
     }

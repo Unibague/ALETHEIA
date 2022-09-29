@@ -25,7 +25,7 @@
                 loading-text="Cargando, por favor espere..."
                 :loading="isLoading"
                 :headers="headers"
-                :items="roles"
+                :items="assessmentPeriods"
                 :items-per-page="5"
                 class="elevation-1"
                 :item-class="getRowColor"
@@ -228,7 +228,7 @@ export default {
                 {text: 'Titular', value: 'done_by_head_teacher', sortable: false},
                 {text: 'Acciones', value: 'actions', sortable: false},
             ],
-            roles: [],
+            assessmentPeriods: [],
             //AssessmentPeriods models
             newAssessmentPeriod: new AssessmentPeriod(),
             editedAssessmentPeriod: new AssessmentPeriod(),
@@ -262,7 +262,6 @@ export default {
                 this.createOrEditDialog.dialogStatus = false;
                 showSnackbar(this.snackbar, request.data.message, 'success');
                 this.getAllAssessmentPeriods();
-
             } catch (e) {
                 showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
             }
@@ -312,7 +311,7 @@ export default {
         },
         getAllAssessmentPeriods: async function () {
             let request = await axios.get(route('api.assessmentPeriods.index'));
-            this.roles = request.data;
+            this.assessmentPeriods = request.data;
         },
         setAssessmentPeriodDialogToCreateOrEdit(which, item = null) {
             if (which === 'create') {

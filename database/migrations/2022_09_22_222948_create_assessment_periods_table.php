@@ -16,12 +16,12 @@ class CreateAssessmentPeriodsTable extends Migration
         Schema::create('assessment_periods', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->dateTime('self_start_date');
-            $table->dateTime('self_end_date');
-            $table->dateTime('boss_start_date');
-            $table->dateTime('boss_end_date');
-            $table->dateTime('colleague_start_date');
-            $table->dateTime('colleague_end_date');
+            $table->date('self_start_date');
+            $table->date('self_end_date');
+            $table->date('boss_start_date');
+            $table->date('boss_end_date');
+            $table->date('colleague_start_date');
+            $table->date('colleague_end_date');
             $table->boolean('done_by_none');
             $table->boolean('done_by_auxiliary');
             $table->boolean('done_by_assistant');
