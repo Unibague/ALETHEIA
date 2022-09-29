@@ -9,7 +9,7 @@ use App\Http\Requests\UpdateAssessmentPeriodRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 
-class AssessmentPeriodController extends Controller
+class  AssessmentPeriodController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -66,9 +66,9 @@ class AssessmentPeriodController extends Controller
      * @return Response
      */
     public function edit(AssessmentPeriod $assessmentPeriod)
-    {
-        //
-    }
+{
+
+}
 
     /**
      * Update the specified resource in storage.
