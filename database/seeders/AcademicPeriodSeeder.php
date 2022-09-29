@@ -10,6 +10,7 @@ class AcademicPeriodSeeder extends Seeder
     /**
      * Run the database seeds.
      *
+     * @param $name
      * @return void
      */
     public function run($name): void

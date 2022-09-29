@@ -49,35 +49,13 @@ class AssessmentPeriodController extends Controller
     }
 
     /**
-     * Display the specified resource.
-     *
-     * @param AssessmentPeriod $assessmentPeriod
-     * @return Response
-     */
-    public function show(AssessmentPeriod $assessmentPeriod)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param AssessmentPeriod $assessmentPeriod
-     * @return Response
-     */
-    public function edit(AssessmentPeriod $assessmentPeriod)
-    {
-        //
-    }
-
-    /**
      * Update the specified resource in storage.
      *
      * @param UpdateAssessmentPeriodRequest $request
      * @param AssessmentPeriod $assessmentPeriod
      * @return JsonResponse
      */
-    public function update(UpdateAssessmentPeriodRequest $request, AssessmentPeriod $assessmentPeriod)
+    public function update(UpdateAssessmentPeriodRequest $request, AssessmentPeriod $assessmentPeriod): JsonResponse
     {
         $assessmentPeriod->update($request->all());
         return response()->json(['message' => 'Periodo de evaluación actualizado exitosamente']);

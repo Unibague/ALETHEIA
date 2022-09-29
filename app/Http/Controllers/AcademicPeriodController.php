@@ -56,68 +56,15 @@ class AcademicPeriodController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     *
-     * @return Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param \App\Http\Requests\StoreAcademicPeriodRequest $request
-     * @return Response
-     */
-    public function store(StoreAcademicPeriodRequest $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param \App\Models\AcademicPeriod $academicPeriod
-     * @return Response
-     */
-    public function show(AcademicPeriod $academicPeriod)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param \App\Models\AcademicPeriod $academicPeriod
-     * @return Response
-     */
-    public function edit(AcademicPeriod $academicPeriod)
-    {
-        //
-    }
-
-    /**
      * Update the specified resource in storage.
      *
-     * @param \App\Http\Requests\UpdateAcademicPeriodRequest $request
-     * @param \App\Models\AcademicPeriod $academicPeriod
-     * @return Response
+     * @param UpdateAcademicPeriodRequest $request
+     * @param AcademicPeriod $academicPeriod
+     * @return JsonResponse
      */
-    public function update(UpdateAcademicPeriodRequest $request, AcademicPeriod $academicPeriod)
+    public function update(UpdateAcademicPeriodRequest $request, AcademicPeriod $academicPeriod): JsonResponse
     {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param \App\Models\AcademicPeriod $academicPeriod
-     * @return Response
-     */
-    public function destroy(AcademicPeriod $academicPeriod)
-    {
-        //
+        $academicPeriod->update($request->all());
+        return response()->json(['message' => 'El periodo ha sido actualizado exitosamente']);
     }
 }

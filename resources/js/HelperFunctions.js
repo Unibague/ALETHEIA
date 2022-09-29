@@ -12,7 +12,7 @@ const prepareErrorText = (e) => {
 }
 const checkIfModelHasEmptyProperties = (model) => {
     for (const modelKey in model) {
-        if ((model[modelKey] === '' || model[modelKey] === undefined) && model.dataStructure[modelKey] === 'required') {
+        if ((model[modelKey] === '' || model[modelKey] === undefined || model[modelKey] === null) && model.dataStructure[modelKey] === 'required') {
             return true;
         }
     }
