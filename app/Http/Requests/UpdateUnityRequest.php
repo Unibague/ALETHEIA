@@ -13,7 +13,8 @@ class UpdateUnityRequest extends FormRequest
      */
     public function authorize()
     {
-        return false;
+        $user = auth()->user();
+        return $user->hasRole('administrador');
     }
 
     /**
@@ -21,10 +22,15 @@ class UpdateUnityRequest extends FormRequest
      *
      * @return array
      */
-    public function rules()
+    public function rules(): array
     {
         return [
-            //
+            'id' => 'required|Integer',
+            'name' => 'required|String',
+            'code' => 'required|String',
+            'is_custom' => 'required|Boolean',
+            'assessment_period_id' => 'required|Integer',
+
         ];
     }
 }
