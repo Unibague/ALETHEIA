@@ -10,7 +10,7 @@
                     <v-btn
                         color="primario"
                         class="grey--text text--lighten-4"
-                        @click="syncPeriods"
+                        @click="setUnityDialogToCreateOrEdit('create')"
                     >
                         Crear nueva unidad
                     </v-btn>
@@ -27,11 +27,11 @@
                 class="elevation-1"
             >
                 <template v-slot:item.type="{ item }">
-                    {{item.is_custom ? 'Personalizada': 'Integración'}}
+                    {{ item.is_custom ? 'Personalizada' : 'Integración' }}
                 </template>
 
                 <template v-slot:item.users="{ item }">
-                    {{item.is_custom ? 'Personalizada': 'Integración'}}
+                    {{ item.users.length }}
                 </template>
 
                 <template v-slot:item.actions="{ item }">
@@ -57,38 +57,17 @@
                     <v-card-title>
                         <span>
                         </span>
-                        <span class="text-h5">Editar periodo académico</span>
+                        <span class="text-h5">Crear/editar unidad</span>
                     </v-card-title>
                     <v-card-text>
                         <v-container>
                             <v-row>
-                                <v-col cols="12" :md="6" class="d-flex flex-column">
-                                    <span class="subtitle-1">
-                                        Fecha de inicio de evaluación de estudiantes *
-                                    </span>
-                                    <v-date-picker v-model="$data[createOrEditDialog.model].studentsStartDate" full-width>
-                                    </v-date-picker>
-                                </v-col>
-                                <v-col cols="12" :md="6" class="d-flex flex-column">
-                                    <span class="subtitle-1">
-                                        Fecha de finalización de evaluación de estudiantes *
-                                    </span>
-                                    <v-date-picker v-model="$data[createOrEditDialog.model].studentsEndDate" full-width>
-                                    </v-date-picker>
-                                </v-col>
-
-                                <v-col cols="12" class="d-flex flex-column">
-                                    <span class="subtitle-1">
-                                        Periodo de evaluación al que pertenece
-                                    </span>
-                                    <v-select
-                                        color="primario"
-                                        v-model="$data[createOrEditDialog.model].assessmentPeriodId"
-                                        :items="assessmentPeriods"
-                                        label="Selecciona un periodo de evaluación"
-                                        :item-value="(assessmentPeriod)=>assessmentPeriod.id"
-                                        :item-text="(assessmentPeriod)=>assessmentPeriod.name"
-                                    ></v-select>
+                                <v-col cols="12">
+                                    <v-text-field
+                                        label="Nombre de la unidad"
+                                        required
+                                        v-model="$data[createOrEditDialog.model].name"
+                                    ></v-text-field>
                                 </v-col>
                             </v-row>
                         </v-container>
@@ -165,45 +144,28 @@ export default {
         }
     },
     async created() {
-        await this.getAllAssessmentPeriods();
-        await this.getAllUnitys();
+        await this.getAllUnities();
         this.isLoading = false;
     },
 
     methods: {
-        getAllAssessmentPeriods: async function () {
-            let request = await axios.get(route('api.assessmentPeriods.index'));
-            this.assessmentPeriods = request.data;
-        },
-        syncPeriods: async function () {
-            try {
-                let request = await axios.post(route('api.unities.sync'));
-                showSnackbar(this.snackbar, request.data.message, 'success');
-                this.getAllUnitys();
-            } catch (e) {
-                showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
-            }
-        },
 
         handleSelectedMethod: function () {
             this[this.createOrEditDialog.method]();
         },
         editUnity: async function () {
-            console.log(this.editedUnity);
             //Verify request
             if (this.editedUnity.hasEmptyProperties()) {
                 showSnackbar(this.snackbar, 'Debes diligenciar todos los campos obligatorios', 'alert', 2000);
                 return;
             }
-            //Recollect information
             let data = this.editedUnity.toObjectRequest();
             console.log(data);
             try {
                 let request = await axios.patch(route('api.unities.update', {'unity': this.editedUnity.id}), data);
                 this.createOrEditDialog.dialogStatus = false;
                 showSnackbar(this.snackbar, request.data.message, 'success');
-                this.getAllUnitys();
-
+                this.getAllUnities();
                 //Clear role information
                 this.editedUnity = new Unity();
             } catch (e) {
@@ -211,11 +173,34 @@ export default {
             }
         },
 
-        getAllUnitys: async function () {
+        createUnity: async function () {
+            if (this.newUnity.hasEmptyProperties()) {
+                showSnackbar(this.snackbar, 'Debes diligenciar todos los campos obligatorios', 'red', 2000);
+                return;
+            }
+            let data = this.newUnity.toObjectRequest();
+
+            try {
+                let request = await axios.post(route('api.unities.store'), data);
+                this.createOrEditDialog.dialogStatus = false;
+                showSnackbar(this.snackbar, request.data.message, 'success', 2000);
+                this.getAllUnities();
+                this.newUnity = new Unity();
+            } catch (e) {
+                showSnackbar(this.snackbar, e.response.data.message, 'alert', 3000);
+            }
+        },
+
+        getAllUnities: async function () {
             let request = await axios.get(route('api.unities.index'));
             this.unities = request.data;
         },
         setUnityDialogToCreateOrEdit(which, item = null) {
+            if (which === 'create') {
+                this.createOrEditDialog.method = 'createUnity';
+                this.createOrEditDialog.model = 'newUnity';
+                this.createOrEditDialog.dialogStatus = true;
+            }
             if (which === 'edit') {
                 this.editedUnity = Unity.fromModel(item);
                 this.createOrEditDialog.method = 'editUnity';

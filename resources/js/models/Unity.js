@@ -23,9 +23,9 @@ export default class Unity {
         this.dataStructure = {
             id: null,
             name: 'required',
-            code: 'required',
-            isCustom: 'required',
-            assessmentPeriodId: 'required',
+            code: null,
+            isCustom: null,
+            assessmentPeriodId: null,
         }
     }
 }

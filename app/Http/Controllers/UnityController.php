@@ -80,8 +80,8 @@ class UnityController extends Controller
         if ($unity->is_custom == 1) {
             $unity->delete();
             return response()->json(['message' => 'Unidad eliminada correctamente']);
-        } else {
-            return response()->json(['message' => 'No se ha podido eliminar, la unidad no es personalizada'], 400);
         }
+
+        return response()->json(['message' => 'No se ha podido eliminar, la unidad no es personalizada'], 400);
     }
 }
