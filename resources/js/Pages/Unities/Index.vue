@@ -5,14 +5,14 @@
 
         <v-container>
             <div class="d-flex flex-column align-end mb-8">
-                <h2 class="align-self-start">Sincronizar periodos académicos</h2>
+                <h2 class="align-self-start">Gestionar unidades</h2>
                 <div>
                     <v-btn
                         color="primario"
                         class="grey--text text--lighten-4"
                         @click="syncPeriods"
                     >
-                        Sincronizar periodos
+                        Crear nueva unidad
                     </v-btn>
                 </div>
             </div>
@@ -22,16 +22,24 @@
                 loading-text="Cargando, por favor espere..."
                 :loading="isLoading"
                 :headers="headers"
-                :items="academicPeriods"
-                :items-per-page="20"
+                :items="unities"
+                :items-per-page="5"
                 class="elevation-1"
             >
+                <template v-slot:item.type="{ item }">
+                    {{item.is_custom ? 'Personalizada': 'Integración'}}
+                </template>
+
+                <template v-slot:item.users="{ item }">
+                    {{item.is_custom ? 'Personalizada': 'Integración'}}
+                </template>
+
                 <template v-slot:item.actions="{ item }">
                     <v-icon
                         class="mr-2 primario--text"
-                        @click="setAcademicPeriodDialogToCreateOrEdit('edit',item)"
+                        @click="setUnityDialogToCreateOrEdit('edit',item)"
                     >
-                        mdi-pencil
+                        mdi-account-group
                     </v-icon>
                 </template>
             </v-data-table>
@@ -39,7 +47,7 @@
 
             <!------------Seccion de dialogos ---------->
 
-            <!--Crear o editar academicPeriod -->
+            <!--Crear o editar unity -->
             <v-dialog
                 v-model="createOrEditDialog.dialogStatus"
                 persistent
@@ -114,7 +122,7 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import {InertiaLink} from "@inertiajs/inertia-vue";
 import {prepareErrorText, showSnackbar} from "@/HelperFunctions"
 import ConfirmDialog from "@/Components/ConfirmDialog";
-import AcademicPeriod from "@/models/AcademicPeriod";
+import Unity from "@/models/Unity";
 import Snackbar from "@/Components/Snackbar";
 
 export default {
@@ -128,20 +136,17 @@ export default {
         return {
             //Table info
             headers: [
-                {text: 'Nombre del periodo académico', value: 'name'},
-                {text: 'Periodo de evaluación', value: 'assessment_period.name'},
-                {text: 'Fecha de inicio clases', value: 'class_start_date'},
-                {text: 'Fecha de fin clases', value: 'class_end_date'},
-                {text: 'Fecha de inicio evaluación (estudiantes)', value: 'students_start_date'},
-                {text: 'Fecha de fin evaluación (estudiantes)', value: 'students_end_date'},
+                {text: 'Nombre', value: 'name'},
+                {text: 'Tipo de unidad', value: 'type'},
+                {text: 'Cantidad de docentes', value: 'users'},
                 {text: 'Acciones', value: 'actions', sortable: false},
             ],
             assessmentPeriods: [],
-            academicPeriods: [],
-            //AcademicPeriods models
-            newAcademicPeriod: new AcademicPeriod(),
-            editedAcademicPeriod: new AcademicPeriod(),
-            deletedAcademicPeriodId: 0,
+            unities: [],
+            //Unities models
+            newUnity: new Unity(),
+            editedUnity: new Unity(),
+            deletedUnityId: 0,
             //Snackbars
             snackbar: {
                 text: "",
@@ -150,10 +155,10 @@ export default {
                 timeout: 2000,
             },
             //Dialogs
-            deleteAcademicPeriodDialog: false,
+            deleteUnityDialog: false,
             createOrEditDialog: {
-                model: 'newAcademicPeriod',
-                method: 'createAcademicPeriod',
+                model: 'newUnity',
+                method: 'createUnity',
                 dialogStatus: false,
             },
             isLoading: true,
@@ -161,7 +166,7 @@ export default {
     },
     async created() {
         await this.getAllAssessmentPeriods();
-        await this.getAllAcademicPeriods();
+        await this.getAllUnitys();
         this.isLoading = false;
     },
 
@@ -172,9 +177,9 @@ export default {
         },
         syncPeriods: async function () {
             try {
-                let request = await axios.post(route('api.academicPeriods.sync'));
+                let request = await axios.post(route('api.unities.sync'));
                 showSnackbar(this.snackbar, request.data.message, 'success');
-                this.getAllAcademicPeriods();
+                this.getAllUnitys();
             } catch (e) {
                 showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
             }
@@ -183,38 +188,38 @@ export default {
         handleSelectedMethod: function () {
             this[this.createOrEditDialog.method]();
         },
-        editAcademicPeriod: async function () {
-            console.log(this.editedAcademicPeriod);
+        editUnity: async function () {
+            console.log(this.editedUnity);
             //Verify request
-            if (this.editedAcademicPeriod.hasEmptyProperties()) {
+            if (this.editedUnity.hasEmptyProperties()) {
                 showSnackbar(this.snackbar, 'Debes diligenciar todos los campos obligatorios', 'alert', 2000);
                 return;
             }
             //Recollect information
-            let data = this.editedAcademicPeriod.toObjectRequest();
+            let data = this.editedUnity.toObjectRequest();
             console.log(data);
             try {
-                let request = await axios.patch(route('api.academicPeriods.update', {'academicPeriod': this.editedAcademicPeriod.id}), data);
+                let request = await axios.patch(route('api.unities.update', {'unity': this.editedUnity.id}), data);
                 this.createOrEditDialog.dialogStatus = false;
                 showSnackbar(this.snackbar, request.data.message, 'success');
-                this.getAllAcademicPeriods();
+                this.getAllUnitys();
 
                 //Clear role information
-                this.editedAcademicPeriod = new AcademicPeriod();
+                this.editedUnity = new Unity();
             } catch (e) {
                 showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
             }
         },
 
-        getAllAcademicPeriods: async function () {
-            let request = await axios.get(route('api.academicPeriods.index'));
-            this.academicPeriods = request.data;
+        getAllUnitys: async function () {
+            let request = await axios.get(route('api.unities.index'));
+            this.unities = request.data;
         },
-        setAcademicPeriodDialogToCreateOrEdit(which, item = null) {
+        setUnityDialogToCreateOrEdit(which, item = null) {
             if (which === 'edit') {
-                this.editedAcademicPeriod = AcademicPeriod.fromModel(item);
-                this.createOrEditDialog.method = 'editAcademicPeriod';
-                this.createOrEditDialog.model = 'editedAcademicPeriod';
+                this.editedUnity = Unity.fromModel(item);
+                this.createOrEditDialog.method = 'editUnity';
+                this.createOrEditDialog.model = 'editedUnity';
                 this.createOrEditDialog.dialogStatus = true;
             }
         },

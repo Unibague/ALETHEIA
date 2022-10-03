@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Unity;
 use App\Http\Requests\StoreUnityRequest;
 use App\Http\Requests\UpdateUnityRequest;
+use Database\Seeders\UnitySeeder;
 use Illuminate\Http\JsonResponse;
 
 class UnityController extends Controller
@@ -16,14 +17,20 @@ class UnityController extends Controller
      */
     public function index(): JsonResponse
     {
-        return response()->json(Unity::all());
+        return response()->json(Unity::with('users')->get());
+    }
+
+    public function createFakeUnities(): string
+    {
+        (new \Database\Seeders\UnitySeeder)->run();
+        return 'Fake unity created';
     }
 
 
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \App\Http\Requests\StoreUnityRequest  $request
+     * @param \App\Http\Requests\StoreUnityRequest $request
      * @return \Illuminate\Http\Response
      */
     public function store(StoreUnityRequest $request)
@@ -34,7 +41,7 @@ class UnityController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\Unity  $unity
+     * @param \App\Models\Unity $unity
      * @return \Illuminate\Http\Response
      */
     public function show(Unity $unity)
@@ -45,8 +52,8 @@ class UnityController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \App\Http\Requests\UpdateUnityRequest  $request
-     * @param  \App\Models\Unity  $unity
+     * @param \App\Http\Requests\UpdateUnityRequest $request
+     * @param \App\Models\Unity $unity
      * @return \Illuminate\Http\Response
      */
     public function update(UpdateUnityRequest $request, Unity $unity)
@@ -57,7 +64,7 @@ class UnityController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Unity  $unity
+     * @param \App\Models\Unity $unity
      * @return \Illuminate\Http\Response
      */
     public function destroy(Unity $unity)

@@ -8,28 +8,30 @@ use App\Http\Requests\UpdateAcademicPeriodRequest;
 use Database\Seeders\AcademicPeriodSeeder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
+use JsonException;
+use Ospina\CurlCobain\CurlCobain;
 
 class AcademicPeriodController extends Controller
 {
 
+    /**
+     * @throws \JsonException
+     */
     public function sync()
     {
-        //TODO:Erase this, temporary create fake periods
-        AcademicPeriod::createFakePeriods();
-
-        //TODO: Make request and store in $academicPeriods
-        $academicPeriods = [
-            (object)[
-                'name' => '2022A',
-                'class_start_date' => '2022-02-01',
-                'class_end_date' => '2022-02-01',
-            ],
-            (object)[
-                'name' => '2022B',
-                'class_start_date' => '2022-02-01',
-                'class_end_date' => '2022-02-01',
-            ],
-        ];
+        $url = 'http://integra.unibague.edu.co/academicPeriods';
+        $curl = new CurlCobain($url);
+        $curl->setQueryParamsAsArray([
+            'year' => '23',
+            'api_token' => env('MIDDLEWARE_API_TOKEN')
+        ]);
+        $curl->setQueryParam('year', '23');
+        $request = $curl->makeRequest();
+        try {
+            $academicPeriods = json_decode($request, false, 512, JSON_THROW_ON_ERROR);
+        } catch (JsonException $e) {
+            return response()->json(['message' => 'Ha ocurrido un error con la fuente de datos']);
+        }
 
         //Iterate over received data and create the academic period
         foreach ($academicPeriods as $academicPeriod) {

@@ -262,7 +262,7 @@ export default {
                     },
                     {
                         name: 'Unidades',
-                        href: route('users.index'),
+                        href: route('unities.index.view'),
                         role: 10,
                         icon: 'mdi-account-cog'
                     },

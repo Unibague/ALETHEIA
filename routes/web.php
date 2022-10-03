@@ -32,9 +32,16 @@ Route::inertia('/academicPeriods', 'AcademicPeriods/Index')->middleware(['auth',
 Route::resource('api/academicPeriods', \App\Http\Controllers\AcademicPeriodController::class, [
     'as' => 'api'
 ])->middleware('auth');
-
+//Sync periods from SIGA
 Route::post('/api/academicPeriods/sync', [\App\Http\Controllers\AcademicPeriodController::class, 'sync'])->middleware(['auth'])->name('api.academicPeriods.sync');
 
+/* >>>>> Unities routes <<<<<< */
+Route::inertia('/unities', 'Unities/Index')->middleware(['auth', 'isAdmin'])->name('unities.index.view');
+//Create fake unites
+Route::get('/unities/fake', [\App\Http\Controllers\UnityController::class, 'createFakeUnities'])->middleware(['auth']);
+Route::resource('api/unities', \App\Http\Controllers\UnityController::class, [
+    'as' => 'api'
+])->middleware('auth');
 
 /* >>>>>Roles routes <<<<<< */
 //Get all roles

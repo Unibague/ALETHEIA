@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateUnityUsersTable extends Migration
+class CreateUnityUserTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,7 +13,7 @@ class CreateUnityUsersTable extends Migration
      */
     public function up()
     {
-        Schema::create('unity_users', function (Blueprint $table) {
+        Schema::create('unity_user', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained();
             $table->foreignId('unity_id')->constrained();
@@ -30,6 +30,6 @@ class CreateUnityUsersTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('unity_users');
+        Schema::dropIfExists('unity_user');
     }
 }

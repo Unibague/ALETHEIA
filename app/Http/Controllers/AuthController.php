@@ -59,9 +59,6 @@ class AuthController extends Controller
 
     public function pickRole()
     {
-        $user = Auth::user();
-        $roles = $user->roles;
-
         return Inertia::render('Auth/PickRole');
     }
 

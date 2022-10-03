@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -28,6 +29,7 @@ use Illuminate\Support\Facades\DB;
  */
 class Role extends Model
 {
+    public $timestamps = true;
     protected $guarded = [];
     use HasFactory;
 
@@ -65,7 +67,9 @@ class Role extends Model
         DB::table('role_user')->insert(
             [
                 'user_id' => $userId,
-                'role_id' => $roleId
+                'role_id' => $roleId,
+                'created_at' => Carbon::now()->toDateTimeString(),
+                'updated_at' => Carbon::now()->toDateTimeString(),
             ]
         );
     }

@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\AssessmentPeriod;
+use App\Models\Unity;
 use Illuminate\Database\Seeder;
 
 class UnitySeeder extends Seeder
@@ -11,8 +13,13 @@ class UnitySeeder extends Seeder
      *
      * @return void
      */
-    public function run()
+    public function run(): void
     {
-        //
+        Unity::create([
+            'name' => 'Facultad de Ingeniería',
+            'code' => 'FI',
+            'is_custom' => false,
+            'assessment_period_id' => AssessmentPeriod::getActiveAssessmentPeriod()->id
+        ]);
     }
 }

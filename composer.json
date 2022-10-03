@@ -18,7 +18,9 @@
         "laravel/sanctum": "^2.6",
         "laravel/socialite": "^5.5",
         "laravel/tinker": "^2.0",
-        "tightenco/ziggy": "^1.0"
+        "ospina/curlcobain": "^1.0",
+        "tightenco/ziggy": "^1.0",
+      "ext-json": "*"
     },
     "require-dev": {
         "barryvdh/laravel-ide-helper": "^2.12",

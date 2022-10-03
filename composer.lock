@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c22fe19e66a999d6d6651c700d00cee0",
+    "content-hash": "a02968e597cea057ca97df9bddb7e1a8",
     "packages": [
         {
             "name": "asm89/stack-cors",
@@ -2495,6 +2495,43 @@
                 "source": "https://github.com/opis/closure/tree/3.6.3"
             },
             "time": "2022-01-27T09:35:39+00:00"
+        },
+        {
+            "name": "ospina/curlcobain",
+            "version": "1.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/JSebastianOspina/CurlCobain.git",
+                "reference": "c8e4cddf8188e881983051670046bafba46d2360"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/JSebastianOspina/CurlCobain/zipball/c8e4cddf8188e881983051670046bafba46d2360",
+                "reference": "c8e4cddf8188e881983051670046bafba46d2360",
+                "shasum": ""
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Ospina\\CurlCobain\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Sebastian Ospina",
+                    "email": "sebastianospinacontacto@gmail.com"
+                }
+            ],
+            "description": "Easy Curl for everybody, forget about manual long curl configuration",
+            "support": {
+                "issues": "https://github.com/JSebastianOspina/CurlCobain/issues",
+                "source": "https://github.com/JSebastianOspina/CurlCobain/tree/1.0.1"
+            },
+            "time": "2022-08-11T04:03:02+00:00"
         },
         {
             "name": "paragonie/constant_time_encoding",
