@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Unity;
 use App\Http\Requests\StoreUnityRequest;
 use App\Http\Requests\UpdateUnityRequest;
 use Database\Seeders\UnitySeeder;
+use App\Models\AssessmentPeriod;
+use App\Models\Unity;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 
 class UnityController extends Controller
 {
@@ -31,7 +33,7 @@ class UnityController extends Controller
      * Store a newly created resource in storage.
      *
      * @param \App\Http\Requests\StoreUnityRequest $request
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function store(StoreUnityRequest $request)
     {
@@ -41,8 +43,9 @@ class UnityController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param \App\Models\Unity $unity
-     * @return \Illuminate\Http\Response
+
+     * @param Unity $unity
+     * @return Response
      */
     public function show(Unity $unity)
     {
@@ -52,23 +55,33 @@ class UnityController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param \App\Http\Requests\UpdateUnityRequest $request
-     * @param \App\Models\Unity $unity
-     * @return \Illuminate\Http\Response
+     * @param UpdateUnityRequest $request
+     * @param Unity $unity
+     * @return JsonResponse
      */
-    public function update(UpdateUnityRequest $request, Unity $unity)
+    public function update(UpdateUnityRequest $request, Unity $unity): JsonResponse
     {
-        //
+        $unity->update($request->all());
+        return response()->json(['message' => 'Unidad actualizadas correctamente']);
     }
 
+    public function edit(Unity $unity)
+    {
+
+    }
     /**
      * Remove the specified resource from storage.
      *
-     * @param \App\Models\Unity $unity
-     * @return \Illuminate\Http\Response
+     * @param Unity $unity
+     * @return JsonResponse
      */
-    public function destroy(Unity $unity)
+    public function destroy(Unity $unity): JsonResponse
     {
-        //
+        if ($unity->is_custom == 1) {
+            $unity->delete();
+            return response()->json(['message' => 'Unidad eliminada correctamente']);
+        } else {
+            return response()->json(['message' => 'No se ha podido eliminar, la unidad no es personalizada'], 400);
+        }
     }
 }
