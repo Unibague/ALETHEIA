@@ -274,7 +274,7 @@ export default {
                     },
                     {
                         name: 'Docentes',
-                        href: route('users.index'),
+                        href: route('teachers.index.view'),
                         role: 10,
                         icon: 'mdi-account-cog'
                     },

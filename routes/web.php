@@ -27,6 +27,7 @@ Route::resource('api/assessmentPeriods', \App\Http\Controllers\AssessmentPeriodC
 Route::post('/api/assessmentPeriods/{assessmentPeriod}/setActive', [\App\Http\Controllers\AssessmentPeriodController::class, 'setActive'])->middleware(['auth', 'isAdmin'])->name('api.assessmentPeriods.setActive');
 
 
+
 /* >>>>>Academic Periods routes <<<<<< */
 Route::inertia('/academicPeriods', 'AcademicPeriods/Index')->middleware(['auth', 'isAdmin'])->name('academicPeriods.index.view');
 Route::resource('api/academicPeriods', \App\Http\Controllers\AcademicPeriodController::class, [
@@ -35,6 +36,8 @@ Route::resource('api/academicPeriods', \App\Http\Controllers\AcademicPeriodContr
 //Sync periods from SIGA
 Route::post('/api/academicPeriods/sync', [\App\Http\Controllers\AcademicPeriodController::class, 'sync'])->middleware(['auth'])->name('api.academicPeriods.sync');
 
+
+
 /* >>>>> Unities routes <<<<<< */
 Route::inertia('/unities', 'Unities/Index')->middleware(['auth', 'isAdmin'])->name('unities.index.view');
 //Create fake unites
@@ -42,6 +45,18 @@ Route::get('/unities/fake', [\App\Http\Controllers\UnityController::class, 'crea
 Route::resource('api/unities', \App\Http\Controllers\UnityController::class, [
     'as' => 'api'
 ])->middleware('auth');
+
+
+/* >>>>> Unities routes <<<<<< */
+Route::inertia('/teachers', 'Teachers/Index')->middleware(['auth', 'isAdmin'])->name('teachers.index.view');
+//Create fake unites
+Route::get('/teachers/fake', [\App\Http\Controllers\UnityController::class, 'createFakeTeachers'])->middleware(['auth']);
+Route::resource('api/teachers', \App\Http\Controllers\UnityController::class, [
+    'as' => 'api'
+])->middleware('auth');
+
+
+
 
 /* >>>>>Roles routes <<<<<< */
 //Get all roles
