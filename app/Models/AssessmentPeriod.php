@@ -62,7 +62,7 @@ class AssessmentPeriod extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
+    protected $guarded = ['active'];
 
     public function academicPeriods(): \Illuminate\Database\Eloquent\Relations\HasMany
     {

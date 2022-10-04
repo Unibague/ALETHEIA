@@ -7,6 +7,7 @@ use App\Http\Requests\SetActiveAssessmentPeriodRequest;
 use App\Models\AssessmentPeriod;
 use App\Http\Requests\StoreAssessmentPeriodRequest;
 use App\Http\Requests\UpdateAssessmentPeriodRequest;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 
@@ -50,7 +51,6 @@ class  AssessmentPeriodController extends Controller
     }
 
     /**
-
      * Update the specified resource in storage.
      *
      * @param UpdateAssessmentPeriodRequest $request
@@ -70,9 +70,18 @@ class  AssessmentPeriodController extends Controller
      * @param AssessmentPeriod $assessmentPeriod
      * @return JsonResponse
      */
-    public function destroy( DestroyAssessmentPeriodRequest $request,AssessmentPeriod $assessmentPeriod): JsonResponse
+    public function destroy(DestroyAssessmentPeriodRequest $request, AssessmentPeriod $assessmentPeriod): JsonResponse
     {
-        $assessmentPeriod->delete();
+        if ($assessmentPeriod->active === 1) {
+            return response()->json(['message' => 'No se puede eliminar un periodo de evaluación activo'], 400);
+        }
+        try {
+            $assessmentPeriod->delete();
+        } catch (QueryException $e) {
+            if ($e->getCode() === "23000") {
+                return response()->json(['message' => 'No puedes eliminar un periodo de evaluación si este tiene periodos académicos asociados.'], 400);
+            }
+        }
         return response()->json(['message' => 'Periodo de evaluación eliminado exitosamente']);
 
     }
