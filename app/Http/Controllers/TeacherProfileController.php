@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\DestroyTeacherProfileRequest;
 use App\Models\TeacherProfile;
 use App\Http\Requests\StoreTeacherProfileRequest;
 use App\Http\Requests\UpdateTeacherProfileRequest;
@@ -79,7 +80,7 @@ class TeacherProfileController extends Controller
      * @param  \App\Models\TeacherProfile  $teacherProfile
      * @return \Illuminate\Http\Response
      */
-    public function destroy(TeacherProfile $teacherProfile)
+    public function destroy(DestroyTeacherProfileRequest $request,TeacherProfile $teacherProfile)
     {
         //
     }

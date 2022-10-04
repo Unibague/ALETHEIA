@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\DestroyFormRequest;
 use App\Models\Form;
 use App\Http\Requests\StoreFormRequest;
 use App\Http\Requests\UpdateFormRequest;
@@ -36,7 +37,7 @@ class FormController extends Controller
      */
     public function store(StoreFormRequest $request)
     {
-        //
+
     }
 
     /**
@@ -70,7 +71,7 @@ class FormController extends Controller
      */
     public function update(UpdateFormRequest $request, Form $form)
     {
-        //
+
     }
 
     /**
@@ -79,7 +80,7 @@ class FormController extends Controller
      * @param  \App\Models\Form  $form
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Form $form)
+    public function destroy(DestroyFormRequest $request,Form $form)
     {
         //
     }
