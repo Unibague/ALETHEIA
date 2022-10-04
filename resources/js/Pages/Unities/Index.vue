@@ -41,6 +41,15 @@
                     >
                         mdi-account-group
                     </v-icon>
+
+                    <v-icon
+                        v-if="item.is_custom"
+                        class="mr-2 primario--text"
+                        @click="confirmDeleteUnity(item)"
+                    >
+                        mdi-delete
+                    </v-icon>
+
                 </template>
             </v-data-table>
             <!--Acaba tabla-->
@@ -92,6 +101,22 @@
                     </v-card-actions>
                 </v-card>
             </v-dialog>
+
+            <confirm-dialog
+                :show="deleteUnityDialog"
+                @canceled-dialog="deleteUnityDialog = false"
+                @confirmed-dialog="deleteUnity(deletedUnityId)"
+            >
+                <template v-slot:title>
+                    Estas a punto de eliminar la unidad seleccionada
+                </template>
+
+                ¡Cuidado! esta acción es irreversible
+
+                <template v-slot:confirm-button-text>
+                    Borrar
+                </template>
+            </confirm-dialog>
         </v-container>
     </AuthenticatedLayout>
 </template>
@@ -149,7 +174,22 @@ export default {
     },
 
     methods: {
+        confirmDeleteUnity: function (unity) {
+            this.deletedUnityId = unity.id;
+            this.deleteUnityDialog = true;
+        },
+        deleteUnity: async function (unityId) {
+            console.log(unityId)
+            try {
+                let request = await axios.delete(route('api.unities.destroy', {unity: unityId}));
+                this.deleteUnityDialog = false;
+                showSnackbar(this.snackbar, request.data.message, 'success');
+                this.getAllUnities();
+            } catch (e) {
+                showSnackbar(this.snackbar, e.response.data.message, 'red', 3000);
+            }
 
+        },
         handleSelectedMethod: function () {
             this[this.createOrEditDialog.method]();
         },

@@ -32,18 +32,26 @@ class UnityController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param \App\Http\Requests\StoreUnityRequest $request
-     * @return Response
+     * @param StoreUnityRequest $request
+     * @return JsonResponse
      */
-    public function store(StoreUnityRequest $request)
+    public function store(StoreUnityRequest $request): JsonResponse
     {
-        //
+        Unity::create([
+            'name' => $request->input('name'),
+            'code' => 'custom-' . $request->input('name'),
+            'is_custom' => 1,
+            'assessment_period_id' => AssessmentPeriod::getActiveAssessmentPeriod()->id
+        ]);
+
+        return response()->json(['message' => 'Unidad creada exitosamente']);
+
+
     }
 
     /**
      * Display the specified resource.
      *
-
      * @param Unity $unity
      * @return Response
      */
@@ -69,6 +77,7 @@ class UnityController extends Controller
     {
 
     }
+
     /**
      * Remove the specified resource from storage.
      *
@@ -77,11 +86,10 @@ class UnityController extends Controller
      */
     public function destroy(Unity $unity): JsonResponse
     {
-        if ($unity->is_custom == 1) {
+        if ($unity->is_custom === 1) {
             $unity->delete();
-            return response()->json(['message' => 'Unidad eliminada correctamente']);
+            return response()->json(['message' => 'Unidad eliminada exitosamente']);
         }
-
         return response()->json(['message' => 'No se ha podido eliminar, la unidad no es personalizada'], 400);
     }
 }
