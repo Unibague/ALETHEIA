@@ -25,7 +25,19 @@ class UpdateAssessmentPeriodRequest extends FormRequest
     public function rules()
     {
         return [
-            //
+            'name' => 'required|String',
+            'self_start_date' => 'required|Date',
+            'self_end_date' => 'required|Date',
+            'boss_start_date' => 'required|Date',
+            'boss_end_date' => 'required|Date',
+            'done_by_name' => 'required|Boolean',
+            'done_by_auxiliary' => 'required|Boolean',
+            'done_by_assistant' => 'required|Boolean',
+            'done_by_associated' => 'required|Boolean',
+            'done_by_head_teacher' => 'required|Boolean',
+            'active' => 'required|Boolean',
+            'colleague_start_date' => 'required|Date',
+            'colleague_end_date' => 'required|Date',
         ];
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\DestroyServiceAreaRequest;
 use App\Models\ServiceArea;
 use App\Http\Requests\StoreServiceAreaRequest;
 use App\Http\Requests\UpdateServiceAreaRequest;
@@ -79,7 +80,7 @@ class ServiceAreaController extends Controller
      * @param  \App\Models\ServiceArea  $serviceArea
      * @return \Illuminate\Http\Response
      */
-    public function destroy(ServiceArea $serviceArea)
+    public function destroy(DestroyServiceAreaRequest $request,ServiceArea $assessmentPeriod)
     {
         //
     }

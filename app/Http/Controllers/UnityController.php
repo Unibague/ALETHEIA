@@ -84,7 +84,9 @@ class UnityController extends Controller
      * @param Unity $unity
      * @return JsonResponse
      */
+
     public function destroy(DestroyUnityRequest $request, Unity $unity): JsonResponse
+
     {
         if ($unity->is_custom === 1) {
             $unity->delete();
