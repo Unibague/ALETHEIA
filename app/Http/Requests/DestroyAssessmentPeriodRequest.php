@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateAcademicPeriodRequest extends FormRequest
+class DestroyAssessmentPeriodRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,9 +25,7 @@ class UpdateAcademicPeriodRequest extends FormRequest
     public function rules()
     {
         return [
-            'students_start_date' => 'required|Date',
-            'students_end_data' => 'required|Date',
-            'assessment_period_id' => 'required|Integer',
+            //
         ];
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\DestroyUnityRequest;
 use App\Http\Requests\StoreUnityRequest;
 use App\Http\Requests\UpdateUnityRequest;
 use Database\Seeders\UnitySeeder;
@@ -84,7 +85,7 @@ class UnityController extends Controller
      * @param Unity $unity
      * @return JsonResponse
      */
-    public function destroy(Unity $unity): JsonResponse
+    public function destroy( DestroyUnityRequest $request,Unity $unity): JsonResponse
     {
         if ($unity->is_custom === 1) {
             $unity->delete();

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\DestroyAssessmentPeriodRequest;
 use App\Http\Requests\SetActiveAssessmentPeriodRequest;
 use App\Models\AssessmentPeriod;
 use App\Http\Requests\StoreAssessmentPeriodRequest;
@@ -69,7 +70,7 @@ class  AssessmentPeriodController extends Controller
      * @param AssessmentPeriod $assessmentPeriod
      * @return JsonResponse
      */
-    public function destroy(AssessmentPeriod $assessmentPeriod): JsonResponse
+    public function destroy( DestroyAssessmentPeriodRequest $request,AssessmentPeriod $assessmentPeriod): JsonResponse
     {
         $assessmentPeriod->delete();
         return response()->json(['message' => 'Periodo de evaluación eliminado exitosamente']);
