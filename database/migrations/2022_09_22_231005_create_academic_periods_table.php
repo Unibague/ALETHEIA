@@ -16,6 +16,7 @@ class CreateAcademicPeriodsTable extends Migration
         Schema::create('academic_periods', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('description');
             $table->date('class_start_date');
             $table->date('class_end_date');
             $table->date('students_start_date')->nullable();

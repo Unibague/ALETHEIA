@@ -40,6 +40,7 @@ class AcademicPeriodController extends Controller
                     'name' => $academicPeriod->name
                 ],
                 [
+                    'description' => $academicPeriod->description,
                     'class_start_date' => $academicPeriod->class_start_date,
                     'class_end_date' => $academicPeriod->class_end_date,
                 ]);

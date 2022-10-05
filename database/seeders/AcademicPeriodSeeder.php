@@ -17,6 +17,7 @@ class AcademicPeriodSeeder extends Seeder
     {
         AcademicPeriod::create([
             'name' => $name,
+            'description' => 'Periodo generado automáticamente por migración',
             'class_start_date' => '2022-02-01',
             'class_end_date' => '2022-02-01',
             'assessment_period_id' => 2

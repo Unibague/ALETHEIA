@@ -128,8 +128,9 @@ export default {
         return {
             //Table info
             headers: [
-                {text: 'Nombre del periodo académico', value: 'name'},
                 {text: 'Periodo de evaluación', value: 'assessment_period.name'},
+                {text: 'Nombre del periodo académico', value: 'name'},
+                {text: 'Descripción', value: 'description'},
                 {text: 'Fecha de inicio clases', value: 'class_start_date'},
                 {text: 'Fecha de fin clases', value: 'class_end_date'},
                 {text: 'Fecha de inicio evaluación (estudiantes)', value: 'students_start_date'},

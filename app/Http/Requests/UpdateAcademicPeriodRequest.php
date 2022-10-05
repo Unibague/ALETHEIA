@@ -26,7 +26,7 @@ class UpdateAcademicPeriodRequest extends FormRequest
     {
         return [
             'students_start_date' => 'required|Date',
-            'students_end_data' => 'required|Date',
+            'students_end_date' => 'required|Date',
             'assessment_period_id' => 'required|Integer',
         ];
     }
