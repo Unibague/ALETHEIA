@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\AssessmentPeriod;
 use App\Models\TeacherProfile;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -23,21 +24,22 @@ class TeacherProfileSeeder extends Seeder
         ]);
 
         TeacherProfile::create([
-            'assessment_period_id' => 1,
+            'assessment_period_id' => AssessmentPeriod::getActiveAssessmentPeriod()->id,
             'identification_number' => '1110590915',
             'user_id' => $user->id,
             'unity' => 'Facultad ciencias naturales y matematicas',
             'position' => 'Profesor Tiempo Completo',
             'teaching_ladder' => 'Ninguno',
             'employee_type' => 'DTC',
-            'status' => 'Activo',]);
+            'status' => 'Activo']);
 
         $user2 = User::create([
             'name' => 'Luz Esther Gonzales',
             'email' => 'luz.gonzalez@unibague.edu.co',
-            'password' => '123456',]);
+            'password' => '123456']);
+
         TeacherProfile::create([
-            'assessment_period_id' => 2,
+            'assessment_period_id' => AssessmentPeriod::getActiveAssessmentPeriod()->id,
             'identification_number' => '1110590914',
             'user_id' => $user2->id,
             'unity' => 'Facultad ciencias naturales y matematicas',

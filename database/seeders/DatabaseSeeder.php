@@ -17,6 +17,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
+
+        //Initial Setup
         Role::create([
             'name' => 'administrador',
             'customId' => 10
@@ -26,23 +28,22 @@ class DatabaseSeeder extends Seeder
             'name' => 'estudiante',
             'customId' => 1
         ]);
-
-        AssessmentPeriod::create([
-            'name' => 'Periodo 1',
-            'self_start_date' => Carbon::now()->toDateTimeString(),
-            'self_end_date' => Carbon::now()->toDateTimeString(),
-            'boss_start_date' => Carbon::now()->toDateTimeString(),
-            'boss_end_date' => Carbon::now()->toDateTimeString(),
-            'colleague_start_date' => Carbon::now()->toDateTimeString(),
-            'colleague_end_date' => Carbon::now()->toDateTimeString(),
-            'active' => 1,
-            'done_by_none' => 0,
-            'done_by_auxiliary' => 0,
-            'done_by_assistant' => 0,
-            'done_by_associated' => 0,
-            'done_by_head_teacher' => 0,
+        //Create admin user
+        $user = User::create([
+            'name' => 'Sebastian Godspina',
+            'email' => 'juan.ospina@unibague.edu.co',
+            'password' => '12345',
         ]);
 
+        //Assign role to the user
+
+        $user->roles()->attach(1);
+
+        (new AssessmentPeriodSeeder)->run();
+        (new AcademicPeriodSeeder)->run('2022A');
         (new UnitySeeder)->run();
+        (new ServiceAreaSeeder)->run();
+        (new TeacherProfileSeeder)->run();
+        (new GroupSeeder)->run();
     }
 }

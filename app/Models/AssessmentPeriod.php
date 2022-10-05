@@ -64,6 +64,8 @@ class AssessmentPeriod extends Model
 
     protected $guarded = ['active'];
 
+
+
     public function academicPeriods(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(AcademicPeriod::class);

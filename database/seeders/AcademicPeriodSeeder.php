@@ -19,6 +19,7 @@ class AcademicPeriodSeeder extends Seeder
             'name' => $name,
             'class_start_date' => '2022-02-01',
             'class_end_date' => '2022-02-01',
+            'assessment_period_id' => 2
         ]);
     }
 }

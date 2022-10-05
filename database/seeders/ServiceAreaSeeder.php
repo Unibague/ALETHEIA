@@ -15,9 +15,9 @@ class ServiceAreaSeeder extends Seeder
     public function run()
     {
         ServiceArea::create([
-           'name'=>'Programa Ingenieria Electronica',
-           'code'=>'24',
-           'assessment_period_id'=>1
+            'name' => 'Programa Ingenieria Electronica',
+            'code' => '24',
+            'assessment_period_id' => 1
         ]);
     }
 }

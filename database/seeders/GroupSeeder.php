@@ -15,7 +15,7 @@ class GroupSeeder extends Seeder
     public function run()
     {
         Group::create([
-            'name' => 'apo1',
+            'name' => 'Apo 1',
             'academic_period_id' => 1,
             'class_code' => '22A01',
             'group' => '2',

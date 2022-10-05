@@ -2,86 +2,40 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\DestroyTeacherProfileRequest;
+use App\Http\Requests\ChangeTeacherStatusRequest;
+use App\Models\AssessmentPeriod;
 use App\Models\TeacherProfile;
-use App\Http\Requests\StoreTeacherProfileRequest;
-use App\Http\Requests\UpdateTeacherProfileRequest;
+use Illuminate\Http\JsonResponse;
 
+/**
+ *
+ */
 class TeacherProfileController extends Controller
 {
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return JsonResponse
      */
-    public function index()
+    public function index(): JsonResponse
     {
-        //
+        $actualAssessmentPeriod = AssessmentPeriod::getActiveAssessmentPeriod();
+        return response()->json(TeacherProfile::where('assessment_period_id', '=', $actualAssessmentPeriod->id)->with('user')->get());
     }
 
     /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
+     * @param ChangeTeacherStatusRequest $request
+     * @param TeacherProfile $teacher
+     * @return JsonResponse
      */
-    public function create()
+    public function changeStatus(ChangeTeacherStatusRequest $request, TeacherProfile $teacher): JsonResponse
     {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \App\Http\Requests\StoreTeacherProfileRequest  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(StoreTeacherProfileRequest $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\TeacherProfile  $teacherProfile
-     * @return \Illuminate\Http\Response
-     */
-    public function show(TeacherProfile $teacherProfile)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\TeacherProfile  $teacherProfile
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(TeacherProfile $teacherProfile)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \App\Http\Requests\UpdateTeacherProfileRequest  $request
-     * @param  \App\Models\TeacherProfile  $teacherProfile
-     * @return \Illuminate\Http\Response
-     */
-    public function update(UpdateTeacherProfileRequest $request, TeacherProfile $teacherProfile)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\TeacherProfile  $teacherProfile
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(DestroyTeacherProfileRequest $request,TeacherProfile $teacherProfile)
-    {
-        //
+        $status = $request->input('status');
+        $teacher->status = $status;
+        $teacher->save();
+        if ($status === 'suspendido') {
+            return response()->json(['message' => 'El profesor se ha sido suspendido. Este dejará de sincronizarse y no podrá participar de la evaluación 360']);
+        }
+        return response()->json(['message' => "El estado del profesor ha sido cambiado a $status."]);
     }
 }

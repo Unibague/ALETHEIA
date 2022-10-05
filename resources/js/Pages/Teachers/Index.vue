@@ -14,32 +14,31 @@
                 loading-text="Cargando, por favor espere..."
                 :loading="isLoading"
                 :headers="headers"
-                :items="unities"
-                :items-per-page="5"
+                :items="teachers"
+                :items-per-page="20"
                 class="elevation-1"
+                :item-class="getRowColor"
+
             >
                 <template v-slot:item.type="{ item }">
                     {{ item.is_custom ? 'Personalizada' : 'Integración' }}
                 </template>
 
-                <template v-slot:item.users="{ item }">
-                    {{ item.users.length }}
-                </template>
-
                 <template v-slot:item.actions="{ item }">
                     <v-icon
+                        v-if="item.status === 'suspendido'"
                         class="mr-2 primario--text"
-                        @click="setUnityDialogToCreateOrEdit('edit',item)"
+                        @click="changeTeacherStatus(item,'activo')"
                     >
-                        mdi-account-group
+                        mdi-check
                     </v-icon>
 
                     <v-icon
-                        v-if="item.is_custom"
+                        v-if="item.status === 'activo'"
                         class="mr-2 primario--text"
-                        @click="confirmDeleteUnity(item)"
+                        @click="changeTeacherStatus(item,'suspendido')"
                     >
-                        mdi-delete
+                        mdi-close
                     </v-icon>
 
                 </template>
@@ -48,59 +47,13 @@
 
             <!------------Seccion de dialogos ---------->
 
-            <!--Crear o editar unity -->
-            <v-dialog
-                v-model="createOrEditDialog.dialogStatus"
-                persistent
-                max-width="650px"
-            >
-                <v-card>
-                    <v-card-title>
-                        <span>
-                        </span>
-                        <span class="text-h5">Crear/editar unidad</span>
-                    </v-card-title>
-                    <v-card-text>
-                        <v-container>
-                            <v-row>
-                                <v-col cols="12">
-                                    <v-text-field
-                                        label="Nombre de la unidad"
-                                        required
-                                        v-model="$data[createOrEditDialog.model].name"
-                                    ></v-text-field>
-                                </v-col>
-                            </v-row>
-                        </v-container>
-                        <small>Los campos con * son obligatorios</small>
-                    </v-card-text>
-                    <v-card-actions>
-                        <v-spacer></v-spacer>
-                        <v-btn
-                            color="primario"
-                            text
-                            @click="createOrEditDialog.dialogStatus = false"
-                        >
-                            Cancelar
-                        </v-btn>
-                        <v-btn
-                            color="primario"
-                            text
-                            @click="handleSelectedMethod"
-                        >
-                            Guardar cambios
-                        </v-btn>
-                    </v-card-actions>
-                </v-card>
-            </v-dialog>
-
             <confirm-dialog
-                :show="deleteUnityDialog"
-                @canceled-dialog="deleteUnityDialog = false"
-                @confirmed-dialog="deleteUnity(deletedUnityId)"
+                :show="deleteTeacherDialog"
+                @canceled-dialog="deleteTeacherDialog = false"
+                @confirmed-dialog="deleteTeacher(deletedTeacherId)"
             >
                 <template v-slot:title>
-                    Estas a punto de eliminar la unidad seleccionada
+                    Suspender la sincronización del usuario {{ editedTeacher.name }}
                 </template>
 
                 ¡Cuidado! esta acción es irreversible
@@ -118,7 +71,7 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import {InertiaLink} from "@inertiajs/inertia-vue";
 import {prepareErrorText, showSnackbar} from "@/HelperFunctions"
 import ConfirmDialog from "@/Components/ConfirmDialog";
-import Unity from "@/models/Unity";
+import Teacher from "@/models/Teacher";
 import Snackbar from "@/Components/Snackbar";
 
 export default {
@@ -132,17 +85,20 @@ export default {
         return {
             //Table info
             headers: [
-                {text: 'Nombre', value: 'name'},
-                {text: 'Tipo de unidad', value: 'type'},
-                {text: 'Cantidad de docentes', value: 'users'},
+                {text: 'Nombre', value: 'user.name'},
+                {text: 'Documento', value: 'identification_number'},
+                {text: 'Dependencia', value: 'unity'},
+                {text: 'Cargo', value: 'position'},
+                {text: 'Escalafón', value: 'teaching_ladder'},
+                {text: 'Tipo empleado', value: 'employee_type'},
+                {text: 'Estado', value: 'status'},
                 {text: 'Acciones', value: 'actions', sortable: false},
             ],
-            assessmentPeriods: [],
-            unities: [],
-            //Unities models
-            newUnity: new Unity(),
-            editedUnity: new Unity(),
-            deletedUnityId: 0,
+            teachers: [],
+            //Teachers models
+            newTeacher: new Teacher(),
+            editedTeacher: new Teacher(),
+            deletedTeacherId: 0,
             //Snackbars
             snackbar: {
                 text: "",
@@ -151,94 +107,40 @@ export default {
                 timeout: 2000,
             },
             //Dialogs
-            deleteUnityDialog: false,
+            deleteTeacherDialog: false,
             createOrEditDialog: {
-                model: 'newUnity',
-                method: 'createUnity',
+                model: 'newTeacher',
+                method: 'createTeacher',
                 dialogStatus: false,
             },
             isLoading: true,
         }
     },
     async created() {
-        await this.getAllUnities();
+        await this.getAllTeachers();
         this.isLoading = false;
     },
 
     methods: {
-        confirmDeleteUnity: function (unity) {
-            this.deletedUnityId = unity.id;
-            this.deleteUnityDialog = true;
-        },
-        deleteUnity: async function (unityId) {
-            console.log(unityId)
+        changeTeacherStatus: async function (teacher, status) {
             try {
-                let request = await axios.delete(route('api.unities.destroy', {unity: unityId}));
-                this.deleteUnityDialog = false;
+                let request = await axios.post(route('api.teachers.changeStatus', {teacher: teacher.id}), {
+                    status
+                });
                 showSnackbar(this.snackbar, request.data.message, 'success');
-                this.getAllUnities();
+                this.getAllTeachers();
             } catch (e) {
                 showSnackbar(this.snackbar, e.response.data.message, 'red', 3000);
             }
-
-        },
-        handleSelectedMethod: function () {
-            this[this.createOrEditDialog.method]();
-        },
-        editUnity: async function () {
-            //Verify request
-            if (this.editedUnity.hasEmptyProperties()) {
-                showSnackbar(this.snackbar, 'Debes diligenciar todos los campos obligatorios', 'alert', 2000);
-                return;
-            }
-            let data = this.editedUnity.toObjectRequest();
-            console.log(data);
-            try {
-                let request = await axios.patch(route('api.unities.update', {'unity': this.editedUnity.id}), data);
-                this.createOrEditDialog.dialogStatus = false;
-                showSnackbar(this.snackbar, request.data.message, 'success');
-                this.getAllUnities();
-                //Clear role information
-                this.editedUnity = new Unity();
-            } catch (e) {
-                showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
-            }
         },
 
-        createUnity: async function () {
-            if (this.newUnity.hasEmptyProperties()) {
-                showSnackbar(this.snackbar, 'Debes diligenciar todos los campos obligatorios', 'red', 2000);
-                return;
-            }
-            let data = this.newUnity.toObjectRequest();
-
-            try {
-                let request = await axios.post(route('api.unities.store'), data);
-                this.createOrEditDialog.dialogStatus = false;
-                showSnackbar(this.snackbar, request.data.message, 'success', 2000);
-                this.getAllUnities();
-                this.newUnity = new Unity();
-            } catch (e) {
-                showSnackbar(this.snackbar, e.response.data.message, 'alert', 3000);
-            }
+        getAllTeachers: async function () {
+            let request = await axios.get(route('api.teachers.index'));
+            this.teachers = request.data;
         },
 
-        getAllUnities: async function () {
-            let request = await axios.get(route('api.unities.index'));
-            this.unities = request.data;
-        },
-        setUnityDialogToCreateOrEdit(which, item = null) {
-            if (which === 'create') {
-                this.createOrEditDialog.method = 'createUnity';
-                this.createOrEditDialog.model = 'newUnity';
-                this.createOrEditDialog.dialogStatus = true;
-            }
-            if (which === 'edit') {
-                this.editedUnity = Unity.fromModel(item);
-                this.createOrEditDialog.method = 'editUnity';
-                this.createOrEditDialog.model = 'editedUnity';
-                this.createOrEditDialog.dialogStatus = true;
-            }
+        getRowColor: function (item) {
+            return item.status === 'activo' ? 'green lighten-5' : item.status === 'suspendido' ? 'red lighten-5' : '';
         },
     },
 
