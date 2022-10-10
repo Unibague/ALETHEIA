@@ -8,9 +8,14 @@
                 <h2 class="align-self-start">Gestionar unidades</h2>
                 <div>
                     <v-btn
+                        @click="syncUnits"
+                    >
+                        Sincronizar unidades
+                    </v-btn>
+                    <v-btn
                         color="primario"
-                        class="grey--text text--lighten-4"
-                        @click="setUnityDialogToCreateOrEdit('create')"
+                        class="grey--text text--lighten-4 ml-4"
+                        @click="setUnitDialogToCreateOrEdit('create')"
                     >
                         Crear nueva unidad
                     </v-btn>
@@ -22,8 +27,8 @@
                 loading-text="Cargando, por favor espere..."
                 :loading="isLoading"
                 :headers="headers"
-                :items="unities"
-                :items-per-page="5"
+                :items="units"
+                :items-per-page="15"
                 class="elevation-1"
             >
                 <template v-slot:item.type="{ item }">
@@ -37,7 +42,7 @@
                 <template v-slot:item.actions="{ item }">
                     <v-icon
                         class="mr-2 primario--text"
-                        @click="setUnityDialogToCreateOrEdit('edit',item)"
+                        @click="setUnitDialogToCreateOrEdit('edit',item)"
                     >
                         mdi-account-group
                     </v-icon>
@@ -45,7 +50,7 @@
                     <v-icon
                         v-if="item.is_custom"
                         class="mr-2 primario--text"
-                        @click="confirmDeleteUnity(item)"
+                        @click="confirmDeleteUnit(item)"
                     >
                         mdi-delete
                     </v-icon>
@@ -56,7 +61,7 @@
 
             <!------------Seccion de dialogos ---------->
 
-            <!--Crear o editar unity -->
+            <!--Crear o editar unit -->
             <v-dialog
                 v-model="createOrEditDialog.dialogStatus"
                 persistent
@@ -103,9 +108,9 @@
             </v-dialog>
 
             <confirm-dialog
-                :show="deleteUnityDialog"
-                @canceled-dialog="deleteUnityDialog = false"
-                @confirmed-dialog="deleteUnity(deletedUnityId)"
+                :show="deleteUnitDialog"
+                @canceled-dialog="deleteUnitDialog = false"
+                @confirmed-dialog="deleteUnit(deletedUnitId)"
             >
                 <template v-slot:title>
                     Estas a punto de eliminar la unidad seleccionada
@@ -126,7 +131,7 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import {InertiaLink} from "@inertiajs/inertia-vue";
 import {prepareErrorText, showSnackbar} from "@/HelperFunctions"
 import ConfirmDialog from "@/Components/ConfirmDialog";
-import Unity from "@/models/Unity";
+import Unit from "@/models/Unit";
 import Snackbar from "@/Components/Snackbar";
 
 export default {
@@ -146,11 +151,11 @@ export default {
                 {text: 'Acciones', value: 'actions', sortable: false},
             ],
             assessmentPeriods: [],
-            unities: [],
-            //Unities models
-            newUnity: new Unity(),
-            editedUnity: new Unity(),
-            deletedUnityId: 0,
+            units: [],
+            //Units models
+            newUnit: new Unit(),
+            editedUnit: new Unit(),
+            deletedUnitId: 0,
             //Snackbars
             snackbar: {
                 text: "",
@@ -159,32 +164,41 @@ export default {
                 timeout: 2000,
             },
             //Dialogs
-            deleteUnityDialog: false,
+            deleteUnitDialog: false,
             createOrEditDialog: {
-                model: 'newUnity',
-                method: 'createUnity',
+                model: 'newUnit',
+                method: 'createUnit',
                 dialogStatus: false,
             },
             isLoading: true,
         }
     },
     async created() {
-        await this.getAllUnities();
+        await this.getAllUnits();
         this.isLoading = false;
     },
 
     methods: {
-        confirmDeleteUnity: function (unity) {
-            this.deletedUnityId = unity.id;
-            this.deleteUnityDialog = true;
-        },
-        deleteUnity: async function (unityId) {
-            console.log(unityId)
+        syncUnits: async function () {
             try {
-                let request = await axios.delete(route('api.unities.destroy', {unity: unityId}));
-                this.deleteUnityDialog = false;
+                let request = await axios.post(route('api.units.sync'));
                 showSnackbar(this.snackbar, request.data.message, 'success');
-                this.getAllUnities();
+                await this.getAllUnits();
+            } catch (e) {
+                showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
+            }
+        },
+        confirmDeleteUnit: function (unit) {
+            this.deletedUnitId = unit.id;
+            this.deleteUnitDialog = true;
+        },
+        deleteUnit: async function (unitId) {
+            console.log(unitId)
+            try {
+                let request = await axios.delete(route('api.units.destroy', {unit: unitId}));
+                this.deleteUnitDialog = false;
+                showSnackbar(this.snackbar, request.data.message, 'success');
+                this.getAllUnits();
             } catch (e) {
                 showSnackbar(this.snackbar, e.response.data.message, 'red', 3000);
             }
@@ -193,58 +207,58 @@ export default {
         handleSelectedMethod: function () {
             this[this.createOrEditDialog.method]();
         },
-        editUnity: async function () {
+        editUnit: async function () {
             //Verify request
-            if (this.editedUnity.hasEmptyProperties()) {
+            if (this.editedUnit.hasEmptyProperties()) {
                 showSnackbar(this.snackbar, 'Debes diligenciar todos los campos obligatorios', 'alert', 2000);
                 return;
             }
-            let data = this.editedUnity.toObjectRequest();
+            let data = this.editedUnit.toObjectRequest();
             console.log(data);
             try {
-                let request = await axios.patch(route('api.unities.update', {'unity': this.editedUnity.id}), data);
+                let request = await axios.patch(route('api.units.update', {'unit': this.editedUnit.id}), data);
                 this.createOrEditDialog.dialogStatus = false;
                 showSnackbar(this.snackbar, request.data.message, 'success');
-                this.getAllUnities();
+                this.getAllUnits();
                 //Clear role information
-                this.editedUnity = new Unity();
+                this.editedUnit = new Unit();
             } catch (e) {
                 showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
             }
         },
 
-        createUnity: async function () {
-            if (this.newUnity.hasEmptyProperties()) {
+        createUnit: async function () {
+            if (this.newUnit.hasEmptyProperties()) {
                 showSnackbar(this.snackbar, 'Debes diligenciar todos los campos obligatorios', 'red', 2000);
                 return;
             }
-            let data = this.newUnity.toObjectRequest();
+            let data = this.newUnit.toObjectRequest();
 
             try {
-                let request = await axios.post(route('api.unities.store'), data);
+                let request = await axios.post(route('api.units.store'), data);
                 this.createOrEditDialog.dialogStatus = false;
                 showSnackbar(this.snackbar, request.data.message, 'success', 2000);
-                this.getAllUnities();
-                this.newUnity = new Unity();
+                this.getAllUnits();
+                this.newUnit = new Unit();
             } catch (e) {
                 showSnackbar(this.snackbar, e.response.data.message, 'alert', 3000);
             }
         },
 
-        getAllUnities: async function () {
-            let request = await axios.get(route('api.unities.index'));
-            this.unities = request.data;
+        getAllUnits: async function () {
+            let request = await axios.get(route('api.units.index'));
+            this.units = request.data;
         },
-        setUnityDialogToCreateOrEdit(which, item = null) {
+        setUnitDialogToCreateOrEdit(which, item = null) {
             if (which === 'create') {
-                this.createOrEditDialog.method = 'createUnity';
-                this.createOrEditDialog.model = 'newUnity';
+                this.createOrEditDialog.method = 'createUnit';
+                this.createOrEditDialog.model = 'newUnit';
                 this.createOrEditDialog.dialogStatus = true;
             }
             if (which === 'edit') {
-                this.editedUnity = Unity.fromModel(item);
-                this.createOrEditDialog.method = 'editUnity';
-                this.createOrEditDialog.model = 'editedUnity';
+                this.editedUnit = Unit.fromModel(item);
+                this.createOrEditDialog.method = 'editUnit';
+                this.createOrEditDialog.model = 'editedUnit';
                 this.createOrEditDialog.dialogStatus = true;
             }
         },

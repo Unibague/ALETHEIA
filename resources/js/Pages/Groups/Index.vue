@@ -5,14 +5,14 @@
 
         <v-container>
             <div class="d-flex flex-column align-end mb-8">
-                <h2 class="align-self-start">Gestionar profesores</h2>
+                <h2 class="align-self-start">Sincronizar grupos por periodo</h2>
                 <div>
                     <v-btn
                         color="primario"
                         class="grey--text text--lighten-4"
-                        @click="syncTeachers"
+                        @click="syncGroups"
                     >
-                        Sincronizar profesores
+                        Sincronizar grupos
                     </v-btn>
                 </div>
             </div>
@@ -22,46 +22,24 @@
                 loading-text="Cargando, por favor espere..."
                 :loading="isLoading"
                 :headers="headers"
-                :items="teachers"
+                :items="groups"
                 :items-per-page="20"
                 class="elevation-1"
                 :item-class="getRowColor"
 
             >
-                <template v-slot:item.type="{ item }">
-                    {{ item.is_custom ? 'Personalizada' : 'Integración' }}
-                </template>
-
-                <template v-slot:item.actions="{ item }">
-                    <v-icon
-                        v-if="item.status === 'suspendido'"
-                        class="mr-2 primario--text"
-                        @click="changeTeacherStatus(item,'activo')"
-                    >
-                        mdi-check
-                    </v-icon>
-
-                    <v-icon
-                        v-if="item.status === 'activo'"
-                        class="mr-2 primario--text"
-                        @click="changeTeacherStatus(item,'suspendido')"
-                    >
-                        mdi-close
-                    </v-icon>
-
-                </template>
             </v-data-table>
             <!--Acaba tabla-->
 
             <!------------Seccion de dialogos ---------->
 
             <confirm-dialog
-                :show="deleteTeacherDialog"
-                @canceled-dialog="deleteTeacherDialog = false"
-                @confirmed-dialog="deleteTeacher(deletedTeacherId)"
+                :show="deleteGroupDialog"
+                @canceled-dialog="deleteGroupDialog = false"
+                @confirmed-dialog="deleteGroup(deletedGroupId)"
             >
                 <template v-slot:title>
-                    Suspender la sincronización del usuario {{ editedTeacher.name }}
+                    Suspender la sincronización del usuario {{ editedGroup.name }}
                 </template>
 
                 ¡Cuidado! esta acción es irreversible
@@ -79,7 +57,7 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import {InertiaLink} from "@inertiajs/inertia-vue";
 import {prepareErrorText, showSnackbar} from "@/HelperFunctions"
 import ConfirmDialog from "@/Components/ConfirmDialog";
-import Teacher from "@/models/Teacher";
+import Group from "@/models/Group";
 import Snackbar from "@/Components/Snackbar";
 
 export default {
@@ -93,20 +71,20 @@ export default {
         return {
             //Table info
             headers: [
-                {text: 'Nombre', value: 'user.name'},
-                {text: 'Documento', value: 'identification_number'},
-                {text: 'Dependencia', value: 'unity'},
-                {text: 'Cargo', value: 'position'},
-                {text: 'Escalafón', value: 'teaching_ladder'},
-                {text: 'Tipo empleado', value: 'employee_type'},
-                {text: 'Estado', value: 'status'},
-                {text: 'Acciones', value: 'actions', sortable: false},
+                {text: 'Periodo académico', value: 'academic_period.name'},
+                {text: 'Código de asignatura', value: 'class_code'},
+                {text: 'Nombre', value: 'name'},
+                {text: 'Número de grupo', value: 'group'},
+                {text: 'Nivel de formación', value: 'degree'},
+                {text: 'Area de servicio', value: 'service_area.name'},
+                {text: 'Profesor', value: 'teacher.name'},
+                {text: 'Tipo de hora grupo', value: 'hour_type'},
             ],
-            teachers: [],
-            //Teachers models
-            newTeacher: new Teacher(),
-            editedTeacher: new Teacher(),
-            deletedTeacherId: 0,
+            groups: [],
+            //Groups models
+            newGroup: new Group(),
+            editedGroup: new Group(),
+            deletedGroupId: 0,
             //Snackbars
             snackbar: {
                 text: "",
@@ -115,47 +93,46 @@ export default {
                 timeout: 2000,
             },
             //Dialogs
-            deleteTeacherDialog: false,
+            deleteGroupDialog: false,
             createOrEditDialog: {
-                model: 'newTeacher',
-                method: 'createTeacher',
+                model: 'newGroup',
+                method: 'createGroup',
                 dialogStatus: false,
             },
             isLoading: true,
         }
     },
     async created() {
-        await this.getAllTeachers();
+        await this.getAllGroups();
         this.isLoading = false;
     },
 
     methods: {
 
-        syncTeachers: async function () {
+        syncGroups: async function () {
             try {
-                let request = await axios.post(route('api.teachers.sync'));
+                let request = await axios.post(route('api.groups.sync'));
                 showSnackbar(this.snackbar, request.data.message, 'success');
                 this.getAllAcademicPeriods();
             } catch (e) {
                 showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
             }
         },
-
-        changeTeacherStatus: async function (teacher, status) {
+        changeGroupStatus: async function (group, status) {
             try {
-                let request = await axios.post(route('api.teachers.changeStatus', {teacher: teacher.id}), {
+                let request = await axios.post(route('api.groups.changeStatus', {group: group.id}), {
                     status
                 });
                 showSnackbar(this.snackbar, request.data.message, 'success');
-                this.getAllTeachers();
+                this.getAllGroups();
             } catch (e) {
                 showSnackbar(this.snackbar, e.response.data.message, 'red', 3000);
             }
         },
 
-        getAllTeachers: async function () {
-            let request = await axios.get(route('api.teachers.index'));
-            this.teachers = request.data;
+        getAllGroups: async function () {
+            let request = await axios.get(route('api.groups.index'));
+            this.groups = request.data;
         },
 
         getRowColor: function (item) {

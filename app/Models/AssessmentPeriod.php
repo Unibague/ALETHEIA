@@ -34,7 +34,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property-read int|null $service_area_count
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\TeacherProfile[] $teacher_profiles
  * @property-read int|null $teacher_profiles_count
- * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\Unity[] $unities
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\Unit[] $unities
  * @property-read int|null $unities_count
  * @method static \Database\Factories\AssessmentPeriodFactory factory(...$parameters)
  * @method static \Illuminate\Database\Eloquent\Builder|AssessmentPeriod newModelQuery()
@@ -81,9 +81,9 @@ class AssessmentPeriod extends Model
         return $this->hasMany(Form::class);
     }
 
-    public function unities(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function units(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(Unity::class);
+        return $this->hasMany(Unit::class);
     }
 
     public function serviceArea(): \Illuminate\Database\Eloquent\Relations\HasMany

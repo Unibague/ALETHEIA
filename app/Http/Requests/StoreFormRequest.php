@@ -32,7 +32,7 @@ class StoreFormRequest extends FormRequest
             'type' => 'required|Enum',
             'degree' =>  [  Rule::in(['pregrado','posgrado'])],
             'assessment_period_id' => 'Integer',
-            'unity_id' => 'Integer',
+            'unit_id' => 'Integer',
             'academic_period_id' => 'Integer',
             'unity_role' =>  [  Rule::in(['jefe','par','autoevaluación'])],
             'teaching_ladder' => [  Rule::in(['ninguno','auxiliar','asistente','asociado','titular'])],

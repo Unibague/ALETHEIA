@@ -36,24 +36,40 @@ Route::resource('api/academicPeriods', \App\Http\Controllers\AcademicPeriodContr
 Route::post('/api/academicPeriods/sync', [\App\Http\Controllers\AcademicPeriodController::class, 'sync'])->middleware(['auth'])->name('api.academicPeriods.sync');
 
 
-/* >>>>> Unities routes <<<<<< */
-Route::inertia('/unities', 'Unities/Index')->middleware(['auth', 'isAdmin'])->name('unities.index.view');
-//Create fake unites
-Route::get('/unities/fake', [\App\Http\Controllers\UnityController::class, 'createFakeUnities'])->middleware(['auth']);
-Route::resource('api/unities', \App\Http\Controllers\UnityController::class, [
+/* >>>>> Units routes <<<<<< */
+Route::inertia('/units', 'Unities/Index')->middleware(['auth', 'isAdmin'])->name('unities.index.view');
+Route::resource('api/units', \App\Http\Controllers\UnityController::class, [
     'as' => 'api'
 ])->middleware('auth');
+Route::post('/api/units/sync', [\App\Http\Controllers\UnityController::class, 'sync'])->middleware(['auth'])->name('api.units.sync');
+
+/* >>>>> Service Areas routes <<<<<< */
+Route::inertia('/serviceAreas', 'ServiceAreas/Index')->middleware(['auth', 'isAdmin'])->name('serviceAreas.index.view');
+Route::resource('api/serviceAreas', \App\Http\Controllers\ServiceAreaController::class, [
+    'as' => 'api'
+])->middleware('auth');
+Route::post('/api/serviceAreas/sync', [\App\Http\Controllers\ServiceAreaController::class, 'sync'])->middleware(['auth'])->name('api.serviceAreas.sync');
+
+
+/* >>>>> Groups routes <<<<<< */
+Route::inertia('/groups', 'Groups/Index')->middleware(['auth', 'isAdmin'])->name('groups.index.view');
+//Create fake unites
+Route::resource('api/groups', \App\Http\Controllers\GroupController::class, [
+    'as' => 'api'
+])->middleware('auth');
+//Sync groups
+Route::post('/api/groups/sync', [\App\Http\Controllers\GroupController::class, 'sync'])->middleware(['auth'])->name('api.groups.sync');
 
 
 /* >>>>> Teacher routes <<<<<< */
 Route::inertia('/teachers', 'Teachers/Index')->middleware(['auth', 'isAdmin'])->name('teachers.index.view');
 //Create fake unites
-Route::get('/teachers/fake', [\App\Http\Controllers\TeacherProfileController::class, 'createFakeTeachers'])->middleware(['auth']);
 //Change teacher status
 Route::post('api/teachers/{teacher}/status', [\App\Http\Controllers\TeacherProfileController::class, 'changeStatus'])->middleware(['auth'])->name('api.teachers.changeStatus');
 Route::resource('api/teachers', \App\Http\Controllers\TeacherProfileController::class, [
     'as' => 'api'
 ])->middleware('auth');
+Route::post('/api/teachers/sync', [\App\Http\Controllers\TeacherProfileController::class, 'sync'])->middleware(['auth'])->name('api.teachers.sync');
 
 
 /* >>>>>Roles routes <<<<<< */

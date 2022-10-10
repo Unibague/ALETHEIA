@@ -26,7 +26,7 @@
                 :loading="isLoading"
                 :headers="headers"
                 :items="assessmentPeriods"
-                :items-per-page="5"
+                :items-per-page="15"
                 class="elevation-1"
                 :item-class="getRowColor"
             >

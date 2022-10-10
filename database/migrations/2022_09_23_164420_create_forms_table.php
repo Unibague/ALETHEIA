@@ -19,7 +19,7 @@ class CreateFormsTable extends Migration
             $table->enum('type',['estudiante','otros']);
             $table->enum('degree',['pregrado','posgrado'])->nullable();
             $table->foreignId('assessment_period_id')->nullable()->constrained();
-            $table->foreignId('unity_id')->nullable()->constrained();
+            $table->foreignId('unit_id')->nullable()->constrained();
             $table->foreignId('academic_period_id')->nullable()->constrained();
             $table->enum('unity_role',['jefe','par','autoevaluación']);
             $table->enum('teaching_ladder',['ninguno','auxiliar','asistente','asociado','titular'])->nullable();

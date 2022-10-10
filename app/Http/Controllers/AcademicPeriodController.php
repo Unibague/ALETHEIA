@@ -15,9 +15,8 @@ class AcademicPeriodController extends Controller
 {
 
     /**
-     * @throws \JsonException
      */
-    public function sync()
+    public function sync(): JsonResponse
     {
         $url = 'http://integra.unibague.edu.co/academicPeriods';
         $curl = new CurlCobain($url);

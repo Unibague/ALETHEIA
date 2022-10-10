@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $type
  * @property string|null $degree
  * @property int|null $assessment_period_id
- * @property int|null $unity_id
+ * @property int|null $unit_id
  * @property int|null $academic_period_id
  * @property string $unity_role
  * @property string|null $teaching_ladder
@@ -26,7 +26,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property-read int|null $form_answers_count
  * @property-read \App\Models\FormQuestion|null $formQuestions
  * @property-read \App\Models\ServiceArea|null $serviceArea
- * @property-read \App\Models\Unity|null $unity
+ * @property-read \App\Models\Unit|null $unity
  * @method static \Database\Factories\FormFactory factory(...$parameters)
  * @method static \Illuminate\Database\Eloquent\Builder|Form newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|Form newQuery()
@@ -56,9 +56,9 @@ class Form extends Model
     {
         return $this->belongsTo(AcademicPeriod::class);
     }
-    public function unity(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function unit(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        return $this->belongsTo(Unity::class);
+        return $this->belongsTo(Unit::class);
     }
     public function serviceArea(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {

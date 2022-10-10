@@ -18,7 +18,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property-read \App\Models\User $evaluated
  * @property-read \App\Models\User $evaluator
  * @property-read \App\Models\FormAnswers|null $formAnswer
- * @property-read \App\Models\Unity $unity
+ * @property-read \App\Models\Unit $unity
  * @method static \Database\Factories\UnityAssessmentFactory factory(...$parameters)
  * @method static \Illuminate\Database\Eloquent\Builder|UnityAssessment newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|UnityAssessment newQuery()
@@ -43,9 +43,9 @@ class UnityAssessment extends Model
     {
         return $this->belongsTo(User::class,'evaluator_id');
     }
-    public function unity(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function unit(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        return $this->belongsTo(Unity::class);
+        return $this->belongsTo(Unit::class);
     }
     public function formAnswer(): \Illuminate\Database\Eloquent\Relations\HasOne
     {

@@ -10,7 +10,7 @@ export default class Form {
     }
 
     static fromModel(model) {
-        return new Form(model.id, model.name, model.type, model.degree, model.assessment_period_id, model.unity_id, model.academic_period_id, model.unity_role, model.teaching_ladder, model.service_area_id);
+        return new Form(model.id, model.name, model.type, model.degree, model.assessment_period_id, model.unit_id, model.academic_period_id, model.unity_role, model.teaching_ladder, model.service_area_id);
     }
 
     constructor(id = null, name = '', type = '', degree = '', assessmentPeriodId = 0, unityId = 0, academicPeriodId = 0, unityRole = '', teachingLadder = '', serviceAreaId = '') {

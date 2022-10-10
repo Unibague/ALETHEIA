@@ -41,7 +41,7 @@ class DatabaseSeeder extends Seeder
 
         (new AssessmentPeriodSeeder)->run();
         (new AcademicPeriodSeeder)->run('2022A');
-        (new UnitySeeder)->run();
+        (new UnitSeeder)->run();
         (new ServiceAreaSeeder)->run();
         (new TeacherProfileSeeder)->run();
         (new GroupSeeder)->run();

@@ -39,7 +39,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property-read \App\Models\TeacherProfile|null $teacherProfile
  * @property-read \Illuminate\Database\Eloquent\Collection|\Laravel\Sanctum\PersonalAccessToken[] $tokens
  * @property-read int|null $tokens_count
- * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\Unity[] $unities
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\Unit[] $unities
  * @property-read int|null $unities_count
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\UnityAssessment[] $unityAssessments
  * @property-read int|null $unity_assessments_count
@@ -164,9 +164,9 @@ class User extends Authenticatable
         return $this->hasMany(UnityAssessment::class);
     }
 
-    public function unities(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function units(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
-        return $this->belongsToMany(Unity::class);
+        return $this->belongsToMany(Unit::class);
     }
 
     public function formAnswers(): \Illuminate\Database\Eloquent\Relations\HasMany

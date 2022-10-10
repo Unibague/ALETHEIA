@@ -267,8 +267,14 @@ export default {
                         icon: 'mdi-account-cog'
                     },
                     {
+                        name: 'Áreas de servicio',
+                        href: route('serviceAreas.index.view'),
+                        role: 10,
+                        icon: 'mdi-account-cog'
+                    },
+                    {
                         name: 'Grupos',
-                        href: route('users.index'),
+                        href: route('groups.index.view'),
                         role: 10,
                         icon: 'mdi-account-cog'
                     },

@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateUnitiesTable extends Migration
+class CreateUnitUserTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,12 +13,12 @@ class CreateUnitiesTable extends Migration
      */
     public function up()
     {
-        Schema::create('unities', function (Blueprint $table) {
+        Schema::create('unit_user', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('code');
-            $table->boolean('is_custom');
-            $table->foreignId('assessment_period_id')->constrained();
+            $table->foreignId('user_id')->constrained();
+            $table->foreignId('unit_id')->constrained();
+
+            $table->foreignId('role_id')->constrained();
             $table->timestamps();
         });
     }
@@ -30,6 +30,6 @@ class CreateUnitiesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('unities');
+        Schema::dropIfExists('unity_user');
     }
 }

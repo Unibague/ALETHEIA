@@ -3,10 +3,10 @@
 namespace Database\Seeders;
 
 use App\Models\AssessmentPeriod;
-use App\Models\Unity;
+use App\Models\Unit;
 use Illuminate\Database\Seeder;
 
-class UnitySeeder extends Seeder
+class UnitSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -15,7 +15,7 @@ class UnitySeeder extends Seeder
      */
     public function run(): void
     {
-        Unity::create([
+        Unit::create([
             'name' => 'Facultad de Ingeniería',
             'code' => 'FI',
             'is_custom' => false,

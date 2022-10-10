@@ -1,6 +1,6 @@
 import {checkIfModelHasEmptyProperties, toObjectRequest} from "@/HelperFunctions";
 
-export default class Unity {
+export default class Unit {
     toObjectRequest() {
         return toObjectRequest(this);
     }
@@ -10,7 +10,7 @@ export default class Unity {
     }
 
     static fromModel(model) {
-        return new Unity(model.id, model.name, model.code, model.is_custom, model.assessment_period_id);
+        return new Unit(model.id, model.name, model.code, model.is_custom, model.assessment_period_id);
     }
 
     constructor(id = null, name = '', code = '', isCustom = '', assessmentPeriodId = 0) {
