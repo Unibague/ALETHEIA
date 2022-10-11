@@ -7,19 +7,33 @@ use App\Http\Requests\GetAllUsersRequest;
 use App\Http\Requests\UpdateUserRoleRequest;
 use App\Models\Role;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
+/**
+ *
+ */
 class ApiUserController extends Controller
 {
+    /**
+     * @param GetAllUsersRequest $request
+     * @return Builder[]|Collection
+     */
     public function index(GetAllUsersRequest $request)
     {
         return User::with('roles')->orderBy('name', 'DESC')->get();
     }
 
-    public function selectRole(Request $request)
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function selectRole(Request $request): JsonResponse
     {
         $role = $request->input('role');
         //Check if the user has the role.
@@ -35,13 +49,21 @@ class ApiUserController extends Controller
         return response()->json(['message' => 'No tienes asignado el rol seleccionado'], 403);
     }
 
+    /**
+     * @return mixed
+     */
     public function getUserRoles()
     {
         return auth()->user()->roles;
     }
 
 
-    public function updateUserRoles(User $user, UpdateUserRoleRequest $request): \Illuminate\Http\JsonResponse
+    /**
+     * @param User $user
+     * @param UpdateUserRoleRequest $request
+     * @return JsonResponse
+     */
+    public function updateUserRoles(User $user, UpdateUserRoleRequest $request): JsonResponse
     {
         $roles = $request->input('roles');
         try {

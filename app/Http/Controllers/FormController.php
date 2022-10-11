@@ -6,17 +6,18 @@ use App\Http\Requests\DestroyFormRequest;
 use App\Models\Form;
 use App\Http\Requests\StoreFormRequest;
 use App\Http\Requests\UpdateFormRequest;
+use Illuminate\Http\JsonResponse;
 
 class FormController extends Controller
 {
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return JsonResponse
      */
-    public function index()
+    public function index(): JsonResponse
     {
-        //
+        return response()->json(Form::with(['academicPeriod', 'assessmentPeriod', 'unity', 'serviceArea'])->get());
     }
 
     /**
@@ -32,7 +33,7 @@ class FormController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \App\Http\Requests\StoreFormRequest  $request
+     * @param \App\Http\Requests\StoreFormRequest $request
      * @return \Illuminate\Http\Response
      */
     public function store(StoreFormRequest $request)
@@ -43,7 +44,7 @@ class FormController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\Form  $form
+     * @param \App\Models\Form $form
      * @return \Illuminate\Http\Response
      */
     public function show(Form $form)
@@ -54,7 +55,7 @@ class FormController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\Form  $form
+     * @param \App\Models\Form $form
      * @return \Illuminate\Http\Response
      */
     public function edit(Form $form)
@@ -65,8 +66,8 @@ class FormController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \App\Http\Requests\UpdateFormRequest  $request
-     * @param  \App\Models\Form  $form
+     * @param \App\Http\Requests\UpdateFormRequest $request
+     * @param \App\Models\Form $form
      * @return \Illuminate\Http\Response
      */
     public function update(UpdateFormRequest $request, Form $form)
@@ -77,10 +78,10 @@ class FormController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Form  $form
+     * @param \App\Models\Form $form
      * @return \Illuminate\Http\Response
      */
-    public function destroy(DestroyFormRequest $request,Form $form)
+    public function destroy(DestroyFormRequest $request, Form $form)
     {
         //
     }

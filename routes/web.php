@@ -26,6 +26,12 @@ Route::resource('api/assessmentPeriods', \App\Http\Controllers\AssessmentPeriodC
 ])->middleware('auth');
 Route::post('/api/assessmentPeriods/{assessmentPeriod}/setActive', [\App\Http\Controllers\AssessmentPeriodController::class, 'setActive'])->middleware(['auth', 'isAdmin'])->name('api.assessmentPeriods.setActive');
 
+/* >>>>>Assessment Periods routes <<<<<< */
+Route::inertia('/forms', 'Forms/Index')->middleware(['auth', 'isAdmin'])->name('forms.index.view');
+Route::resource('api/forms', \App\Http\Controllers\FormController::class, [
+    'as' => 'api'
+])->middleware('auth');
+
 
 /* >>>>>Academic Periods routes <<<<<< */
 Route::inertia('/academicPeriods', 'AcademicPeriods/Index')->middleware(['auth', 'isAdmin'])->name('academicPeriods.index.view');

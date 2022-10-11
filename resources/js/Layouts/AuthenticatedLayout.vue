@@ -286,7 +286,7 @@ export default {
                     },
                     {
                         name: 'Formularios',
-                        href: route('users.index'),
+                        href: route('forms.index.view'),
                         role: 10,
                         icon: 'mdi-account-cog'
                     },

@@ -11,7 +11,7 @@ class UpdateUserRoleRequest extends FormRequest
      *
      * @return bool
      */
-    public function authorize()
+    public function authorize(): bool
     {
         return auth()->user()->isAdmin();
     }
@@ -21,7 +21,7 @@ class UpdateUserRoleRequest extends FormRequest
      *
      * @return array
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             'roles' => 'required|array',
