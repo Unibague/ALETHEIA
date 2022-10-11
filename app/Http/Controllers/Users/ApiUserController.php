@@ -5,7 +5,10 @@ namespace App\Http\Controllers\Users;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\GetAllUsersRequest;
 use App\Http\Requests\UpdateUserRoleRequest;
+use App\Models\Role;
 use App\Models\User;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -38,10 +41,15 @@ class ApiUserController extends Controller
     }
 
 
-    public function updateUserRole(User $user, UpdateUserRoleRequest $request): \Illuminate\Http\JsonResponse
+    public function updateUserRoles(User $user, UpdateUserRoleRequest $request): \Illuminate\Http\JsonResponse
     {
-        $user->role_id = $request->roleId;
-        $user->save();
-        return response()->json(['message' => 'El rol del usuario ha sido actualizado exitosamente']);
+        $roles = $request->input('roles');
+        try {
+            Role::findOrFail($roles);
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['message' => 'Alguno de los roles proporcionados no se encuentra en la lista de roles'], 400);
+        }
+        $user->roles()->sync($roles);
+        return response()->json(['message' => 'Los roles del usuario han sido actualizado exitosamente']);
     }
 }

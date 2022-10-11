@@ -13,7 +13,7 @@ class UpdateUserRoleRequest extends FormRequest
      */
     public function authorize()
     {
-        return auth()->user()->hasRole('administrador');
+        return auth()->user()->isAdmin();
     }
 
     /**
@@ -24,7 +24,7 @@ class UpdateUserRoleRequest extends FormRequest
     public function rules()
     {
         return [
-            'roleId' => 'required|integer',
+            'roles' => 'required|array',
         ];
     }
 }
