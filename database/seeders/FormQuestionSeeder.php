@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\FormQuestion;
 use Illuminate\Database\Seeder;
 
 class FormQuestionSeeder extends Seeder
@@ -13,6 +14,6 @@ class FormQuestionSeeder extends Seeder
      */
     public function run()
     {
-        //
+      //
     }
 }
