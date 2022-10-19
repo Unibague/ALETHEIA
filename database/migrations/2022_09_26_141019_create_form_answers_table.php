@@ -16,7 +16,7 @@ class CreateFormAnswersTable extends Migration
         Schema::create('form_answers', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained();
-            $table->foreignId('form_questions_id')->constrained();
+            $table->foreignId('form_id')->constrained();
             $table->json('questions');
             $table->json('answers');
             $table->dateTime('submitted_at');

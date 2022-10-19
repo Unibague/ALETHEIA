@@ -151,6 +151,7 @@ export default {
         },
         changeUserRoles: async function () {
             //Recollect information
+            console.log(this.editedUser.customRoles);
             let data = {
                 roles: this.editedUser.customRoles
             }

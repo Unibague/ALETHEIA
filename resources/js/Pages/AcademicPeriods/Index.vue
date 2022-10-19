@@ -185,7 +185,6 @@ export default {
             this[this.createOrEditDialog.method]();
         },
         editAcademicPeriod: async function () {
-            console.log(this.editedAcademicPeriod);
             //Verify request
             if (this.editedAcademicPeriod.hasEmptyProperties()) {
                 showSnackbar(this.snackbar, 'Debes diligenciar todos los campos obligatorios', 'alert', 2000);
@@ -193,7 +192,6 @@ export default {
             }
             //Recollect information
             let data = this.editedAcademicPeriod.toObjectRequest();
-            console.log(data);
             try {
                 let request = await axios.patch(route('api.academicPeriods.update', {'academicPeriod': this.editedAcademicPeriod.id}), data);
                 this.createOrEditDialog.dialogStatus = false;

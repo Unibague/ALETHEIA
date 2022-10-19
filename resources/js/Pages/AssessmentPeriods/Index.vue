@@ -336,7 +336,7 @@ export default {
             let data = this.newAssessmentPeriod.toObjectRequest();
 
             //Clear role information
-            // this.newAssessmentPeriod = new AssessmentPeriod();
+            this.newAssessmentPeriod = new AssessmentPeriod();
 
             try {
                 let request = await axios.post(route('api.assessmentPeriods.store'), data);

@@ -40,10 +40,11 @@ class DatabaseSeeder extends Seeder
         $user->roles()->attach(1);
 
         (new AssessmentPeriodSeeder)->run();
-        (new AcademicPeriodSeeder)->run('2022A');
+        (new AcademicPeriodSeeder)->run('2022B');
         (new UnitSeeder)->run();
         (new ServiceAreaSeeder)->run();
         (new TeacherProfileSeeder)->run();
         (new GroupSeeder)->run();
+        (new FormSeeder)->run();
     }
 }

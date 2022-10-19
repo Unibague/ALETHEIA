@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateAcademicPeriodRequest;
 use Database\Seeders\AcademicPeriodSeeder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Request;
 use JsonException;
 use Ospina\CurlCobain\CurlCobain;
 
@@ -50,10 +51,14 @@ class AcademicPeriodController extends Controller
     /**
      * Display a listing of the resource.
      *
+     * @param Request $request
      * @return JsonResponse
      */
-    public function index(): JsonResponse
+    public function index(\Illuminate\Http\Request $request): JsonResponse
     {
+        if ($request->input('active') === 'true') {
+            return response()->json(AcademicPeriod::getCurrentAcademicPeriods());
+        }
         return response()->json(AcademicPeriod::with('assessmentPeriod')->get());
     }
 

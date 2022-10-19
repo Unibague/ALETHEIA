@@ -19,7 +19,7 @@ class ServiceAreaController extends Controller
      */
     public function index(): JsonResponse
     {
-        return response()->json(ServiceArea::all());
+        return response()->json(ServiceArea::orderBy('name','asc')->get());
     }
 
     public function sync(): JsonResponse
@@ -46,6 +46,6 @@ class ServiceAreaController extends Controller
                     'assessment_period_id' => AssessmentPeriod::getActiveAssessmentPeriod()->id
                 ]);
         }
-        return response()->json(['message' => 'Las áreas de service se han sincronizado exitosamente']);
+        return response()->json(['message' => 'Las áreas de servicio se han sincronizado exitosamente']);
     }
 }

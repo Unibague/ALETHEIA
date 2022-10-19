@@ -193,7 +193,6 @@ export default {
             this.deleteUnitDialog = true;
         },
         deleteUnit: async function (unitId) {
-            console.log(unitId)
             try {
                 let request = await axios.delete(route('api.units.destroy', {unit: unitId}));
                 this.deleteUnitDialog = false;
@@ -214,7 +213,6 @@ export default {
                 return;
             }
             let data = this.editedUnit.toObjectRequest();
-            console.log(data);
             try {
                 let request = await axios.patch(route('api.units.update', {'unit': this.editedUnit.id}), data);
                 this.createOrEditDialog.dialogStatus = false;

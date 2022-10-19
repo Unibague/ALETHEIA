@@ -58,6 +58,12 @@ class AcademicPeriod extends Model
         return $this->hasMany(Form::class);
     }
 
+    public static function getCurrentAcademicPeriods()
+    {
+        $currentAcademicPeriod = AssessmentPeriod::getActiveAssessmentPeriod();
+        return self::where('assessment_period_id', '=', $currentAcademicPeriod->id)->with('assessmentPeriod')->get();
+    }
+
     public static function createFakePeriods(): void
     {
         $academicPeriods = ['2022A', '2022B'];

@@ -155,6 +155,7 @@ export default {
 
         getAllTeachers: async function () {
             let request = await axios.get(route('api.teachers.index'));
+            console.log(request.data);
             this.teachers = request.data;
         },
 

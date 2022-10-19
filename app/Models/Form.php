@@ -47,30 +47,61 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Form extends Model
 {
+    protected $guarded = [];
     use HasFactory;
+
     public function assessmentPeriod(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(AssessmentPeriod::class);
     }
+
     public function academicPeriod(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(AcademicPeriod::class);
     }
+
     public function unit(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Unit::class);
     }
+
     public function serviceArea(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(ServiceArea::class);
     }
+
     public function formQuestions(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
         return $this->hasOne(FormQuestion::class);
     }
+
     public function formAnswers(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(FormAnswers::class);
     }
+
+    public static function createStudentForm($request)
+    {
+        return self::create([
+            'name' => $request->input('name'),
+            'type' => $request->input('type'),
+            'degree' => $request->input('degree'),
+            'academic_period_id' => $request->input('academic_period_id'),
+            'service_area_id' => $request->input('service_area_id'),
+        ]);
+    }
+
+    public static function createOthersForm($request)
+    {
+        return self::create([
+            'name' => $request->input('name'),
+            'type' => $request->input('type'),
+            'assessment_period_id' => $request->input('assessment_period_id'),
+            'unit_role' => $request->input('unity_role'),
+            'teaching_ladder' => $request->input('teaching_ladder'),
+            'unit_id' => $request->input('unit_id'),
+        ]);
+    }
+
 
 }

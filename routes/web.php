@@ -55,7 +55,7 @@ Route::resource('api/serviceAreas', \App\Http\Controllers\ServiceAreaController:
     'as' => 'api'
 ])->middleware('auth');
 Route::post('/api/serviceAreas/sync', [\App\Http\Controllers\ServiceAreaController::class, 'sync'])->middleware(['auth'])->name('api.serviceAreas.sync');
-
+Route::get('borrarForm/{form}', [\App\Http\Controllers\FormController::class, 'destroy']);
 
 /* >>>>> Groups routes <<<<<< */
 Route::inertia('/groups', 'Groups/Index')->middleware(['auth', 'isAdmin'])->name('groups.index.view');

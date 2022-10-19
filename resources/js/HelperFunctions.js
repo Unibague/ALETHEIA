@@ -38,7 +38,10 @@ const toObjectRequest = (model) => {
     for (const modelKey in model) {
         if (skipKeys.includes(modelKey)) continue;
 
-        object[camelToUnderscore(modelKey)] = model[modelKey];
+        if (model[modelKey] !== null) {
+
+            object[camelToUnderscore(modelKey)] = model[modelKey];
+        }
     }
     return object;
 }

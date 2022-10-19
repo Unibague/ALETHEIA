@@ -4,31 +4,65 @@
                   :show="snackbar.status" @closeSnackbar="snackbar.status = false"></Snackbar>
 
         <v-container>
-            <div class="d-flex flex-column align-end mb-8">
+            <div class="d-flex flex-column align-end">
                 <h2 class="align-self-start">Gestionar formularios</h2>
                 <div>
                     <v-btn
+                        class="mr-3"
+                        @click="createOthersFormDialog=true"
+                    >
+                        Crear formulario para otros
+                    </v-btn>
+                    <v-btn
                         color="primario"
                         class="grey--text text--lighten-4"
-                        @click="setFormDialogToCreateOrEdit('create')"
+                        @click="createStudentFormDialog=true"
                     >
-                        Crear nuevo formulario
+                        Crear formulario para estudiantes
                     </v-btn>
-
-
                 </div>
-
             </div>
 
             <!--Inicia tabla-->
+            <h3 class="mb-5">Formularios para estudiantes</h3>
             <v-data-table
                 loading-text="Cargando, por favor espere..."
                 :loading="isLoading"
-                :headers="headers"
-                :items="forms"
+                :headers="studentTableHeaders"
+                :items="studentsForms"
                 :items-per-page="15"
                 class="elevation-1"
-                :item-class="getRowColor"
+            >
+                <template v-slot:item.actions="{ item }">
+                    <v-icon
+                        class="mr-2 primario--text"
+                        @click="setFormDialogToCreateOrEdit('edit',item)"
+                    >
+                        mdi-pencil
+                    </v-icon>
+                    <v-icon
+                        class="primario--text"
+                        @click="confirmDeleteForm(item)"
+                    >
+                        mdi-content-copy
+                    </v-icon>
+                    <v-icon
+                        class="primario--text"
+                        @click="confirmDeleteForm(item)"
+                    >
+                        mdi-delete
+                    </v-icon>
+
+                </template>
+            </v-data-table>
+            <h3 class="mt-10 mb-5">Formularios para otros roles (par, jefe, autoevaluación)</h3>
+            <v-data-table
+                loading-text="Cargando, por favor espere..."
+                :loading="isLoading"
+                :headers="othersTableHeaders"
+                :items="othersForms"
+                :items-per-page="15"
+                class="elevation-1"
             >
                 <template v-slot:item.actions="{ item }">
                     <v-icon
@@ -58,7 +92,7 @@
 
             <!--Crear o editar form -->
             <v-dialog
-                v-model="createOrEditDialog.dialogStatus"
+                v-model="createStudentFormDialog"
                 persistent
                 max-width="650px"
             >
@@ -66,90 +100,49 @@
                     <v-card-title>
                         <span>
                         </span>
-                        <span class="text-h5">Crear un nuevo periodo académico</span>
+                        <span class="text-h5">Crear un nuevo formulario para estudiantes</span>
                     </v-card-title>
                     <v-card-text>
                         <v-container>
                             <v-row>
                                 <v-col cols="12">
                                     <v-text-field
-                                        label="Nombre del periodo de evaluación *"
+                                        label="Nombre del formulario *"
                                         required
-                                        v-model="$data[createOrEditDialog.model].name"
+                                        v-model="newStudentForm.name"
                                     ></v-text-field>
                                 </v-col>
-                                <v-col cols="12" :md="6" class="d-flex flex-column">
-                                    <span class="subtitle-1">
-                                        Fecha de inicio autoevaluación
-                                    </span>
-                                    <v-date-picker v-model="$data[createOrEditDialog.model].selfStartDate" full-width>
-                                    </v-date-picker>
-                                </v-col>
-                                <v-col cols="12" :md="6" class="d-flex flex-column">
-                                    <span class="subtitle-1">
-                                        Fecha de finalización autoevaluación
-                                    </span>
-                                    <v-date-picker v-model="$data[createOrEditDialog.model].selfEndDate" full-width>
-                                    </v-date-picker>
-                                </v-col>
-
-                                <v-col cols="12" :md="6" class="d-flex flex-column">
-                                    <span class="subtitle-1">
-                                        Fecha de inicio jefe
-                                    </span>
-                                    <v-date-picker v-model="$data[createOrEditDialog.model].bossStartDate" full-width>
-                                    </v-date-picker>
-                                </v-col>
-                                <v-col cols="12" :md="6" class="d-flex flex-column">
-                                    <span class="subtitle-1">
-                                        Fecha de finalización jefe
-                                    </span>
-                                    <v-date-picker v-model="$data[createOrEditDialog.model].bossEndDate" full-width>
-                                    </v-date-picker>
-                                </v-col>
-
-                                <v-col cols="12" :md="6" class="d-flex flex-column">
-                                    <span class="subtitle-1">
-                                        Fecha de inicio par
-                                    </span>
-                                    <v-date-picker v-model="$data[createOrEditDialog.model].colleagueStartDate"
-                                                   full-width>
-                                    </v-date-picker>
-                                </v-col>
-                                <v-col cols="12" :md="6" class="d-flex flex-column">
-                                    <span class="subtitle-1">
-                                        Fecha de finalización par
-                                    </span>
-                                    <v-date-picker v-model="$data[createOrEditDialog.model].colleagueEndDate"
-                                                   full-width>
-                                    </v-date-picker>
+                                <v-col cols="12">
+                                    <v-select
+                                        color="primario"
+                                        v-model="newStudentForm.degree"
+                                        :items="newStudentForm.getPossibleDegrees()"
+                                        label="Nivel de formación"
+                                        item-value="name"
+                                        :item-text="(degree)=> degree.name.charAt(0).toUpperCase() + degree.name.slice(1)"
+                                    ></v-select>
                                 </v-col>
                                 <v-col cols="12">
-                                    <span class="subtitle-1">
-                                       Por favor seleccione los escalafones que realizan 360 este periodo académico
-                                    </span>
-                                    <v-checkbox
-                                        v-model="$data[createOrEditDialog.model].doneByNone"
-                                        label="Sin escalafón"
-                                    ></v-checkbox>
-                                    <v-checkbox
-                                        v-model="$data[createOrEditDialog.model].doneByAuxiliary"
-                                        label="Auxiliar"
-                                    ></v-checkbox>
-                                    <v-checkbox
-                                        v-model="$data[createOrEditDialog.model].doneByAssistant"
-                                        label="Asistente"
-                                    ></v-checkbox>
-                                    <v-checkbox
-                                        v-model="$data[createOrEditDialog.model].doneByAssociated"
-                                        label="Asociado"
-                                    ></v-checkbox>
-                                    <v-checkbox
-                                        v-model="$data[createOrEditDialog.model].doneByHeadTeacher"
-                                        label="Titular"
-                                    ></v-checkbox>
-                                </v-col>
+                                    <v-select
+                                        color="primario"
+                                        v-model="newStudentForm.academicPeriodId"
+                                        :items="academicPeriods"
+                                        label="Periodo académico"
+                                        :item-text="(academicPeriod)=>academicPeriod.name"
+                                        :item-value="(academicPeriod)=>academicPeriod.id"
 
+                                    ></v-select>
+                                </v-col>
+                                <v-col cols="12">
+                                    <v-select
+                                        color="primario"
+                                        v-model="newStudentForm.serviceAreaId"
+                                        :items="serviceAreas"
+                                        label="Área de servicio"
+                                        :item-text="(academicPeriod)=>academicPeriod.name"
+                                        :item-value="(academicPeriod)=>academicPeriod.id"
+                                    ></v-select>
+                                </v-col>
                             </v-row>
                         </v-container>
                         <small>Los campos con * son obligatorios</small>
@@ -159,20 +152,107 @@
                         <v-btn
                             color="primario"
                             text
-                            @click="createOrEditDialog.dialogStatus = false"
+                            @click="createStudentFormDialog = false"
                         >
                             Cancelar
                         </v-btn>
                         <v-btn
                             color="primario"
                             text
-                            @click="handleSelectedMethod"
+                            @click="createForm('newStudentForm')"
                         >
                             Guardar cambios
                         </v-btn>
                     </v-card-actions>
                 </v-card>
             </v-dialog>
+
+            <v-dialog
+                v-model="createOthersFormDialog"
+                persistent
+                max-width="650px"
+            >
+                <v-card>
+                    <v-card-title>
+                        <span>
+                        </span>
+                        <span class="text-h5">Crear un nuevo formulario para otros</span>
+                    </v-card-title>
+                    <v-card-text>
+                        <v-container>
+                            <v-row>
+                                <v-col cols="12">
+                                    <v-text-field
+                                        label="Nombre del formulario *"
+                                        required
+                                        v-model="newOthersForm.name"
+                                    ></v-text-field>
+                                </v-col>
+                                <v-col cols="12">
+                                    <v-select
+                                        color="primario"
+                                        v-model="newOthersForm.assessmentPeriodId"
+                                        :items="assessmentPeriods"
+                                        label="Periodo de evaluación"
+                                        :item-text="(assessmentPeriod)=>assessmentPeriod.name"
+                                        :item-value="(assessmentPeriod)=>assessmentPeriod.id"
+
+                                    ></v-select>
+                                </v-col>
+                                <v-col cols="12">
+                                    <v-select
+                                        color="primario"
+                                        v-model="newOthersForm.unitRole"
+                                        :items="newOthersForm.getPossibleRoles()"
+                                        label="Rol"
+                                        item-value="name"
+                                        :item-text="(role)=> role.name.charAt(0).toUpperCase() + role.name.slice(1)"
+                                    ></v-select>
+                                </v-col>
+                                <v-col cols="12">
+                                    <v-select
+                                        color="primario"
+                                        v-model="newOthersForm.teachingLadder"
+                                        :items="newOthersForm.getPossibleTeachingLadders()"
+                                        label="Escalafón"
+                                        item-value="name"
+                                        :item-text="(teachingLadder)=> teachingLadder.name.charAt(0).toUpperCase() + teachingLadder.name.slice(1)"
+                                    ></v-select>
+                                </v-col>
+                                <v-col cols="12">
+                                    <v-select
+                                        color="primario"
+                                        v-model="newOthersForm.unitId"
+                                        :items="units"
+                                        label="Unidad"
+                                        :item-text="(unit)=>unit.name"
+                                        :item-value="(unit)=>unit.id"
+                                    ></v-select>
+                                </v-col>
+                            </v-row>
+                        </v-container>
+                        <small>Los campos con * son obligatorios</small>
+                    </v-card-text>
+                    <v-card-actions>
+                        <v-spacer></v-spacer>
+                        <v-btn
+                            color="primario"
+                            text
+                            @click="createOthersFormDialog = false"
+                        >
+                            Cancelar
+                        </v-btn>
+                        <v-btn
+                            color="primario"
+                            text
+                            @click="createForm('newOthersForm')"
+                        >
+                            Guardar cambios
+                        </v-btn>
+                    </v-card-actions>
+                </v-card>
+            </v-dialog>
+
 
             <!--Confirmar borrar rol-->
             <confirm-dialog
@@ -214,18 +294,37 @@ export default {
     data: () => {
         return {
             //Table info
-            headers: [
+            studentTableHeaders: [
                 {text: 'Nombre', value: 'name'},
-                {text: 'Tipo', value: 'type'},
-                {text: 'Periodo académico', value: 'academicPeriod.name'},
-                {text: 'Unidad de servicio', value: 'unit.name'},
+                {text: 'Nivel de formación', value: 'degree'},
+                {text: 'Periodo académico', value: 'academic_period.name'},
+                {text: 'Área de servicio', value: 'service_area.name'},
+                {text: 'Acciones', value: 'actions', sortable: false},
+            ],
+            othersTableHeaders: [
+                {text: 'Nombre', value: 'name'},
+                {text: 'Periodo de evaluación', value: 'assessment_period.name'},
+                {text: 'Rol', value: 'unit_role'},
+                {text: 'Escalafón', value: 'teaching_ladder'},
+                {text: 'Unidad', value: 'unit.name'},
                 {text: 'Acciones', value: 'actions', sortable: false},
             ],
             forms: [],
+            studentsForms: [],
+            othersForms: [],
+            //data for modals
+            academicPeriods: [],
+            assessmentPeriods: [],
+            serviceAreas: [],
+            units: [],
+
             //Forms models
-            newForm: new Form(),
-            editedForm: new Form(),
+            newStudentForm: new Form(),
+            editedStudentForm: new Form(),
+            newOthersForm: new Form(),
+            editedOthersForm: new Form(),
             deletedFormId: 0,
+
             //Snackbars
             snackbar: {
                 text: "",
@@ -235,16 +334,21 @@ export default {
             },
             //Dialogs
             deleteFormDialog: false,
-            createOrEditDialog: {
-                model: 'newForm',
-                method: 'createForm',
-                dialogStatus: false,
-            },
+            createStudentFormDialog: false,
+            editStudentFormDialog: false,
+            createOthersFormDialog: false,
+            editOthersFormDialog: false,
+
             isLoading: true,
         }
     },
     async created() {
         await this.getAllForms();
+        await this.getCurrentAssessmentPeriodAcademicPeriods();
+        this.getServiceAreas();
+        this.getAssessmentPeriods();
+        this.getUnits();
+
         this.isLoading = false;
     },
 
@@ -258,9 +362,6 @@ export default {
             } catch (e) {
                 showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
             }
-        },
-        getRowColor: function (item) {
-            return item.active ? 'green lighten-5' : '';
         },
         handleSelectedMethod: function () {
             this[this.createOrEditDialog.method]();
@@ -305,6 +406,38 @@ export default {
         getAllForms: async function () {
             let request = await axios.get(route('api.forms.index'));
             this.forms = request.data;
+            this.formatForms();
+        },
+        getServiceAreas: async function () {
+            let request = await axios.get(route('api.serviceAreas.index'));
+            this.serviceAreas = request.data;
+        },
+        getUnits: async function () {
+            let request = await axios.get(route('api.units.index'));
+            this.units = request.data;
+        },
+
+        getAssessmentPeriods: async function () {
+            let request = await axios.get(route('api.assessmentPeriods.index'));
+            this.assessmentPeriods = request.data;
+        },
+        getCurrentAssessmentPeriodAcademicPeriods: async function () {
+            let request = await axios.get(route('api.academicPeriods.index'), {
+                params: {active: true}
+            });
+            this.academicPeriods = request.data;
+        },
+        formatForms: function () {
+            const forms = this.forms;
+            this.studentsForms = [];
+            this.othersForms = [];
+            forms.forEach((form) => {
+                if (form.type === 'estudiantes') {
+                    this.studentsForms.push(form);
+                } else {
+                    this.othersForms.push(form);
+                }
+            });
         },
         setFormDialogToCreateOrEdit(which, item = null) {
             if (which === 'create') {
@@ -321,23 +454,38 @@ export default {
             }
 
         },
-        createForm: async function () {
-            if (this.newForm.hasEmptyProperties()) {
+        createForm: async function (formModel) {
+            if (this[formModel].hasEmptyProperties()) {
                 showSnackbar(this.snackbar, 'Debes diligenciar todos los campos obligatorios', 'red', 2000);
                 return;
             }
-            let data = this.newForm.toObjectRequest();
+            if (formModel === 'newStudentForm') {
+                this[formModel].type = 'estudiantes';
+            }
+            if (formModel === 'newOthersForm') {
+                this[formModel].type = 'otros';
+            }
+            let data = this[formModel].toObjectRequest();
+
 
             //Clear form information
-            // this.newForm = new Form();
+            this[formModel] = new Form();
 
             try {
                 let request = await axios.post(route('api.forms.store'), data);
-                this.createOrEditDialog.dialogStatus = false;
+                if (formModel === 'newStudentForm') {
+                    this.createStudentFormDialog = false;
+                }
+                if (formModel === 'newOthersForm') {
+                    this.createOthersFormDialog = false;
+                }
+                console.log(request);
+
                 showSnackbar(this.snackbar, request.data.message, 'success', 2000);
                 this.getAllForms();
             } catch (e) {
-                showSnackbar(this.snackbar, e.response.data.message, 'alert', 3000);
+                console.log(e);
+                showSnackbar(this.snackbar, prepareErrorText(e.response.data.message), 'alert', 3000);
             }
         }
     },

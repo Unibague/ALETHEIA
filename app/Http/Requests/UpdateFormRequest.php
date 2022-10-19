@@ -27,14 +27,14 @@ class UpdateFormRequest extends FormRequest
     {
         return [
             'name' => 'required|String',
-            'type' => 'required|Enum',
-            'degree' =>  [  Rule::in(['pregrado','posgrado']),'requiered_if:type,estudiante'],
-            'assessment_period_id' => 'required_if:type,estudiante|Integer',
-            'unit_id' => 'required_if:type,otros|Integer',
+            'type' => ['required', Rule::in([null, 'estudiantes', 'otros'])],
+            'degree' => [Rule::in([null, 'pregrado', 'posgrado']), 'required_if:type,estudiante'],
             'academic_period_id' => 'required_if:type,otros|Integer',
-            'unity_role' =>  [  Rule::in(['jefe','par','autoevaluación']),'requiered_if:type,otros'],
-            'teaching_ladder' => [  Rule::in(['ninguno','auxiliar','asistente','asociado','titular']),'requiered_if:type,otros'],
-            'service_area_id' => 'required_if:type,estudiante|Integer',
+            'assessment_period_id' => 'required_if:type,estudiantes|Integer',
+            'unit_id' => 'required_if:type,otros|Integer',
+            'unity_role' => [Rule::in([null, 'jefe', 'par', 'autoevaluación']), 'required_if:type,otros'],
+            'teaching_ladder' => [Rule::in([null, 'ninguno', 'auxiliar', 'asistente', 'asociado', 'titular']), 'required_if:type,otros'],
+            'service_area_id' => 'required_if:type,estudiantes|Integer',
 
         ];
     }

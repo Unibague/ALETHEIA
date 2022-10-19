@@ -21,7 +21,7 @@ class TeacherProfileController extends Controller
     public function index(): JsonResponse
     {
         $actualAssessmentPeriod = AssessmentPeriod::getActiveAssessmentPeriod();
-        return response()->json(TeacherProfile::where('assessment_period_id', '=', $actualAssessmentPeriod->id)->with('user')->get());
+        return response()->json(TeacherProfile::where('assessment_period_id', '=', $actualAssessmentPeriod->id)->with('user')->get()->sortBy('user.name')->values()->all());
     }
 
 

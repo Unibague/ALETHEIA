@@ -7,6 +7,7 @@ use App\Models\Form;
 use App\Http\Requests\StoreFormRequest;
 use App\Http\Requests\UpdateFormRequest;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 
 class FormController extends Controller
 {
@@ -17,13 +18,13 @@ class FormController extends Controller
      */
     public function index(): JsonResponse
     {
-        return response()->json(Form::with(['academicPeriod', 'assessmentPeriod', 'unity', 'serviceArea'])->get());
+        return response()->json(Form::with(['academicPeriod', 'assessmentPeriod', 'unit', 'serviceArea'])->get());
     }
 
     /**
      * Show the form for creating a new resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function create()
     {
@@ -33,30 +34,36 @@ class FormController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param \App\Http\Requests\StoreFormRequest $request
-     * @return \Illuminate\Http\Response
+     * @param StoreFormRequest $request
+     * @return JsonResponse
      */
     public function store(StoreFormRequest $request)
     {
+        if($request->input('type') === 'estudiantes'){
+            Form::createStudentForm($request);
+            return response()->json(['message' => 'Formulario creado exitosamente']);
+        }
+        Form::createOthersForm($request);
 
+        return response()->json(['message' => 'Formulario creado exitosamente']);
     }
 
     /**
      * Display the specified resource.
      *
-     * @param \App\Models\Form $form
-     * @return \Illuminate\Http\Response
+     * @param Form $form
+     * @return Response
      */
     public function show(Form $form)
     {
-        //
+        dd('hola');
     }
 
     /**
      * Show the form for editing the specified resource.
      *
-     * @param \App\Models\Form $form
-     * @return \Illuminate\Http\Response
+     * @param Form $form
+     * @return Response
      */
     public function edit(Form $form)
     {
@@ -67,8 +74,8 @@ class FormController extends Controller
      * Update the specified resource in storage.
      *
      * @param \App\Http\Requests\UpdateFormRequest $request
-     * @param \App\Models\Form $form
-     * @return \Illuminate\Http\Response
+     * @param Form $form
+     * @return Response
      */
     public function update(UpdateFormRequest $request, Form $form)
     {
@@ -78,11 +85,13 @@ class FormController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param \App\Models\Form $form
-     * @return \Illuminate\Http\Response
      */
     public function destroy(DestroyFormRequest $request, Form $form)
     {
-        //
+        if (count($form->formAnswers) !== 0) {
+            return response()->json(['message' => 'No puedes borrar un formulario con respuestas']);
+        }
+
+        return response()->json(['message' => 'Formulario borrado']);
     }
 }

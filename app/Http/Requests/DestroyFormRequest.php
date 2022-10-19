@@ -25,7 +25,7 @@ class DestroyFormRequest extends FormRequest
     public function rules()
     {
         return [
-            //
+
         ];
     }
 }
