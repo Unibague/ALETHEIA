@@ -28,13 +28,13 @@ class UpdateFormRequest extends FormRequest
         return [
             'name' => 'required|String',
             'type' => 'required|Enum',
-            'degree' =>  [  Rule::in(['pregrado','posgrado'])],
-            'assessment_period_id' => 'Integer',
-            'unit_id' => 'Integer',
-            'academic_period_id' => 'Integer',
-            'unity_role' =>  [  Rule::in(['jefe','par','autoevaluación'])],
-            'teaching_ladder' => [  Rule::in(['ninguno','auxiliar','asistente','asociado','titular'])],
-            'service_area_id' => 'Integer',
+            'degree' =>  [  Rule::in(['pregrado','posgrado']),'requiered_if:type,estudiante'],
+            'assessment_period_id' => 'required_if:type,estudiante|Integer',
+            'unit_id' => 'required_if:type,otros|Integer',
+            'academic_period_id' => 'required_if:type,otros|Integer',
+            'unity_role' =>  [  Rule::in(['jefe','par','autoevaluación']),'requiered_if:type,otros'],
+            'teaching_ladder' => [  Rule::in(['ninguno','auxiliar','asistente','asociado','titular']),'requiered_if:type,otros'],
+            'service_area_id' => 'required_if:type,estudiante|Integer',
 
         ];
     }
