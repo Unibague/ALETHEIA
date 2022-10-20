@@ -91,7 +91,7 @@ class FormController extends Controller
         if (count($form->formAnswers) !== 0) {
             return response()->json(['message' => 'No puedes borrar un formulario con respuestas']);
         }
-
+        $form->delete();
         return response()->json(['message' => 'Formulario borrado']);
     }
 }
