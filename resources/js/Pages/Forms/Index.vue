@@ -33,26 +33,42 @@
                 :items-per-page="15"
                 class="elevation-1"
             >
-                <template v-slot:item.actions="{ item }">
-                    <v-icon
-                        class="mr-2 primario--text"
-                        @click="setFormDialogToCreateOrEdit('edit',item)"
-                    >
-                        mdi-pencil
-                    </v-icon>
-                    <v-icon
-                        class="primario--text"
-                        @click="confirmDeleteForm(item)"
-                    >
-                        mdi-content-copy
-                    </v-icon>
-                    <v-icon
-                        class="primario--text"
-                        @click="confirmDeleteForm(item)"
-                    >
-                        mdi-delete
-                    </v-icon>
+                <template v-slot:item="{ item }">
+                    <tr>
+                        <td>
+                            {{ item.name }}
+                        </td>
+                        <td>
+                            {{ item.degree ? item.degree : 'No diligenciado' }}
+                        </td>
+                        <td>
+                            {{ item.academic_period != null ? item.academic_period.name : 'No diligenciado' }}
+                        </td>
+                        <td>
+                            {{ item.service_area != null ? item.service_area.name : 'No diligenciado' }}
+                        </td>
 
+                        <td>
+                            <v-icon
+                                class="mr-2 primario--text"
+                                @click="setFormDialogToCreateOrEdit('edit',item)"
+                            >
+                                mdi-pencil
+                            </v-icon>
+                            <v-icon
+                                class="primario--text"
+                                @click="copy(item.id)"
+                            >
+                                mdi-content-copy
+                            </v-icon>
+                            <v-icon
+                                class="primario--text"
+                                @click="confirmDeleteForm(item)"
+                            >
+                                mdi-delete
+                            </v-icon>
+                        </td>
+                    </tr>
                 </template>
             </v-data-table>
             <h3 class="mt-10 mb-5">Formularios para otros roles (par, jefe, autoevaluación)</h3>
@@ -70,7 +86,7 @@
                             {{ item.name }}
                         </td>
                         <td>
-                            {{item.assessment_period ? item.assessment_period.name : 'No diligenciado'}}
+                            {{ item.assessment_period ? item.assessment_period.name : 'No diligenciado' }}
                         </td>
                         <td>
                             {{ item.unit_role != null ? item.unit_role : 'No diligenciado' }}
@@ -91,7 +107,7 @@
                             </v-icon>
                             <v-icon
                                 class="primario--text"
-                                @click="confirmDeleteForm(item)"
+                                @click="copy(item.id)"
                             >
                                 mdi-content-copy
                             </v-icon>
@@ -365,9 +381,9 @@ export default {
     async created() {
         await this.getAllForms();
         await this.getCurrentAssessmentPeriodAcademicPeriods();
-        this.getServiceAreas();
-        this.getAssessmentPeriods();
-        this.getUnits();
+        await this.getServiceAreas();
+        await this.getAssessmentPeriods();
+        await this.getUnits();
 
         this.isLoading = false;
     },
@@ -431,6 +447,16 @@ export default {
         getServiceAreas: async function () {
             let request = await axios.get(route('api.serviceAreas.index'));
             this.serviceAreas = request.data;
+        },
+        copy: async function (formId) {
+            try {
+                await axios.post(route('api.forms.copy', {form: formId}));
+                showSnackbar(this.snackbar, 'Formulario copiado exitosamente');
+                await this.getAllForms();
+            } catch (e) {
+                showSnackbar(this.snackbar, e.response.data.message, 'red', 3000);
+            }
+
         },
         getUnits: async function () {
             let request = await axios.get(route('api.units.index'));

@@ -31,7 +31,7 @@ Route::inertia('/forms', 'Forms/Index')->middleware(['auth', 'isAdmin'])->name('
 Route::resource('api/forms', \App\Http\Controllers\FormController::class, [
     'as' => 'api'
 ])->middleware('auth');
-
+Route::post('api/forms/{form}/copy', [\App\Http\Controllers\FormController::class, 'copy'])->name('api.forms.copy')->middleware(['auth']);
 
 /* >>>>>Academic Periods routes <<<<<< */
 Route::inertia('/academicPeriods', 'AcademicPeriods/Index')->middleware(['auth', 'isAdmin'])->name('academicPeriods.index.view');

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CopyFormRequest;
 use App\Http\Requests\DestroyFormRequest;
 use App\Models\Form;
 use App\Http\Requests\StoreFormRequest;
@@ -39,13 +40,23 @@ class FormController extends Controller
      */
     public function store(StoreFormRequest $request)
     {
-        if($request->input('type') === 'estudiantes'){
+        if ($request->input('type') === 'estudiantes') {
             Form::createStudentForm($request);
             return response()->json(['message' => 'Formulario creado exitosamente']);
         }
         Form::createOthersForm($request);
 
         return response()->json(['message' => 'Formulario creado exitosamente']);
+    }
+
+    public function copy(CopyFormRequest $request, Form $form)
+    {
+        $newForm = $form->replicate(['name']);
+        $newForm->name = 'Copia de '.$form->name;
+        $newForm->save();
+
+        return response()->json(['message' => 'Formulario copiado exitosamente']);
+
     }
 
     /**

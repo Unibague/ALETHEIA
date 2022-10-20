@@ -97,7 +97,7 @@ class Form extends Model
             'name' => $request->input('name'),
             'type' => $request->input('type'),
             'assessment_period_id' => $request->input('assessment_period_id'),
-            'unit_role' => $request->input('unity_role'),
+            'unit_role' => $request->input('unit_role'),
             'teaching_ladder' => $request->input('teaching_ladder'),
             'unit_id' => $request->input('unit_id'),
         ]);
