@@ -5,8 +5,12 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ChangeTeacherStatusRequest;
 use App\Models\AssessmentPeriod;
 use App\Models\TeacherProfile;
+use App\Models\Unit;
 use App\Models\User;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Hash;
+use Ospina\CurlCobain\CurlCobain;
 
 /**
  *
@@ -43,31 +47,39 @@ class TeacherProfileController extends Controller
 
     public function sync()
     {
-        $url = 'http://integra.unibague.edu.co/teachers';
-        $curl = new CurlCobain($url);
-        $curl->setQueryParamsAsArray([
-            'year' => '23',
-            'api_token' => env('MIDDLEWARE_API_TOKEN')
-        ]);
-        $curl->setQueryParam('year', '23');
-        $request = $curl->makeRequest();
+        $endpoint = 'teachers';
+
         try {
-            $teachers = json_decode($request, false, 512, JSON_THROW_ON_ERROR);
-        } catch (JsonException $e) {
+            $teachers = $this->makeRequest($endpoint);
+
+        } catch (\JsonException $e) {
             return response()->json(['message' => 'Ha ocurrido un error con la fuente de datos']);
         }
 
         //Iterate over received data and create the academic period
+        $assessment_period_id = AssessmentPeriod::getActiveAssessmentPeriod()->id;
         foreach ($teachers as $teacher) {
-            $user = User::where('email', $teacher['email']);
+            try {
+                $user = User::firstOrCreate(['email' => $teacher->email], ['name' => $teacher->name, 'password' => Hash::make($teacher->identification_number . $teacher->email)]);
+                //$unit = Unit::where('code', '=', $teacher->unit)->firstOrFail();
+                $unit = (object)['id' => 1];
+            } catch (ModelNotFoundException $e) {
+                continue;
+            }
+
             TeacherProfile::updateOrCreate(
                 [
-                    'identification_number' => $teacher->identification_number
+                    'identification_number' => $teacher->identification_number,
+                    'user_id' => $user->id
                 ],
                 [
-                    'description' => $teacher->description,
-                    'class_start_date' => $teacher->class_start_date,
-                    'class_end_date' => $teacher->class_end_date,
+                    'unit_id' => $unit->id,
+                    'position' => $teacher->position,
+                    //'teaching_ladder' => $teacher->teaching_ladder,
+                    'teaching_ladder' => 'ninguno',
+                    'employee_type' => $teacher->employee_type,
+                    'status' => 'activo',
+                    'assessment_period_id' => $assessment_period_id
                 ]);
         }
         return response()->json(['message' => 'Los periodos se han sincronizado exitosamente']);

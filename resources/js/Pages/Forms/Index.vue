@@ -64,26 +64,46 @@
                 :items-per-page="15"
                 class="elevation-1"
             >
-                <template v-slot:item.actions="{ item }">
-                    <v-icon
-                        class="mr-2 primario--text"
-                        @click="setFormDialogToCreateOrEdit('edit',item)"
-                    >
-                        mdi-pencil
-                    </v-icon>
-                    <v-icon
-                        class="primario--text"
-                        @click="confirmDeleteForm(item)"
-                    >
-                        mdi-content-copy
-                    </v-icon>
-                    <v-icon
-                        class="primario--text"
-                        @click="confirmDeleteForm(item)"
-                    >
-                        mdi-delete
-                    </v-icon>
+                <template v-slot:item="{ item }">
+                    <tr>
+                        <td>
+                            {{ item.name }}
+                        </td>
+                        <td>
+                            {{item.assessment_period ? item.assessment_period.name : 'No diligenciado'}}
+                        </td>
+                        <td>
+                            {{ item.unit_role != null ? item.unit_role : 'No diligenciado' }}
+                        </td>
+                        <td>
+                            {{ item.teaching_ladder != null ? item.teaching_ladder : 'No diligenciado' }}
+                        </td>
+                        <td>
+                            {{ item.unit != null ? item.unit.name : 'No diligenciado' }}
+                        </td>
 
+                        <td>
+                            <v-icon
+                                class="mr-2 primario--text"
+                                @click="setFormDialogToCreateOrEdit('edit',item)"
+                            >
+                                mdi-pencil
+                            </v-icon>
+                            <v-icon
+                                class="primario--text"
+                                @click="confirmDeleteForm(item)"
+                            >
+                                mdi-content-copy
+                            </v-icon>
+                            <v-icon
+                                class="primario--text"
+                                @click="confirmDeleteForm(item)"
+                            >
+                                mdi-delete
+                            </v-icon>
+                        </td>
+
+                    </tr>
                 </template>
             </v-data-table>
             <!--Acaba tabla-->
@@ -439,21 +459,6 @@ export default {
                 }
             });
         },
-        setFormDialogToCreateOrEdit(which, item = null) {
-            if (which === 'create') {
-                this.createOrEditDialog.method = 'createForm';
-                this.createOrEditDialog.model = 'newForm';
-                this.createOrEditDialog.dialogStatus = true;
-            }
-
-            if (which === 'edit') {
-                this.editedForm = Form.fromModel(item);
-                this.createOrEditDialog.method = 'editForm';
-                this.createOrEditDialog.model = 'editedForm';
-                this.createOrEditDialog.dialogStatus = true;
-            }
-
-        },
         createForm: async function (formModel) {
             if (this[formModel].hasEmptyProperties()) {
                 showSnackbar(this.snackbar, 'Debes diligenciar todos los campos obligatorios', 'red', 2000);
@@ -485,7 +490,7 @@ export default {
                 this.getAllForms();
             } catch (e) {
                 console.log(e);
-                showSnackbar(this.snackbar, prepareErrorText(e.response.data.message), 'alert', 3000);
+                showSnackbar(this.snackbar, prepareErrorText(e), 'alert', 3000);
             }
         }
     },
