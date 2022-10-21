@@ -39,13 +39,13 @@
                             {{ item.name }}
                         </td>
                         <td>
-                            {{ item.degree ? item.degree : 'No diligenciado' }}
+                            {{ item.degree ? item.degree : 'Todos' }}
                         </td>
                         <td>
-                            {{ item.academic_period != null ? item.academic_period.name : 'No diligenciado' }}
+                            {{ item.academic_period != null ? item.academic_period.name : 'Todos' }}
                         </td>
                         <td>
-                            {{ item.service_area != null ? item.service_area.name : 'No diligenciado' }}
+                            {{ item.service_area != null ? item.service_area.name : 'Todos' }}
                         </td>
 
                         <td>
@@ -92,16 +92,16 @@
                             {{ item.name }}
                         </td>
                         <td>
-                            {{ item.assessment_period ? item.assessment_period.name : 'No diligenciado' }}
+                            {{ item.assessment_period ? item.assessment_period.name : 'Todos' }}
                         </td>
                         <td>
-                            {{ item.unit_role != null ? item.unit_role : 'No diligenciado' }}
+                            {{ item.unit_role != null ? item.unit_role : 'Todos' }}
                         </td>
                         <td>
-                            {{ item.teaching_ladder != null ? item.teaching_ladder : 'No diligenciado' }}
+                            {{ item.teaching_ladder != null ? item.teaching_ladder : 'Todos' }}
                         </td>
                         <td>
-                            {{ item.unit != null ? item.unit.name : 'No diligenciado' }}
+                            {{ item.unit != null ? item.unit.name : 'Todos' }}
                         </td>
 
                         <td>
@@ -166,7 +166,7 @@
                                         v-model="studentForm.degree"
                                         :items="studentForm.getPossibleDegrees()"
                                         label="Nivel de formación"
-                                        item-value="name"
+                                        item-value="value"
                                         :item-text="(degree)=> degree.name.charAt(0).toUpperCase() + degree.name.slice(1)"
                                     ></v-select>
                                 </v-col>
@@ -253,7 +253,7 @@
                                         v-model="othersForm.unitRole"
                                         :items="othersForm.getPossibleRoles()"
                                         label="Rol"
-                                        item-value="name"
+                                        item-value="value"
                                         :item-text="(role)=> role.name.charAt(0).toUpperCase() + role.name.slice(1)"
                                     ></v-select>
                                 </v-col>
@@ -263,7 +263,7 @@
                                         v-model="othersForm.teachingLadder"
                                         :items="othersForm.getPossibleTeachingLadders()"
                                         label="Escalafón"
-                                        item-value="name"
+                                        item-value="value"
                                         :item-text="(teachingLadder)=> teachingLadder.name.charAt(0).toUpperCase() + teachingLadder.name.slice(1)"
                                     ></v-select>
                                 </v-col>
@@ -449,6 +449,10 @@ export default {
         getServiceAreas: async function () {
             let request = await axios.get(route('api.serviceAreas.index'));
             this.serviceAreas = request.data;
+            this.serviceAreas.unshift({
+                id:null,
+                name: "Todas"
+            });
         },
         copy: async function (formId) {
             try {
@@ -463,17 +467,29 @@ export default {
         getUnits: async function () {
             let request = await axios.get(route('api.units.index'));
             this.units = request.data;
+            this.units.unshift({
+                id:null,
+                name: "Todas"
+            });
         },
 
         getAssessmentPeriods: async function () {
             let request = await axios.get(route('api.assessmentPeriods.index'));
             this.assessmentPeriods = request.data;
+            this.assessmentPeriods.unshift({
+                id:null,
+                name: "Todos"
+            });
         },
         getCurrentAssessmentPeriodAcademicPeriods: async function () {
             let request = await axios.get(route('api.academicPeriods.index'), {
                 params: {active: true}
             });
             this.academicPeriods = request.data;
+            this.academicPeriods.unshift({
+                id:null,
+                name: "Todos"
+            });
         },
         formatForms: function () {
             const forms = this.forms;

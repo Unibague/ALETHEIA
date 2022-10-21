@@ -15,15 +15,35 @@ export default class Form {
     }
 
     getPossibleDegrees() {
-        return [{name: 'pregrado'}, {name: 'posgrado'}];
+        return [
+            {name: 'Todos', value: null},
+            {name: 'pregrado', value: 'pregrado'},
+            {name: 'posgrado', value: 'posgrado'}];
     }
 
     getPossibleRoles() {
-        return [{name: 'jefe'}, {name: 'par'}, {name: 'autoevaluación'}];
+        return [
+            {name: 'Todos', value: null},
+            {name: 'jefe', value: 'jefe'},
+            {name: 'par', value: 'par'},
+            {
+                name: 'autoevaluación',
+                value: 'autoevaluación'
+            }
+        ];
     }
 
     getPossibleTeachingLadders() {
-        return [{name: 'ninguno'}, {name: 'auxiliar'}, {name: 'asistente'}, {name: 'asociado'}, {name: 'titular'}];
+        return [
+            {name: 'Todos', value: null},
+            {name: 'ninguno', value: 'ninguno'},
+            {name: 'auxiliar', value: 'auxiliar'},
+            {
+                name: 'asistente', value: 'asistente'
+            },
+            {name: 'asociado', value: 'asociado'},
+            {name: 'titular', value: 'titular'}
+        ];
     }
 
     constructor(id = null, name = '', type = '', degree = null, assessmentPeriodId = null, unitId = null, academicPeriodId = null, unitRole = null, teachingLadder = null, serviceAreaId = null) {
