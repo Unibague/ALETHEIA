@@ -9,14 +9,14 @@
                 <div>
                     <v-btn
                         class="mr-3"
-                        @click="createOthersFormDialog=true"
+                        @click="openFormDialog('create','othersForm')"
                     >
                         Crear formulario para otros
                     </v-btn>
                     <v-btn
                         color="primario"
                         class="grey--text text--lighten-4"
-                        @click="createStudentFormDialog=true"
+                        @click="openFormDialog('create','studentForm')"
                     >
                         Crear formulario para estudiantes
                     </v-btn>
@@ -51,7 +51,7 @@
                         <td>
                             <v-icon
                                 class="mr-2 primario--text"
-                                @click="setFormDialogToCreateOrEdit('edit',item)"
+                                @click="openFormDialog('edit','studentForm',item)"
                             >
                                 mdi-pencil
                             </v-icon>
@@ -61,12 +61,18 @@
                             >
                                 mdi-content-copy
                             </v-icon>
+                            <InertiaLink as="v-icon" class="primario--text"
+                                         :href="route('forms.show.view',{form:item.id})">
+                                mdi-format-list-bulleted
+                            </InertiaLink>
+
                             <v-icon
                                 class="primario--text"
                                 @click="confirmDeleteForm(item)"
                             >
                                 mdi-delete
                             </v-icon>
+
                         </td>
                     </tr>
                 </template>
@@ -101,7 +107,7 @@
                         <td>
                             <v-icon
                                 class="mr-2 primario--text"
-                                @click="setFormDialogToCreateOrEdit('edit',item)"
+                                @click="openFormDialog('edit','othersForm',item)"
                             >
                                 mdi-pencil
                             </v-icon>
@@ -111,6 +117,11 @@
                             >
                                 mdi-content-copy
                             </v-icon>
+                            <InertiaLink as="v-icon" class="primario--text"
+                                         :href="route('forms.show.view',{form:item.id})">
+                                mdi-format-list-bulleted
+                            </InertiaLink>
+
                             <v-icon
                                 class="primario--text"
                                 @click="confirmDeleteForm(item)"
@@ -136,7 +147,8 @@
                     <v-card-title>
                         <span>
                         </span>
-                        <span class="text-h5">Crear un nuevo formulario para estudiantes</span>
+                        <span
+                            class="text-h5">Crear un nuevo formulario para estudiantes {{ studentForm.name }}</span>
                     </v-card-title>
                     <v-card-text>
                         <v-container>
@@ -145,14 +157,14 @@
                                     <v-text-field
                                         label="Nombre del formulario *"
                                         required
-                                        v-model="newStudentForm.name"
+                                        v-model="studentForm.name"
                                     ></v-text-field>
                                 </v-col>
                                 <v-col cols="12">
                                     <v-select
                                         color="primario"
-                                        v-model="newStudentForm.degree"
-                                        :items="newStudentForm.getPossibleDegrees()"
+                                        v-model="studentForm.degree"
+                                        :items="studentForm.getPossibleDegrees()"
                                         label="Nivel de formación"
                                         item-value="name"
                                         :item-text="(degree)=> degree.name.charAt(0).toUpperCase() + degree.name.slice(1)"
@@ -161,7 +173,7 @@
                                 <v-col cols="12">
                                     <v-select
                                         color="primario"
-                                        v-model="newStudentForm.academicPeriodId"
+                                        v-model="studentForm.academicPeriodId"
                                         :items="academicPeriods"
                                         label="Periodo académico"
                                         :item-text="(academicPeriod)=>academicPeriod.name"
@@ -172,7 +184,7 @@
                                 <v-col cols="12">
                                     <v-select
                                         color="primario"
-                                        v-model="newStudentForm.serviceAreaId"
+                                        v-model="studentForm.serviceAreaId"
                                         :items="serviceAreas"
                                         label="Área de servicio"
                                         :item-text="(academicPeriod)=>academicPeriod.name"
@@ -195,7 +207,7 @@
                         <v-btn
                             color="primario"
                             text
-                            @click="createForm('newStudentForm')"
+                            @click="createForm('studentForm')"
                         >
                             Guardar cambios
                         </v-btn>
@@ -221,13 +233,13 @@
                                     <v-text-field
                                         label="Nombre del formulario *"
                                         required
-                                        v-model="newOthersForm.name"
+                                        v-model="othersForm.name"
                                     ></v-text-field>
                                 </v-col>
                                 <v-col cols="12">
                                     <v-select
                                         color="primario"
-                                        v-model="newOthersForm.assessmentPeriodId"
+                                        v-model="othersForm.assessmentPeriodId"
                                         :items="assessmentPeriods"
                                         label="Periodo de evaluación"
                                         :item-text="(assessmentPeriod)=>assessmentPeriod.name"
@@ -238,8 +250,8 @@
                                 <v-col cols="12">
                                     <v-select
                                         color="primario"
-                                        v-model="newOthersForm.unitRole"
-                                        :items="newOthersForm.getPossibleRoles()"
+                                        v-model="othersForm.unitRole"
+                                        :items="othersForm.getPossibleRoles()"
                                         label="Rol"
                                         item-value="name"
                                         :item-text="(role)=> role.name.charAt(0).toUpperCase() + role.name.slice(1)"
@@ -248,8 +260,8 @@
                                 <v-col cols="12">
                                     <v-select
                                         color="primario"
-                                        v-model="newOthersForm.teachingLadder"
-                                        :items="newOthersForm.getPossibleTeachingLadders()"
+                                        v-model="othersForm.teachingLadder"
+                                        :items="othersForm.getPossibleTeachingLadders()"
                                         label="Escalafón"
                                         item-value="name"
                                         :item-text="(teachingLadder)=> teachingLadder.name.charAt(0).toUpperCase() + teachingLadder.name.slice(1)"
@@ -258,7 +270,7 @@
                                 <v-col cols="12">
                                     <v-select
                                         color="primario"
-                                        v-model="newOthersForm.unitId"
+                                        v-model="othersForm.unitId"
                                         :items="units"
                                         label="Unidad"
                                         :item-text="(unit)=>unit.name"
@@ -281,7 +293,7 @@
                         <v-btn
                             color="primario"
                             text
-                            @click="createForm('newOthersForm')"
+                            @click="createForm('othersForm')"
                         >
                             Guardar cambios
                         </v-btn>
@@ -355,10 +367,9 @@ export default {
             units: [],
 
             //Forms models
-            newStudentForm: new Form(),
-            editedStudentForm: new Form(),
-            newOthersForm: new Form(),
-            editedOthersForm: new Form(),
+            studentForm: new Form(),
+            othersForm: new Form(),
+            formMethod: 'create',
             deletedFormId: 0,
 
             //Snackbars
@@ -380,10 +391,10 @@ export default {
     },
     async created() {
         await this.getAllForms();
-        await this.getCurrentAssessmentPeriodAcademicPeriods();
-        await this.getServiceAreas();
-        await this.getAssessmentPeriods();
-        await this.getUnits();
+        this.getCurrentAssessmentPeriodAcademicPeriods();
+        this.getServiceAreas();
+        this.getAssessmentPeriods();
+        this.getUnits();
 
         this.isLoading = false;
     },
@@ -395,30 +406,6 @@ export default {
                 this.createOrEditDialog.dialogStatus = false;
                 showSnackbar(this.snackbar, request.data.message, 'success');
                 this.getAllForms();
-            } catch (e) {
-                showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
-            }
-        },
-        handleSelectedMethod: function () {
-            this[this.createOrEditDialog.method]();
-        },
-        editForm: async function () {
-            //Verify request
-            if (this.editedForm.hasEmptyProperties()) {
-                showSnackbar(this.snackbar, 'Debes diligenciar todos los campos obligatorios', 'red', 2000);
-                return;
-            }
-            //Recollect information
-            let data = this.editedForm.toObjectRequest();
-
-            try {
-                let request = await axios.patch(route('api.forms.update', {'form': this.editedForm.id}), data);
-                this.createOrEditDialog.dialogStatus = false;
-                showSnackbar(this.snackbar, request.data.message, 'success');
-                this.getAllForms();
-
-                //Clear form information
-                this.editedForm = new Form();
             } catch (e) {
                 showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
             }
@@ -439,6 +426,21 @@ export default {
             }
 
         },
+        openFormDialog(method, model, form = null) {
+            this.formMethod = method;
+            if (method === 'edit') {
+                this[model] = Form.fromModel(form);
+            } else {
+                this[model] = new Form();
+            }
+            if (model === 'studentForm') {
+                this.createStudentFormDialog = true;
+            }
+            if (model === 'othersForm') {
+                this.createOthersFormDialog = true;
+            }
+        },
+
         getAllForms: async function () {
             let request = await axios.get(route('api.forms.index'));
             this.forms = request.data;
@@ -490,27 +492,27 @@ export default {
                 showSnackbar(this.snackbar, 'Debes diligenciar todos los campos obligatorios', 'red', 2000);
                 return;
             }
-            if (formModel === 'newStudentForm') {
+            if (formModel === 'studentForm') {
                 this[formModel].type = 'estudiantes';
             }
-            if (formModel === 'newOthersForm') {
+            if (formModel === 'othersForm') {
                 this[formModel].type = 'otros';
             }
+            const endpoint = this.formMethod === 'create' ? route('api.forms.store') : route('api.forms.update', {form: this[formModel].id});
+            const axiosMethod = this.formMethod === 'create' ? 'post' : 'patch';
             let data = this[formModel].toObjectRequest();
-
 
             //Clear form information
             this[formModel] = new Form();
 
             try {
-                let request = await axios.post(route('api.forms.store'), data);
-                if (formModel === 'newStudentForm') {
+                let request = await axios[axiosMethod](endpoint, data);
+                if (formModel === 'studentForm') {
                     this.createStudentFormDialog = false;
                 }
-                if (formModel === 'newOthersForm') {
+                if (formModel === 'othersForm') {
                     this.createOthersFormDialog = false;
                 }
-                console.log(request);
 
                 showSnackbar(this.snackbar, request.data.message, 'success', 2000);
                 this.getAllForms();

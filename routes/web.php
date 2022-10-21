@@ -28,6 +28,7 @@ Route::post('/api/assessmentPeriods/{assessmentPeriod}/setActive', [\App\Http\Co
 
 /* >>>>>Assessment Periods routes <<<<<< */
 Route::inertia('/forms', 'Forms/Index')->middleware(['auth', 'isAdmin'])->name('forms.index.view');
+Route::inertia('/forms/{form}', 'Forms/Index')->middleware(['auth', 'isAdmin'])->name('forms.show.view');
 Route::resource('api/forms', \App\Http\Controllers\FormController::class, [
     'as' => 'api'
 ])->middleware('auth');

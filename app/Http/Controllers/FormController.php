@@ -23,40 +23,24 @@ class FormController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     *
-     * @return Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      *
      * @param StoreFormRequest $request
      * @return JsonResponse
      */
-    public function store(StoreFormRequest $request)
+    public function store(StoreFormRequest $request): JsonResponse
     {
-        if ($request->input('type') === 'estudiantes') {
-            Form::createStudentForm($request);
-            return response()->json(['message' => 'Formulario creado exitosamente']);
-        }
-        Form::createOthersForm($request);
-
+        Form::create($request->all());
         return response()->json(['message' => 'Formulario creado exitosamente']);
     }
 
-    public function copy(CopyFormRequest $request, Form $form)
+    public function copy(CopyFormRequest $request, Form $form): JsonResponse
     {
         $newForm = $form->replicate(['name']);
-        $newForm->name = 'Copia de '.$form->name;
+        $newForm->name = 'Copia de ' . $form->name;
         $newForm->save();
 
         return response()->json(['message' => 'Formulario copiado exitosamente']);
-
     }
 
     /**
@@ -71,25 +55,16 @@ class FormController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
-     *
-     * @param Form $form
-     * @return Response
-     */
-    public function edit(Form $form)
-    {
-        //
-    }
-
-    /**
      * Update the specified resource in storage.
      *
-     * @param \App\Http\Requests\UpdateFormRequest $request
+     * @param UpdateFormRequest $request
      * @param Form $form
-     * @return Response
+     * @return JsonResponse
      */
-    public function update(UpdateFormRequest $request, Form $form)
+    public function update(UpdateFormRequest $request, Form $form): JsonResponse
     {
+        $form->update($request->all());
+        return response()->json(['message' => 'Formulario actualizado exitosamente']);
 
     }
 
@@ -97,7 +72,7 @@ class FormController extends Controller
      * Remove the specified resource from storage.
      *
      */
-    public function destroy(DestroyFormRequest $request, Form $form)
+    public function destroy(DestroyFormRequest $request, Form $form): JsonResponse
     {
         if (count($form->formAnswers) !== 0) {
             return response()->json(['message' => 'No puedes borrar un formulario con respuestas']);
