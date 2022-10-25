@@ -15,11 +15,7 @@
                         rounded="lg"
                         elevation="2"
                         v-for="(question,questionKey) in formQuestions.questions" :key="questionKey">
-                        <v-card-title>
-                            <h3 class="mb-5">
-                                Por favor, indique las opciones de respuesta
-                            </h3>
-                        </v-card-title>
+
                         <v-card-text>
                             <v-row>
                                 <v-col cols="6">
@@ -59,12 +55,17 @@
                                     ></v-text-field>
                                 </v-col>
                                 <v-col cols="1">
-                                    <v-btn
-                                        class="mt-2"
-                                        @click="removeQuestionOption(questionKey,optionKey)"
-                                    >
-                                        Eliminar
-                                    </v-btn>
+                                    <v-tooltip bottom>
+                                        <template v-slot:activator="{ on, attrs }">
+                                            <v-btn icon large v-bind="attrs" v-on="on" class="mt-1"
+                                                   @click="removeQuestionOption(questionKey,optionKey)">
+                                                <v-icon>
+                                                    mdi-delete
+                                                </v-icon>
+                                            </v-btn>
+                                        </template>
+                                        <span>Borrar opción de respuesta</span>
+                                    </v-tooltip>
                                 </v-col>
                             </v-row>
                         </v-card-text>
@@ -83,7 +84,7 @@
 
                             <v-tooltip bottom>
                                 <template v-slot:activator="{ on, attrs }">
-                                    <v-btn icon large v-bind="attrs" v-on="on">
+                                    <v-btn icon large v-bind="attrs" v-on="on" @click="copyQuestion(questionKey)">
                                         <v-icon>
                                             mdi-content-copy
                                         </v-icon>
@@ -146,10 +147,10 @@
                 @confirmed-dialog="deleteQuestion()"
             >
                 <template v-slot:title>
-                    Estas a punto de eliminar el rol seleccionado
+                    Confirmación
                 </template>
 
-                ¡Cuidado! esta acción es irreversible
+                ¿Estas seguro que deseas borrar esta pregunta? Esta acción es irreversible
 
                 <template v-slot:confirm-button-text>
                     Borrar
@@ -203,6 +204,10 @@ export default {
     },
 
     methods: {
+        copyQuestion(questionKey) {
+            const question = JSON.parse(JSON.stringify(this.formQuestions.questions[questionKey]));
+            this.formQuestions.questions.push(question);
+        },
         confirmDeleteQuestion(questionKey) {
             this.deletedQuestionKey = questionKey;
             this.deleteQuestionDialog = true;
