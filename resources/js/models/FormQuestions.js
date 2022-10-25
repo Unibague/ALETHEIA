@@ -1,6 +1,6 @@
 import {checkIfModelHasEmptyProperties, toObjectRequest} from "@/HelperFunctions";
 
-export default class FormQuestion {
+export default class FormQuestions {
     toObjectRequest() {
         return toObjectRequest(this);
     }
@@ -9,11 +9,15 @@ export default class FormQuestion {
         return checkIfModelHasEmptyProperties(this);
     }
 
-    static fromModel(model) {
-        return new FormQuestion(model.id, model.form_id, model.questions, model.answer_options);
+    getPossibleCompetences() {
+        return ['C1', 'C2', 'C3', 'C4', 'C5'];
     }
 
-    constructor(id = null, formId = 0, questions = '', answerOptions = '' ) {
+    static fromModel(model) {
+        return new FormQuestions(model.id, model.form_id, model.questions, model.answer_options);
+    }
+
+    constructor(id = null, formId = 0, questions = [{options:[{}]}], answerOptions = '') {
         this.id = id;
         this.formId = formId;
         this.questions = questions;
