@@ -17,7 +17,7 @@ class CreateFormsTable extends Migration
             $table->id();
             $table->string('name');
             $table->enum('type', ['estudiantes', 'otros']);
-            $table->enum('degree', ['pregrado', 'posgrado'])->nullable();
+            $table->enum('degree', ['pregrado', 'posgrado', 'cursos'])->nullable();
             $table->foreignId('assessment_period_id')->nullable()->constrained();
             $table->foreignId('unit_id')->nullable()->constrained();
             $table->foreignId('academic_period_id')->nullable()->constrained();

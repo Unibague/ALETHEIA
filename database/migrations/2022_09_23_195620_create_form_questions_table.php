@@ -15,9 +15,8 @@ class CreateFormQuestionsTable extends Migration
     {
         Schema::create('form_questions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('form_id')->constrained();
+            $table->foreignId('form_id')->constrained()->cascadeOnDelete();
             $table->json('questions');
-            $table->json('answer_options');
             $table->timestamps();
         });
     }

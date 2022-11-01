@@ -33,6 +33,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class FormQuestion extends Model
 {
+    protected $guarded = [];
     use HasFactory;
     public function form(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {

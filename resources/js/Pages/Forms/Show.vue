@@ -5,6 +5,14 @@
 
         <v-container>
             <div class="d-flex flex-column align-end">
+
+                <v-btn color="primario"
+                       large
+                       class="grey--text text--lighten-4"
+                       @click="saveForm"
+                >Guardar formulario
+                </v-btn>
+
                 <h2 class="align-self-center">Crear preguntas del formulario</h2>
             </div>
             <v-row class="mt-3" justify="center" dense>
@@ -110,7 +118,7 @@
                 </v-col>
             </v-row>
 
-            <v-row>
+            <v-row justify="center">
                 <v-col cols="12" class="d-flex justify-center">
                     <v-btn color="primario"
                            large
@@ -119,6 +127,7 @@
                     >Añadir otra pregunta
                     </v-btn>
                 </v-col>
+
             </v-row>
 
             <!------------Seccion de dialogos ---------->
@@ -199,11 +208,38 @@ export default {
         }
     },
     async created() {
+        await this.getQuestions();
         this.isLoading = false;
-        console.log(this.FormQuestions)
+
     },
 
     methods: {
+        async getQuestions() {
+            const url = route('api.forms.questions.show', {form: this.getFormId()});
+            try {
+                let request = await axios.get(url);
+                const formQuestions = request.data;
+                this.formQuestions = FormQuestions.fromModel(formQuestions)
+            } catch (e) {
+            }
+        },
+        async saveForm() {
+            let data = this.formQuestions.questions;
+            const url = route('api.forms.questions.store', {form: this.getFormId()});
+            try {
+                let request = await axios.patch(url, {
+                    questions: data
+                });
+                showSnackbar(this.snackbar, request.data.message, 'success');
+            } catch (e) {
+                showSnackbar(this.snackbar, prepareErrorText(e), 'red', 3000);
+            }
+        },
+        getFormId() {
+            const path = window.location.pathname;
+            const items = path.split('/');
+            return items[items.length - 1];
+        },
         copyQuestion(questionKey) {
             const question = JSON.parse(JSON.stringify(this.formQuestions.questions[questionKey]));
             this.formQuestions.questions.push(question);

@@ -14,20 +14,18 @@ export default class FormQuestions {
     }
 
     static fromModel(model) {
-        return new FormQuestions(model.id, model.form_id, model.questions, model.answer_options);
+        return new FormQuestions(model.id, model.form_id, JSON.parse(model.questions));
     }
 
-    constructor(id = null, formId = 0, questions = [{options:[{}]}], answerOptions = '') {
+    constructor(id = null, formId = 0, questions = [{options:[{}]}]) {
         this.id = id;
         this.formId = formId;
         this.questions = questions;
-        this.answerOptions = answerOptions;
 
         this.dataStructure = {
             id: null,
             formId: 'required',
             questions: 'required',
-            answerOptions: 'required',
         }
     }
 }

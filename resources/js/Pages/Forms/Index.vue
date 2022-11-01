@@ -45,7 +45,7 @@
                             {{ item.academic_period != null ? item.academic_period.name : 'Todos' }}
                         </td>
                         <td>
-                            {{ item.service_area != null ? item.service_area.name : 'Todos' }}
+                            {{ item.service_area != null ? item.service_area.name : 'Todas' }}
                         </td>
 
                         <td>
@@ -148,7 +148,7 @@
                         <span>
                         </span>
                         <span
-                            class="text-h5">Crear un nuevo formulario para estudiantes {{ studentForm.name }}</span>
+                            class="text-h5">Crear un nuevo formulario para estudiantes</span>
                     </v-card-title>
                     <v-card-text>
                         <v-container>
@@ -164,7 +164,7 @@
                                     <v-select
                                         color="primario"
                                         v-model="studentForm.degree"
-                                        :items="studentForm.getPossibleDegrees()"
+                                        :items="degrees"
                                         label="Nivel de formación"
                                         item-value="value"
                                         :item-text="(degree)=> degree.name.charAt(0).toUpperCase() + degree.name.slice(1)"
@@ -176,9 +176,9 @@
                                         v-model="studentForm.academicPeriodId"
                                         :items="academicPeriods"
                                         label="Periodo académico"
-                                        :item-text="(academicPeriod)=>academicPeriod.name"
-                                        :item-value="(academicPeriod)=>academicPeriod.id"
-
+                                        :item-text="(academicPeriod)=>this.studentForm.degree === null ? 'Todos':academicPeriod.name"
+                                        :item-value="(academicPeriod)=>this.studentForm.degree === null ? null:academicPeriod.id"
+                                        :disabled="studentForm.degree === null"
                                     ></v-select>
                                 </v-col>
                                 <v-col cols="12">
@@ -187,8 +187,9 @@
                                         v-model="studentForm.serviceAreaId"
                                         :items="serviceAreas"
                                         label="Área de servicio"
-                                        :item-text="(academicPeriod)=>academicPeriod.name"
-                                        :item-value="(academicPeriod)=>academicPeriod.id"
+                                        :item-text="(academicPeriod)=>this.studentForm.academicPeriodId === null ? 'Todas':academicPeriod.name"
+                                        :item-value="(academicPeriod)=>this.studentForm.academicPeriodId === null ? null:academicPeriod.id"
+                                        :disabled="studentForm.academicPeriodId === null"
                                     ></v-select>
                                 </v-col>
                             </v-row>
@@ -244,27 +245,28 @@
                                         label="Periodo de evaluación"
                                         :item-text="(assessmentPeriod)=>assessmentPeriod.name"
                                         :item-value="(assessmentPeriod)=>assessmentPeriod.id"
-
                                     ></v-select>
                                 </v-col>
                                 <v-col cols="12">
                                     <v-select
                                         color="primario"
                                         v-model="othersForm.unitRole"
-                                        :items="othersForm.getPossibleRoles()"
+                                        :items="roles"
                                         label="Rol"
-                                        item-value="value"
-                                        :item-text="(role)=> role.name.charAt(0).toUpperCase() + role.name.slice(1)"
+                                        :item-text="(role)=>this.othersForm.assessmentPeriodId === null ? 'Todas':role.name"
+                                        :item-value="(role)=>this.othersForm.assessmentPeriodId === null ? null:role.value"
+                                        :disabled="othersForm.assessmentPeriodId === null"
                                     ></v-select>
                                 </v-col>
                                 <v-col cols="12">
                                     <v-select
                                         color="primario"
                                         v-model="othersForm.teachingLadder"
-                                        :items="othersForm.getPossibleTeachingLadders()"
+                                        :items="teachingLadders"
                                         label="Escalafón"
-                                        item-value="value"
-                                        :item-text="(teachingLadder)=> teachingLadder.name.charAt(0).toUpperCase() + teachingLadder.name.slice(1)"
+                                        :item-text="(teachingLadder)=> this.othersForm.unitRole === null ? 'Todos' :teachingLadder.name"
+                                        :item-value="(teachingLadder)=> this.othersForm.unitRole === null ? null: teachingLadder.value"
+                                        :disabled="othersForm.unitRole === null"
                                     ></v-select>
                                 </v-col>
                                 <v-col cols="12">
@@ -273,8 +275,9 @@
                                         v-model="othersForm.unitId"
                                         :items="units"
                                         label="Unidad"
-                                        :item-text="(unit)=>unit.name"
-                                        :item-value="(unit)=>unit.id"
+                                        :item-text="(unit)=>this.othersForm.teachingLadder === null ? 'Todas':unit.name"
+                                        :item-value="(unit)=>this.othersForm.teachingLadder === null ? null:unit.id"
+                                        :disabled="othersForm.teachingLadder === null"
                                     ></v-select>
                                 </v-col>
                             </v-row>
@@ -365,10 +368,18 @@ export default {
             assessmentPeriods: [],
             serviceAreas: [],
             units: [],
+            teachingLadders: [],
+            roles: [],
+            degrees: [],
 
             //Forms models
             studentForm: new Form(),
+            isServiceAreaDisabled: false,
+            isAcademicPeriodDisabled: false,
             othersForm: new Form(),
+            isRoleDisabled: false,
+            isTeacherLadderDisabled: false,
+            isUnitDisabled: false,
             formMethod: 'create',
             deletedFormId: 0,
 
@@ -395,11 +406,15 @@ export default {
         this.getServiceAreas();
         this.getAssessmentPeriods();
         this.getUnits();
+        this.getTeachingLadders();
+        this.getRoles();
+        this.getDegrees();
 
         this.isLoading = false;
     },
 
     methods: {
+
         setFormAsActive: async function (formId) {
             try {
                 let request = await axios.post(route('api.forms.setActive', {'form': formId}));
@@ -450,7 +465,7 @@ export default {
             let request = await axios.get(route('api.serviceAreas.index'));
             this.serviceAreas = request.data;
             this.serviceAreas.unshift({
-                id:null,
+                id: null,
                 name: "Todas"
             });
         },
@@ -468,16 +483,26 @@ export default {
             let request = await axios.get(route('api.units.index'));
             this.units = request.data;
             this.units.unshift({
-                id:null,
+                id: null,
                 name: "Todas"
             });
         },
+        getRoles() {
+            this.roles = Form.getPossibleRoles();
+        },
+        getTeachingLadders() {
+            this.teachingLadders = Form.getPossibleTeachingLadders();
+        },
+        getDegrees() {
+            this.degrees = Form.getPossibleDegrees();
+        },
+
 
         getAssessmentPeriods: async function () {
             let request = await axios.get(route('api.assessmentPeriods.index'));
             this.assessmentPeriods = request.data;
             this.assessmentPeriods.unshift({
-                id:null,
+                id: null,
                 name: "Todos"
             });
         },
@@ -487,7 +512,7 @@ export default {
             });
             this.academicPeriods = request.data;
             this.academicPeriods.unshift({
-                id:null,
+                id: null,
                 name: "Todos"
             });
         },
@@ -504,6 +529,7 @@ export default {
             });
         },
         createForm: async function (formModel) {
+            console.log(formModel);
             if (this[formModel].hasEmptyProperties()) {
                 showSnackbar(this.snackbar, 'Debes diligenciar todos los campos obligatorios', 'red', 2000);
                 return;
@@ -514,8 +540,8 @@ export default {
             if (formModel === 'othersForm') {
                 this[formModel].type = 'otros';
             }
-            const endpoint = this.formMethod === 'create' ? route('api.forms.store') : route('api.forms.update', {form: this[formModel].id});
-            const axiosMethod = this.formMethod === 'create' ? 'post' : 'patch';
+            const endpoint = route('api.forms.store', {form: this[formModel].id});
+            const axiosMethod = 'post';
             let data = this[formModel].toObjectRequest();
 
             //Clear form information
@@ -537,6 +563,72 @@ export default {
                 showSnackbar(this.snackbar, prepareErrorText(e), 'alert', 3000);
             }
         }
+    },
+
+    watch: {
+
+        'studentForm.degree'(newDegree, oldAcademicPeriod) {
+            if (newDegree === null) {
+                this.studentForm.academicPeriodId = null;
+                this.isAcademicPeriodDisabled = true;
+
+                this.studentForm.serviceAreaId = null;
+                this.isServiceAreaDisabled = true;
+
+            } else {
+                this.isAcademicPeriodDisabled = false;
+                this.isServiceAreaDisabled = false;
+            }
+        },
+        'studentForm.academicPeriodId'(newAcademicPeriod, oldAcademicPeriod) {
+            if (newAcademicPeriod === null) {
+                this.studentForm.serviceAreaId = null;
+                this.isServiceAreaDisabled = true;
+            } else {
+                this.isServiceAreaDisabled = false;
+            }
+        },
+        'othersForm.assessmentPeriodId'(newAssessmentPeriodId, oldAcademicPeriod) {
+            if (newAssessmentPeriodId === null) {
+                this.othersForm.unitRole = null;
+                this.isRoleDisabled = true;
+
+                this.othersForm.teachingLadder = null;
+                this.isTeacherLadderDisabled = true;
+
+                this.othersForm.unitId = null;
+                this.isUnitDisabled = true;
+
+            } else {
+                this.isRoleDisabled = false;
+                this.isTeacherLadderDisabled = false;
+                this.isUnitDisabled = false;
+            }
+        },
+
+        'othersForm.unitRole'(newUnitRole, oldAcademicPeriod) {
+            if (newUnitRole === null) {
+                this.othersForm.teachingLadder = null;
+                this.isTeacherLadderDisabled = true;
+
+                this.othersForm.unitId = null;
+                this.isUnitDisabled = true;
+
+            } else {
+                this.isTeacherLadderDisabled = false;
+                this.isUnitDisabled = false;
+            }
+        },
+        'othersForm.teachingLadder'(newTeachingLadder, oldAcademicPeriod) {
+            if (newTeachingLadder === null) {
+                this.othersForm.unitId = null;
+                this.isUnitDisabled = true;
+
+            } else {
+                this.isUnitDisabled = false;
+            }
+        },
+
     },
 
 

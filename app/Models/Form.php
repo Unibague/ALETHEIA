@@ -82,25 +82,30 @@ class Form extends Model
 
     public static function createStudentForm($request)
     {
-        return self::create([
-            'name' => $request->input('name'),
-            'type' => $request->input('type'),
-            'degree' => $request->input('degree'),
-            'academic_period_id' => $request->input('academic_period_id'),
-            'service_area_id' => $request->input('service_area_id'),
-        ]);
+        return self::UpdateOrCreate(
+            ['id' => $request->input('id')],
+            [
+                'name' => $request->input('name'),
+                'type' => $request->input('type'),
+                'degree' => $request->input('degree'),
+                'academic_period_id' => $request->input('academic_period_id'),
+                'service_area_id' => $request->input('service_area_id'),
+            ]);
     }
 
     public static function createOthersForm($request)
     {
-        return self::create([
-            'name' => $request->input('name'),
-            'type' => $request->input('type'),
-            'assessment_period_id' => $request->input('assessment_period_id'),
-            'unit_role' => $request->input('unit_role'),
-            'teaching_ladder' => $request->input('teaching_ladder'),
-            'unit_id' => $request->input('unit_id'),
-        ]);
+        return self::UpdateOrCreate(
+            ['id' => $request->input('id')],
+
+            [
+                'name' => $request->input('name'),
+                'type' => $request->input('type'),
+                'assessment_period_id' => $request->input('assessment_period_id'),
+                'unit_role' => $request->input('unit_role'),
+                'teaching_ladder' => $request->input('teaching_ladder'),
+                'unit_id' => $request->input('unit_id'),
+            ]);
     }
 
 

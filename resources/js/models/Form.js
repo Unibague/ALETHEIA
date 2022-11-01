@@ -14,14 +14,16 @@ export default class Form {
         return new Form(model.id, model.name, model.type, model.degree, model.assessment_period_id, model.unit_id, model.academic_period_id, model.unit_role, model.teaching_ladder, model.service_area_id);
     }
 
-    getPossibleDegrees() {
+    static getPossibleDegrees() {
         return [
             {name: 'Todos', value: null},
             {name: 'pregrado', value: 'pregrado'},
-            {name: 'posgrado', value: 'posgrado'}];
+            {name: 'posgrado', value: 'posgrado'},
+            {name: 'cursos', value: 'cursos'},
+        ];
     }
 
-    getPossibleRoles() {
+    static getPossibleRoles() {
         return [
             {name: 'Todos', value: null},
             {name: 'jefe', value: 'jefe'},
@@ -33,7 +35,7 @@ export default class Form {
         ];
     }
 
-    getPossibleTeachingLadders() {
+    static getPossibleTeachingLadders() {
         return [
             {name: 'Todos', value: null},
             {name: 'ninguno', value: 'ninguno'},

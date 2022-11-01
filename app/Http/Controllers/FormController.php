@@ -22,48 +22,34 @@ class FormController extends Controller
         return response()->json(Form::with(['academicPeriod', 'assessmentPeriod', 'unit', 'serviceArea'])->get());
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param StoreFormRequest $request
-     * @return JsonResponse
-     */
-    public function store(StoreFormRequest $request): JsonResponse
-    {
-        Form::create($request->all());
-        return response()->json(['message' => 'Formulario creado exitosamente']);
-    }
-
     public function copy(CopyFormRequest $request, Form $form): JsonResponse
     {
         $newForm = $form->replicate(['name']);
         $newForm->name = 'Copia de ' . $form->name;
         $newForm->save();
 
+
+        $newFormQuestion = $form->formQuestions->replicate(['form_id']);
+        $newFormQuestion->form_id = $newForm->id;
+        $newFormQuestion->save();
+
+
         return response()->json(['message' => 'Formulario copiado exitosamente']);
     }
 
     /**
-     * Display the specified resource.
-     *
-     * @param Form $form
-     * @return Response
-     */
-    public function show(Form $form)
-    {
-        dd('hola');
-    }
-
-    /**
-     * Update the specified resource in storage.
+     * Update or create a new form.
      *
      * @param UpdateFormRequest $request
-     * @param Form $form
      * @return JsonResponse
      */
-    public function update(UpdateFormRequest $request, Form $form): JsonResponse
+    public function store(UpdateFormRequest $request): JsonResponse
     {
-        $form->update($request->all());
+        if ($request->input('type') === 'estudiantes') {
+            Form::createStudentForm($request);
+        } elseif ($request->input('type') === 'otros') {
+            Form::createOthersForm($request);
+        }
         return response()->json(['message' => 'Formulario actualizado exitosamente']);
 
     }
@@ -78,6 +64,6 @@ class FormController extends Controller
             return response()->json(['message' => 'No puedes borrar un formulario con respuestas']);
         }
         $form->delete();
-        return response()->json(['message' => 'Formulario borrado']);
+        return response()->json(['message' => 'Formulario borrado exitosamente']);
     }
 }
