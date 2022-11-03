@@ -19,7 +19,7 @@ class FormController extends Controller
      */
     public function index(): JsonResponse
     {
-        return response()->json(Form::with(['academicPeriod', 'assessmentPeriod', 'unit', 'serviceArea'])->get());
+        return response()->json(Form::with(['academicPeriod', 'assessmentPeriod'])->get());
     }
 
     public function copy(CopyFormRequest $request, Form $form): JsonResponse
@@ -28,12 +28,13 @@ class FormController extends Controller
         $newForm->name = 'Copia de ' . $form->name;
         $newForm->save();
 
-
-        $newFormQuestion = $form->formQuestions->replicate(['form_id']);
-        $newFormQuestion->form_id = $newForm->id;
-        $newFormQuestion->save();
-
-
+        //Copy the form questions
+        $oldFormQuestions = $form->formQuestions;
+        if ($oldFormQuestions) {
+            $newFormQuestion = $oldFormQuestions->replicate(['form_id']);
+            $newFormQuestion->form_id = $newForm->id;
+            $newFormQuestion->save();
+        }
         return response()->json(['message' => 'Formulario copiado exitosamente']);
     }
 
@@ -51,7 +52,6 @@ class FormController extends Controller
             Form::createOthersForm($request);
         }
         return response()->json(['message' => 'Formulario actualizado exitosamente']);
-
     }
 
     /**

@@ -45,7 +45,7 @@
                             {{ item.academic_period != null ? item.academic_period.name : 'Todos' }}
                         </td>
                         <td>
-                            {{ item.service_area != null ? item.service_area.name : 'Todas' }}
+                            {{ getTableServiceAreas(item.service_areas_id) }}
                         </td>
 
                         <td>
@@ -101,7 +101,7 @@
                             {{ item.teaching_ladder != null ? item.teaching_ladder : 'Todos' }}
                         </td>
                         <td>
-                            {{ item.unit != null ? item.unit.name : 'Todos' }}
+                            {{ getTableUnits(item.units_id) }}
                         </td>
 
                         <td>
@@ -184,13 +184,27 @@
                                 <v-col cols="12">
                                     <v-select
                                         color="primario"
-                                        v-model="studentForm.serviceAreaId"
+                                        multiple
+                                        v-model="studentForm.serviceAreasId"
                                         :items="serviceAreas"
                                         label="Área de servicio"
-                                        :item-text="(academicPeriod)=>this.studentForm.academicPeriodId === null ? 'Todas':academicPeriod.name"
-                                        :item-value="(academicPeriod)=>this.studentForm.academicPeriodId === null ? null:academicPeriod.id"
+                                        :item-text="(serviceArea)=>serviceArea.name"
+                                        :item-value="(serviceArea)=>serviceArea"
                                         :disabled="studentForm.academicPeriodId === null"
-                                    ></v-select>
+                                    >
+                                        <template v-slot:selection="{ item, index }">
+                                            <v-chip v-if="index === 0">
+                                                <span>{{ item.name }}</span>
+                                            </v-chip>
+                                            <span
+                                                v-if="index === 1"
+                                                class="grey--text text-caption"
+                                            >
+                                              (+{{ studentForm.serviceAreasId.length - 1 }} otros)
+                                            </span>
+                                        </template>
+
+                                    </v-select>
                                 </v-col>
                             </v-row>
                         </v-container>
@@ -272,13 +286,26 @@
                                 <v-col cols="12">
                                     <v-select
                                         color="primario"
-                                        v-model="othersForm.unitId"
+                                        v-model="othersForm.unitsId"
                                         :items="units"
-                                        label="Unidad"
+                                        multiple
+                                        label="Unidades"
                                         :item-text="(unit)=>this.othersForm.teachingLadder === null ? 'Todas':unit.name"
-                                        :item-value="(unit)=>this.othersForm.teachingLadder === null ? null:unit.id"
+                                        :item-value="(unit)=>this.othersForm.teachingLadder === null ? null:unit"
                                         :disabled="othersForm.teachingLadder === null"
-                                    ></v-select>
+                                    >
+                                        <template v-slot:selection="{ item, index }">
+                                            <v-chip v-if="index === 0">
+                                                <span>{{ item.name }}</span>
+                                            </v-chip>
+                                            <span
+                                                v-if="index === 1"
+                                                class="grey--text text-caption"
+                                            >
+                                              (+{{ othersForm.unitsId.length - 1 }} otros)
+                                            </span>
+                                        </template>
+                                    </v-select>
                                 </v-col>
                             </v-row>
                         </v-container>
@@ -357,7 +384,7 @@ export default {
                 {text: 'Periodo de evaluación', value: 'assessment_period.name'},
                 {text: 'Rol', value: 'unit_role'},
                 {text: 'Escalafón', value: 'teaching_ladder'},
-                {text: 'Unidad', value: 'unit.name'},
+                {text: 'Unidades', value: 'unit.name'},
                 {text: 'Acciones', value: 'actions', sortable: false},
             ],
             forms: [],
@@ -415,6 +442,39 @@ export default {
 
     methods: {
 
+        getTableServiceAreas: function (item) {
+            if (!(Array.isArray(item))) {
+                return 'Ninguna';
+            }
+            let isNull = false;
+            let names = [];
+            item.forEach(function (serviceArea) {
+                console.log('for', serviceArea);
+                if (serviceArea.id === null) {
+                    isNull = true;
+                }
+                names.push(serviceArea.name);
+            })
+
+            return isNull ? 'Todas' : names.join(', ');
+        },
+        getTableUnits: function (item) {
+            if (!(Array.isArray(item))) {
+                return 'Ninguna';
+            }
+            let isNull = false;
+            let names = [];
+            item.forEach(function (unit) {
+                console.log('for', unit);
+                if (unit.id === null) {
+                    isNull = true;
+                }
+                names.push(unit.name);
+            })
+
+            return isNull ? 'Todas' : names.join(', ');
+        },
+
         setFormAsActive: async function (formId) {
             try {
                 let request = await axios.post(route('api.forms.setActive', {'form': formId}));
@@ -445,9 +505,10 @@ export default {
             this.formMethod = method;
             if (method === 'edit') {
                 this[model] = Form.fromModel(form);
-            } else {
+            } else{
                 this[model] = new Form();
             }
+
             if (model === 'studentForm') {
                 this.createStudentFormDialog = true;
             }
@@ -518,10 +579,13 @@ export default {
         },
         formatForms: function () {
             const forms = this.forms;
+            console.log(forms);
             this.studentsForms = [];
             this.othersForms = [];
             forms.forEach((form) => {
                 if (form.type === 'estudiantes') {
+                    //Decode the json string
+                    form.service_areas_id = JSON.parse(form.service_areas_id);
                     this.studentsForms.push(form);
                 } else {
                     this.othersForms.push(form);
@@ -529,7 +593,6 @@ export default {
             });
         },
         createForm: async function (formModel) {
-            console.log(formModel);
             if (this[formModel].hasEmptyProperties()) {
                 showSnackbar(this.snackbar, 'Debes diligenciar todos los campos obligatorios', 'red', 2000);
                 return;
@@ -544,9 +607,6 @@ export default {
             const axiosMethod = 'post';
             let data = this[formModel].toObjectRequest();
 
-            //Clear form information
-            this[formModel] = new Form();
-
             try {
                 let request = await axios[axiosMethod](endpoint, data);
                 if (formModel === 'studentForm') {
@@ -555,11 +615,12 @@ export default {
                 if (formModel === 'othersForm') {
                     this.createOthersFormDialog = false;
                 }
-
                 showSnackbar(this.snackbar, request.data.message, 'success', 2000);
                 this.getAllForms();
+                //Clear form information
+                this[formModel] = new Form();
+
             } catch (e) {
-                console.log(e);
                 showSnackbar(this.snackbar, prepareErrorText(e), 'alert', 3000);
             }
         }
@@ -572,7 +633,7 @@ export default {
                 this.studentForm.academicPeriodId = null;
                 this.isAcademicPeriodDisabled = true;
 
-                this.studentForm.serviceAreaId = null;
+                this.studentForm.serviceAreasId = [{id:null,name:'Todas'}];
                 this.isServiceAreaDisabled = true;
 
             } else {
@@ -582,7 +643,7 @@ export default {
         },
         'studentForm.academicPeriodId'(newAcademicPeriod, oldAcademicPeriod) {
             if (newAcademicPeriod === null) {
-                this.studentForm.serviceAreaId = null;
+                this.studentForm.serviceAreasId = [{id:null,name:'Todas'}];
                 this.isServiceAreaDisabled = true;
             } else {
                 this.isServiceAreaDisabled = false;
@@ -596,7 +657,7 @@ export default {
                 this.othersForm.teachingLadder = null;
                 this.isTeacherLadderDisabled = true;
 
-                this.othersForm.unitId = null;
+                this.othersForm.unitsId = [{id:null,name:'Todas'}]
                 this.isUnitDisabled = true;
 
             } else {
@@ -611,7 +672,7 @@ export default {
                 this.othersForm.teachingLadder = null;
                 this.isTeacherLadderDisabled = true;
 
-                this.othersForm.unitId = null;
+                this.othersForm.unitsId = [{id:null,name:'Todas'}]
                 this.isUnitDisabled = true;
 
             } else {
@@ -621,7 +682,7 @@ export default {
         },
         'othersForm.teachingLadder'(newTeachingLadder, oldAcademicPeriod) {
             if (newTeachingLadder === null) {
-                this.othersForm.unitId = null;
+                this.othersForm.unitsId = [{id:null,name:'Todas'}]
                 this.isUnitDisabled = true;
 
             } else {

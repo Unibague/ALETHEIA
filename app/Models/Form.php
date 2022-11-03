@@ -89,7 +89,7 @@ class Form extends Model
                 'type' => $request->input('type'),
                 'degree' => $request->input('degree'),
                 'academic_period_id' => $request->input('academic_period_id'),
-                'service_area_id' => $request->input('service_area_id'),
+                'service_areas_id' => json_encode($request->input('service_areas_id')),
             ]);
     }
 
@@ -97,14 +97,13 @@ class Form extends Model
     {
         return self::UpdateOrCreate(
             ['id' => $request->input('id')],
-
             [
                 'name' => $request->input('name'),
                 'type' => $request->input('type'),
                 'assessment_period_id' => $request->input('assessment_period_id'),
                 'unit_role' => $request->input('unit_role'),
                 'teaching_ladder' => $request->input('teaching_ladder'),
-                'unit_id' => $request->input('unit_id'),
+                'units_id' => json_encode($request->input('units_id')),
             ]);
     }
 

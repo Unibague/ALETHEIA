@@ -11,7 +11,8 @@ export default class Form {
     }
 
     static fromModel(model) {
-        return new Form(model.id, model.name, model.type, model.degree, model.assessment_period_id, model.unit_id, model.academic_period_id, model.unit_role, model.teaching_ladder, model.service_area_id);
+        console.log('crear modelo', model);
+        return new Form(model.id, model.name, model.type, model.degree, model.assessment_period_id, JSON.parse(model.units_id), model.academic_period_id, model.unit_role, model.teaching_ladder, model.service_areas_id);
     }
 
     static getPossibleDegrees() {
@@ -48,17 +49,17 @@ export default class Form {
         ];
     }
 
-    constructor(id = null, name = '', type = '', degree = null, assessmentPeriodId = null, unitId = null, academicPeriodId = null, unitRole = null, teachingLadder = null, serviceAreaId = null) {
+    constructor(id = null, name = '', type = '', degree = null, assessmentPeriodId = null, unitsId = null, academicPeriodId = null, unitRole = null, teachingLadder = null, serviceAreasId = null) {
         this.id = id;
         this.name = name;
         this.type = type;
         this.degree = degree;
         this.assessmentPeriodId = assessmentPeriodId;
-        this.unitId = unitId;
+        this.unitsId = unitsId === null ? [{id: null, name: 'Todas'}] : unitsId;
         this.academicPeriodId = academicPeriodId;
         this.unitRole = unitRole;
         this.teachingLadder = teachingLadder;
-        this.serviceAreaId = serviceAreaId;
+        this.serviceAreasId = serviceAreasId === null ? [{id: null, name: 'Todas'}] : serviceAreasId;
 
 
         this.dataStructure = {
@@ -67,11 +68,11 @@ export default class Form {
             type: null,
             degree: null,
             assessmentPeriodId: null,
-            unitId: null,
+            unitsId: null,
             academicPeriodId: null,
             unitRole: null,
             teachingLadder: null,
-            serviceAreaId: null,
+            serviceAreasId: null,
         }
 
 
