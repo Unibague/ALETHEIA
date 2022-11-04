@@ -240,6 +240,12 @@ export default {
                     role: 1,
                     icon: 'mdi-calendar'
                 },
+                {
+                    name: 'Evaluaciones',
+                    href: route('tests.index.view'),
+                    role: 1,
+                    icon: 'mdi-calendar'
+                },
 
             ],
         dropdowns: [

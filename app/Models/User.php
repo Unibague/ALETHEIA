@@ -176,7 +176,7 @@ class User extends Authenticatable
 
     public function groups(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
-        return $this->belongsToMany(Group::class);
+        return $this->belongsToMany(Group::class)->wherePivot('assessment_period_id','=',AssessmentPeriod::getActiveAssessmentPeriod()->id);
     }
 
     public function teacherGroups(): \Illuminate\Database\Eloquent\Relations\HasMany

@@ -73,13 +73,21 @@ Route::post('/api/groups/sync', [\App\Http\Controllers\GroupController::class, '
 
 /* >>>>> Teacher routes <<<<<< */
 Route::inertia('/teachers', 'Teachers/Index')->middleware(['auth', 'isAdmin'])->name('teachers.index.view');
-//Create fake unites
 //Change teacher status
 Route::post('api/teachers/{teacher}/status', [\App\Http\Controllers\TeacherProfileController::class, 'changeStatus'])->middleware(['auth'])->name('api.teachers.changeStatus');
 Route::resource('api/teachers', \App\Http\Controllers\TeacherProfileController::class, [
     'as' => 'api'
 ])->middleware('auth');
 Route::post('/api/teachers/sync', [\App\Http\Controllers\TeacherProfileController::class, 'sync'])->middleware(['auth'])->name('api.teachers.sync');
+
+
+/* >>>>> Test routes  (students) <<<<<< */
+Route::inertia('/tests', 'Tests/Index')->middleware(['auth', 'isAdmin'])->name('tests.index.view');
+//Change teacher status
+Route::resource('api/tests', \App\Http\Controllers\TestsController::class, [
+    'as' => 'api'
+])->middleware('auth');
+
 
 
 /* >>>>>Roles routes <<<<<< */

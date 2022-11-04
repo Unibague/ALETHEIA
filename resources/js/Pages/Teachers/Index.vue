@@ -48,7 +48,6 @@
                     >
                         mdi-close
                     </v-icon>
-
                 </template>
             </v-data-table>
             <!--Acaba tabla-->

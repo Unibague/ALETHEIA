@@ -46,6 +46,7 @@ class FormController extends Controller
      */
     public function store(UpdateFormRequest $request): JsonResponse
     {
+
         if ($request->input('type') === 'estudiantes') {
             Form::createStudentForm($request);
         } elseif ($request->input('type') === 'otros') {

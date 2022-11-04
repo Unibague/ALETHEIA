@@ -31,10 +31,10 @@ class UpdateFormRequest extends FormRequest
             'degree' => [Rule::in([null, 'pregrado', 'posgrado'])],
             'academic_period_id' => 'Integer',
             'assessment_period_id' => 'Integer',
-            'units_id' => 'Array|min:1',
+            'units' => 'Array|min:1',
             'unit_role' => [Rule::in([null, 'jefe', 'par', 'autoevaluación'])],
             'teaching_ladder' => [Rule::in([null, 'ninguno', 'auxiliar', 'asistente', 'asociado', 'titular'])],
-            'service_areas_id' => 'Array|min:1',
+            'service_areas' => 'Array|min:1',
 
         ];
     }
