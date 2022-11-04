@@ -42,10 +42,10 @@
                             {{ item.degree ? item.degree : 'Todos' }}
                         </td>
                         <td>
-                            {{ item.academic_period != null ? item.academic_period.name : 'Todos' }}
+                            {{ item.academicPeriod != null ? item.academicPeriod.name : 'Todos' }}
                         </td>
                         <td>
-                            {{ getTableServiceAreas(item.service_areas) }}
+                            {{ getTableServiceAreas(item.serviceAreas) }}
                         </td>
 
                         <td>
@@ -185,7 +185,7 @@
                                     <v-select
                                         color="primario"
                                         multiple
-                                        v-model="studentForm.serviceAreasId"
+                                        v-model="studentForm.serviceAreas"
                                         :items="serviceAreas"
                                         label="Área de servicio"
                                         :item-text="(serviceArea)=>serviceArea.name"
@@ -200,7 +200,7 @@
                                                 v-if="index === 1"
                                                 class="grey--text text-caption"
                                             >
-                                              (+{{ studentForm.serviceAreasId.length - 1 }} otros)
+                                              (+{{ studentForm.serviceAreas.length - 1 }} otros)
                                             </span>
                                         </template>
 
