@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Http\Controllers\AcademicPeriodController;
 use App\Models\AcademicPeriod;
 use Illuminate\Database\Seeder;
 
@@ -22,5 +23,7 @@ class AcademicPeriodSeeder extends Seeder
             'class_end_date' => '2022-02-01',
             'assessment_period_id' => 2
         ]);
+
+        (new AcademicPeriodController())->sync();
     }
 }

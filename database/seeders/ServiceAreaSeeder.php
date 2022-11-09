@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Http\Controllers\ServiceAreaController;
 use App\Models\ServiceArea;
 use Illuminate\Database\Seeder;
 
@@ -19,5 +20,8 @@ class ServiceAreaSeeder extends Seeder
             'code' => '24',
             'assessment_period_id' => 1
         ]);
+
+        (new ServiceAreaController())->sync();
+
     }
 }

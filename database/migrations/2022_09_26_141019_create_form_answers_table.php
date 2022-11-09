@@ -17,11 +17,10 @@ class CreateFormAnswersTable extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained();
             $table->foreignId('form_id')->constrained();
-            $table->json('questions');
             $table->json('answers');
             $table->dateTime('submitted_at');
-            $table->foreignId('group_user_id');
-            $table->foreign('group_user_id')->references('id')->on('group_user');
+            $table->foreignId('group_id')->nullable()->constrained();
+            $table->foreignId('teacher_id')->nullable()->references('id')->on('users');
             $table->foreignId('unity_assessment_id')->nullable()->constrained();
             $table->timestamps();
         });

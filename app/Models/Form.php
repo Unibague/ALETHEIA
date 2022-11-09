@@ -88,7 +88,7 @@ class Form extends Model
                 'name' => $request->input('name'),
                 'type' => $request->input('type'),
                 'degree' => $request->input('degree'),
-                'academic_period_id' => $request->input('academic_period_id'),
+                'academic_period_id' => $request->input('academic_period')['id'],
                 'service_areas' => json_encode($request->input('service_areas')),
             ]);
     }

@@ -82,12 +82,13 @@ Route::post('/api/teachers/sync', [\App\Http\Controllers\TeacherProfileControlle
 
 
 /* >>>>> Test routes  (students) <<<<<< */
-Route::inertia('/tests', 'Tests/Index')->middleware(['auth', 'isAdmin'])->name('tests.index.view');
+Route::get('/tests',  [\App\Http\Controllers\TestsController::class, 'indexView'])->middleware(['auth', 'isAdmin'])->name('tests.index.view');
+Route::post('/tests/{testId}', [\App\Http\Controllers\TestsController::class, 'startTest'])->middleware(['auth', 'isAdmin'])->name('tests.startTest');
+
 //Change teacher status
 Route::resource('api/tests', \App\Http\Controllers\TestsController::class, [
     'as' => 'api'
 ])->middleware('auth');
-
 
 
 /* >>>>>Roles routes <<<<<< */

@@ -15,6 +15,7 @@ class AssessmentPeriodSeeder extends Seeder
      */
     public function run()
     {
+
         AssessmentPeriod::create([
             'name' => 'Periodo 1',
             'self_start_date' => Carbon::now()->toDateTimeString(),

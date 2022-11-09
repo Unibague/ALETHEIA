@@ -166,18 +166,18 @@
                                         v-model="studentForm.degree"
                                         :items="degrees"
                                         label="Nivel de formación"
-                                        item-value="value"
+                                        :item-value="(degree)=> degree.value "
                                         :item-text="(degree)=> degree.name.charAt(0).toUpperCase() + degree.name.slice(1)"
                                     ></v-select>
                                 </v-col>
                                 <v-col cols="12">
                                     <v-select
                                         color="primario"
-                                        v-model="studentForm.academicPeriodId"
+                                        v-model="studentForm.academicPeriod"
                                         :items="academicPeriods"
                                         label="Periodo académico"
-                                        :item-text="(academicPeriod)=>this.studentForm.degree === null ? 'Todos':academicPeriod.name"
-                                        :item-value="(academicPeriod)=>this.studentForm.degree === null ? null:academicPeriod.id"
+                                        :item-text="(academicPeriod)=>academicPeriod.name"
+                                        :item-value="(academicPeriod)=>academicPeriod"
                                         :disabled="studentForm.degree === null"
                                     ></v-select>
                                 </v-col>
@@ -190,7 +190,7 @@
                                         label="Área de servicio"
                                         :item-text="(serviceArea)=>serviceArea.name"
                                         :item-value="(serviceArea)=>serviceArea"
-                                        :disabled="studentForm.academicPeriodId === null"
+                                        :disabled="studentForm.academicPeriod.id === null"
                                     >
                                         <template v-slot:selection="{ item, index }">
                                             <v-chip v-if="index === 0">
@@ -503,6 +503,7 @@ export default {
             this.formMethod = method;
             if (method === 'edit') {
                 this[model] = Form.copy(form)
+                console.log('editar', this[model])
             } else {
                 this[model] = new Form();
             }
@@ -518,7 +519,7 @@ export default {
         getAllForms: async function () {
             let request = await axios.get(route('api.forms.index'));
             this.forms = Form.createFormsFromArray(request.data);
-            console.log('forms', this.forms)
+            console.log('All Forms', this.forms)
             this.formatForms();
         },
         getServiceAreas: async function () {
@@ -575,6 +576,7 @@ export default {
                 id: null,
                 name: "Todos"
             });
+            console.log('academic periods',this.academicPeriods)
         },
         formatForms: function () {
             const forms = this.forms;
@@ -628,16 +630,17 @@ export default {
 
         'studentForm.degree'(newDegree, oldAcademicPeriod) {
             if (newDegree === null) {
-                this.studentForm.academicPeriodId = null;
+                this.studentForm.academicPeriod = {id: null, name: 'Todos'};
+                this.studentForm.serviceAreas = [{id: null, name: 'Todas'}];
+            }
+        },
+        'studentForm.academicPeriod'(newAcademicPeriod, oldAcademicPeriod) {
+            console.log(newAcademicPeriod);
+            if (newAcademicPeriod.id === null) {
+                this.studentForm.serviceAreas = [{id: null, name: 'Todas'}];
+            }
+        },
 
-                this.studentForm.serviceAreas = [{id: null, name: 'Todas'}];
-            }
-        },
-        'studentForm.academicPeriodId'(newAcademicPeriod, oldAcademicPeriod) {
-            if (newAcademicPeriod === null) {
-                this.studentForm.serviceAreas = [{id: null, name: 'Todas'}];
-            }
-        },
         'othersForm.assessmentPeriod'(newAssessmentPeriod, oldAcademicPeriod) {
             if (newAssessmentPeriod.id === null) {
                 this.othersForm.unitRole = null;

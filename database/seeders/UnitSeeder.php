@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Http\Controllers\UnityController;
 use App\Models\AssessmentPeriod;
 use App\Models\Unit;
 use Illuminate\Database\Seeder;
@@ -21,5 +22,6 @@ class UnitSeeder extends Seeder
             'is_custom' => false,
             'assessment_period_id' => AssessmentPeriod::getActiveAssessmentPeriod()->id
         ]);
+        (new UnityController())->sync();
     }
 }

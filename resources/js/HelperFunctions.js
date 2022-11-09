@@ -45,10 +45,37 @@ const toObjectRequest = (model) => {
     }
     return object;
 }
+const getCSRFToken = () => {
+    let cookies = getPageCookies();
+    return cookies['XSRF-TOKEN'];
+}
+const getPageCookies = () => {
+
+    // cookie is a string containing a semicolon-separated list, this split puts it into an array
+    let cookieArr = document.cookie.split(";");
+
+    // This object will hold all of the key value pairs
+    let cookieObj = {};
+
+    // Iterate the array of flat cookies to get their key value pair
+    for (let i = 0; i < cookieArr.length; i++) {
+
+        // Remove the standardized whitespace
+        let cookieSeg = cookieArr[i].trim();
+
+        // Index of the split between key and value
+        let firstEq = cookieSeg.indexOf("=");
+
+        // Assignments
+        let name = cookieSeg.substr(0, firstEq);
+        cookieObj[name] = cookieSeg.substr(firstEq + 1);
+    }
+    return cookieObj;
+}
 
 const camelToUnderscore = (key) => {
     let result = key.replace(/([A-Z])/g, " $1");
     return result.split(' ').join('_').toLowerCase();
 }
 
-export {prepareErrorText, checkIfModelHasEmptyProperties, clearModelProperties, showSnackbar, toObjectRequest}
+export {prepareErrorText, checkIfModelHasEmptyProperties, clearModelProperties, showSnackbar, toObjectRequest,getCSRFToken}

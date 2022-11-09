@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -42,15 +44,42 @@ class FormAnswers extends Model
 {
     use HasFactory;
 
+    protected $guarded = [];
+
     public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    //TODO: Terminar
-    public function group()
+    public static function createStudentFormFromRequest(Request $request, Form $form): void
     {
-        //
+        self::create([
+            'user_id' => auth()->user()->id,
+            'form_id' => $form->id,
+            'answers' => json_encode($request->input('answers')),
+            'submitted_at' => Carbon::now()->toDateTimeString(),
+            'group_id' => $request->input('groupId'),
+            'teacher_id' => $request->input('teacherId'),
+        ]);
+        self::updateResponseStatusToAnswered($request->input('groupId'), $request->input('teacherId'));
+    }
+
+    public static function updateResponseStatusToAnswered($groupId, $userId): void
+    {
+        DB::table('group_user')
+            ->where('group_id', '=', $groupId)
+            ->where('user_id', '=', $userId)
+            ->update(
+                [
+                    'has_answer' => 1
+                ]
+            );
+
+    }
+
+    public function group(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Group::class);
     }
 
     public function groupUser()
