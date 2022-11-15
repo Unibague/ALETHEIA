@@ -37,7 +37,7 @@ class TestsController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function store(Request $request)
+    public function store(Request $request): JsonResponse
     {
         $form = Form::findOrFail($request->input('form_id'));
         if ($form->type === 'estudiantes') {
@@ -60,7 +60,7 @@ class TestsController extends Controller
             return response('Ya has contestado esta evaluación', 401);
         }
         $test = Test::getQuestionsFromTestId($testId);
-        return Inertia::render('Tests/Show', ['test' => $test, 'groupId' => $data->id, 'teacherId' => $data->teacher->id]);
+        return Inertia::render('Tests/Show', ['test' => $test, 'group' => ['id' => $data->id, 'name' => $data->name], 'teacher' => $data->teacher]);
     }
 
     /**

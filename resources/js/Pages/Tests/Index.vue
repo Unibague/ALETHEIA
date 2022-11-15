@@ -19,8 +19,23 @@
             >
                 <template v-slot:item.actions="{ item }">
 
+                    <v-tooltip bottom v-if="item.test === null">
+                        <template v-slot:activator="{ on, attrs }">
+
+                            <v-icon
+                                v-on="on"
+                                v-bind="attrs"
+                                class="mr-2 primario--text"
+                            >
+                                mdi-close-circle-outline
+                            </v-icon>
+                        </template>
+                        <span>No hay una evaluación disponible para este grupo</span>
+                    </v-tooltip>
+
+
                     <form :action="route('tests.startTest',{testId: item.test.id})" method="POST"
-                          v-if="item.pivot.has_answer === 0">
+                          v-else-if="item.pivot.has_answer === 0">
                         <input type="hidden" name="_token" :value="token">
                         <input type="hidden" name="data" :value="JSON.stringify(item)">
                         <v-tooltip bottom>
@@ -41,11 +56,21 @@
                             <span>Realizar evaluación</span>
                         </v-tooltip>
                     </form>
-                    <v-icon v-else
-                            class="mr-2 primario--text"
-                    >
-                        mdi-check-all
-                    </v-icon>
+
+                    <v-tooltip bottom v-else>
+                        <template v-slot:activator="{ on, attrs }">
+
+                            <v-icon
+                                v-on="on"
+                                v-bind="attrs"
+                                class="mr-2 primario--text"
+                            >
+                                mdi-check-all
+                            </v-icon>
+                        </template>
+                        <span>Ya has realizado esta evaluación</span>
+
+                    </v-tooltip>
                 </template>
             </v-data-table>
 
@@ -73,6 +98,9 @@ export default {
         return {
             //Table info
             headers: [
+                {text: 'Periodo acdémico', value: 'academic_period.name'},
+                {text: 'Código de asignatura', value: 'class_code'},
+                {text: 'Grupo', value: 'group'},
                 {text: 'Nombre', value: 'name'},
                 {text: 'Profesor', value: 'teacher.name'},
                 {text: 'Acciones', value: 'actions', sortable: false},
@@ -93,17 +121,13 @@ export default {
         token: String
     },
     async created() {
-        // this.getCSRFToken();
         await this.getAllGroups();
+        console.log(this.tests)
         this.isLoading = false;
     },
 
 
     methods: {
-        getCSRFToken: function () {
-            this.token = getCSRFToken();
-            console.log(this.token)
-        },
 
         applyForTestStarting: async function () {
             let request = await axios.post(route('api.tests.index'));

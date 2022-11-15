@@ -176,7 +176,9 @@ class User extends Authenticatable
 
     public function groups(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
-        return $this->belongsToMany(Group::class)->with('teacher')->wherePivot('assessment_period_id','=',AssessmentPeriod::getActiveAssessmentPeriod()->id)->withPivot('has_answer');
+        return $this->belongsToMany(Group::class)->with('teacher', 'academicPeriod')
+            ->wherePivotIn('academic_period_id', [AcademicPeriod::getCurrentAcademicPeriodIds()])
+            ->withPivot('has_answer');
     }
 
     public function teacherGroups(): \Illuminate\Database\Eloquent\Relations\HasMany

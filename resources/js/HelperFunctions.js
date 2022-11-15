@@ -32,13 +32,13 @@ const showSnackbar = (snackbar, text, type = 'success', timeout = 3000) => {
     snackbar.text = text;
 }
 
-const toObjectRequest = (model) => {
+const toObjectRequest = (model, includeNulls = false) => {
     const skipKeys = ['dataStructure'];
     let object = {};
     for (const modelKey in model) {
         if (skipKeys.includes(modelKey)) continue;
 
-        if (model[modelKey] !== null) {
+        if (model[modelKey] !== null || includeNulls === true) {
 
             object[camelToUnderscore(modelKey)] = model[modelKey];
         }
@@ -78,4 +78,11 @@ const camelToUnderscore = (key) => {
     return result.split(' ').join('_').toLowerCase();
 }
 
-export {prepareErrorText, checkIfModelHasEmptyProperties, clearModelProperties, showSnackbar, toObjectRequest,getCSRFToken}
+export {
+    prepareErrorText,
+    checkIfModelHasEmptyProperties,
+    clearModelProperties,
+    showSnackbar,
+    toObjectRequest,
+    getCSRFToken
+}

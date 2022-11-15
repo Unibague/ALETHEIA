@@ -64,6 +64,17 @@ class AcademicPeriod extends Model
         return self::where('assessment_period_id', '=', $currentAcademicPeriod->id)->with('assessmentPeriod')->get();
     }
 
+    public static function getCurrentAcademicPeriodIds(): array
+    {
+        $academicPeriods = self::getCurrentAcademicPeriods();
+        $ids = [];
+        foreach ($academicPeriods as $academicPeriod) {
+            $ids[] = $academicPeriod->id;
+        }
+        return $ids;
+
+    }
+
     public static function createFakePeriods(): void
     {
         $academicPeriods = ['2022A', '2022B'];

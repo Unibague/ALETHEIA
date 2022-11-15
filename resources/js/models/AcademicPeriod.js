@@ -2,7 +2,7 @@ import {checkIfModelHasEmptyProperties, toObjectRequest} from "@/HelperFunctions
 
 export default class AcademicPeriod {
     toObjectRequest() {
-        return toObjectRequest(this);
+        return toObjectRequest(this, true);
     }
 
     hasEmptyProperties() {
@@ -29,7 +29,7 @@ export default class AcademicPeriod {
             classEndDate: 'required',
             studentsStartDate: 'required',
             studentsEndDate: 'required',
-            assessmentPeriodId: 'required',
+            assessmentPeriodId: null,
         }
     }
 }

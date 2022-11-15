@@ -4,8 +4,14 @@
                   :show="snackbar.status" @closeSnackbar="snackbar.status = false"></Snackbar>
 
         <v-container>
-            <div class="d-flex flex-column align-end mb-8">
-            </div>
+            <v-row class="mb-2">
+                <v-col cols="12">
+                    <h2 class="text-center ">
+                        Estás realizando la evaluación del profesor {{ teacher.name }} ({{ group.name }})
+                    </h2>
+                </v-col>
+            </v-row>
+
             <v-row class="mt-3" justify="center" dense>
                 <v-col cols="12" :lg="7">
                     <v-form
@@ -112,8 +118,8 @@ export default {
     },
     props: {
         test: Object,
-        groupId: Number,
-        teacherId: Number,
+        group: Object,
+        teacher: Object,
     },
     async created() {
         this.parseQuestions()
@@ -130,8 +136,8 @@ export default {
                     {
                         answers: this.test.questions,
                         form_id: this.test.form_id,
-                        teacherId: this.teacherId,
-                        groupId: this.groupId,
+                        teacherId: this.teacher.id,
+                        groupId: this.group.id,
                     });
                 this.dialog = true;
 

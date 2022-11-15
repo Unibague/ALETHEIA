@@ -58,7 +58,8 @@
                                     <span class="subtitle-1">
                                         Fecha de inicio de evaluación de estudiantes *
                                     </span>
-                                    <v-date-picker v-model="$data[createOrEditDialog.model].studentsStartDate" full-width>
+                                    <v-date-picker v-model="$data[createOrEditDialog.model].studentsStartDate"
+                                                   full-width>
                                     </v-date-picker>
                                 </v-col>
                                 <v-col cols="12" :md="6" class="d-flex flex-column">
@@ -170,6 +171,7 @@ export default {
         getAllAssessmentPeriods: async function () {
             let request = await axios.get(route('api.assessmentPeriods.index'));
             this.assessmentPeriods = request.data;
+            this.assessmentPeriods.unshift({id: null, name: 'Ninguno'})
         },
         syncPeriods: async function () {
             try {

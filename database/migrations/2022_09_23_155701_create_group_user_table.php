@@ -18,7 +18,7 @@ class CreateGroupUserTable extends Migration
             $table->foreignId('group_id')->constrained();
             $table->foreignId('user_id')->constrained();
             $table->boolean('has_answer');
-            $table->foreignId('assessment_period_id')->constrained();
+            $table->foreignId('academic_period_id')->constrained();
             $table->timestamps();
         });
     }
