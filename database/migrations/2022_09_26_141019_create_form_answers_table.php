@@ -22,6 +22,12 @@ class CreateFormAnswersTable extends Migration
             $table->foreignId('group_id')->nullable()->constrained();
             $table->foreignId('teacher_id')->nullable()->references('id')->on('users');
             $table->foreignId('unity_assessment_id')->nullable()->constrained();
+            $table->double('first_competence_average')->nullable();
+            $table->double('second_competence_average')->nullable();
+            $table->double('third_competence_average')->nullable();
+            $table->double('fourth_competence_average')->nullable();
+            $table->double('fifth_competence_average')->nullable();
+            $table->double('sixth_competence_average')->nullable();
             $table->timestamps();
         });
     }

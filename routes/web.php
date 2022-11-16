@@ -12,7 +12,11 @@ Route::get('/', function () {
     return Inertia::render('Bienvenido');
 })->name('default');
 
+Route::get('/unitTest', function () {
+    $data = '[{"name":"Pregunta 1 competencia 1","answer":"5","options":[{"value":"1","placeholder":"opcion de respuesta 1"},{"value":"2","placeholder":"opcion de respuesta 2"},{"value":"3","placeholder":"opcion de respuesta 3"},{"value":"4","placeholder":"opcion de respuesta 4"},{"value":"5","placeholder":"opcion de respuesta 5"}],"competence":"C1"},{"name":"Pregunta 2 competencia 1","answer":"5","options":[{"value":"1","placeholder":"opcion de respuesta 1"},{"value":"2","placeholder":"opcion de respuesta 2"},{"value":"3","placeholder":"opcion de respuesta 3"},{"value":"4","placeholder":"opcion de respuesta 4"},{"value":"5","placeholder":"opcion de respuesta 5"}],"competence":"C1"},{"name":"Pregunta 3 competencia 1","answer":"5","options":[{"value":"1","placeholder":"opcion de respuesta 1"},{"value":"2","placeholder":"opcion de respuesta 2"},{"value":"3","placeholder":"opcion de respuesta 3"},{"value":"4","placeholder":"opcion de respuesta 4"},{"value":"5","placeholder":"opcion de respuesta 5"}],"competence":"C1"},{"name":"Pregunta 4 competencia 1","answer":"5","options":[{"value":"1","placeholder":"opcion de respuesta 1"},{"value":"2","placeholder":"opcion de respuesta 2"},{"value":"3","placeholder":"opcion de respuesta 3"},{"value":"4","placeholder":"opcion de respuesta 4"},{"value":"5","placeholder":"opcion de respuesta 5"}],"competence":"C1"},{"name":"Pregunta 5 competencia 1","answer":"5","options":[{"value":"1","placeholder":"opcion de respuesta 1"},{"value":"2","placeholder":"opcion de respuesta 2"},{"value":"3","placeholder":"opcion de respuesta 3"},{"value":"4","placeholder":"opcion de respuesta 4"},{"value":"5","placeholder":"opcion de respuesta 5"}],"competence":"C1"},{"name":"Pregunta 1 competencia 2","answer":"5","options":[{"value":"1","placeholder":"opcion de respuesta 1"},{"value":"2","placeholder":"opcion de respuesta 2"},{"value":"3","placeholder":"opcion de respuesta 3"},{"value":"4","placeholder":"opcion de respuesta 4"},{"value":"5","placeholder":"opcion de respuesta 5"}],"competence":"C2"},{"name":"Pregunta 2 competencia 2","answer":"1","options":[{"value":"1","placeholder":"opcion de respuesta 1"},{"value":"2","placeholder":"opcion de respuesta 2"},{"value":"3","placeholder":"opcion de respuesta 3"},{"value":"4","placeholder":"opcion de respuesta 4"},{"value":"5","placeholder":"opcion de respuesta 5"}],"competence":"C2"},{"name":"Pregunta 1 competencia 3","answer":"5","options":[{"value":"1","placeholder":"opcion de respuesta 1"},{"value":"2","placeholder":"opcion de respuesta 2"},{"value":"3","placeholder":"opcion de respuesta 3"},{"value":"4","placeholder":"opcion de respuesta 4"},{"value":"5","placeholder":"opcion de respuesta 5"}],"competence":"C3"}]';
+    \App\Models\FormAnswers::getCompetencesAverage($data);
 
+});
 /*
 |--------------------------------------------------------------------------
 | Administrator routes
@@ -82,7 +86,7 @@ Route::post('/api/teachers/sync', [\App\Http\Controllers\TeacherProfileControlle
 
 
 /* >>>>> Test routes  (students) <<<<<< */
-Route::get('/tests',  [\App\Http\Controllers\TestsController::class, 'indexView'])->middleware(['auth', 'isAdmin'])->name('tests.index.view');
+Route::get('/tests', [\App\Http\Controllers\TestsController::class, 'indexView'])->middleware(['auth', 'isAdmin'])->name('tests.index.view');
 Route::post('/tests/{testId}', [\App\Http\Controllers\TestsController::class, 'startTest'])->middleware(['auth', 'isAdmin'])->name('tests.startTest');
 
 //Change teacher status

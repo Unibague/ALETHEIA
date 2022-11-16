@@ -53,6 +53,7 @@ class FormAnswers extends Model
 
     public static function createStudentFormFromRequest(Request $request, Form $form): void
     {
+        $competencesAverage = self::getCompetencesAverage($request->input('answers'));
         self::create([
             'user_id' => auth()->user()->id,
             'form_id' => $form->id,
@@ -61,7 +62,45 @@ class FormAnswers extends Model
             'group_id' => $request->input('groupId'),
             'teacher_id' => $request->input('teacherId'),
         ]);
+
         self::updateResponseStatusToAnswered($request->input('groupId'), $request->input('teacherId'));
+    }
+
+    public static function getCompetencesAverage($answers)
+    {
+        $answersAsObject = json_decode($answers, false);
+        $competences = self::getCompetencesFromFormAnswer($answersAsObject);
+        $averages = self::getAveragesFromCompetences($competences);
+        dd($averages);
+    }
+
+    private static function getAveragesFromCompetences($competences)
+    {
+        $averages = [];
+        foreach ($competences as $competence => $attributes) {
+            $averages[$competence] = $attributes['accumulatedValue'] / $attributes['totalAnswers'];
+        }
+        return $averages;
+    }
+
+    private static function getCompetencesFromFormAnswer($formAnswers): array
+    {
+        $competences = [];
+        foreach ($formAnswers as $answer) {
+            if (isset($competences[$answer->competence]) === true) {
+                $competences[$answer->competence]['totalAnswers']++;
+            } else {
+                $competences[$answer->competence]['totalAnswers'] = 1;
+            }
+
+            // the competence already exist at this point
+            if (isset($competences[$answer->competence]['accumulatedValue']) === true) {
+                $competences[$answer->competence]['accumulatedValue'] += (double)$answer->answer;
+            } else {
+                $competences[$answer->competence]['accumulatedValue'] = (double)$answer->answer;
+            }
+        }
+        return $competences;
     }
 
     public static function updateResponseStatusToAnswered($groupId, $userId): void
