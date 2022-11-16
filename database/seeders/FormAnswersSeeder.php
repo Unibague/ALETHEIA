@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Psy\Util\Json;
 
 class FormAnswersSeeder extends Seeder
 {
@@ -13,6 +14,5 @@ class FormAnswersSeeder extends Seeder
      */
     public function run()
     {
-        //
     }
 }

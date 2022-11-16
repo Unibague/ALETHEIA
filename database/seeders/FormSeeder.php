@@ -15,11 +15,12 @@ class FormSeeder extends Seeder
     public function run()
     {
         Form::create([
-            'name' => 'Formulario facultad ciencias naturales y matematicas ',
+            'name' => 'Formulario general',
             'type' => 'estudiantes',
-            'degree' => 'Pregrado',
-            'academic_period_id' => 1,
-            'service_areas' => '[{"id": null, "name": "Todas"}]',
-        ]);
+            'degree' => null,
+            'academic_period_id' => null,
+            'service_areas' => '[{"id": null, "name": "Todas"}]'
+            ,]);
+
     }
 }
