@@ -46,5 +46,7 @@ class DatabaseSeeder extends Seeder
         (new TeacherProfileSeeder)->run();
         (new GroupSeeder)->run();
         (new FormSeeder)->run();
+        (new FormQuestionSeeder)->run();
+
     }
 }

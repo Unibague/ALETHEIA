@@ -10,14 +10,14 @@ export default class FormQuestions {
     }
 
     getPossibleCompetences() {
-        return ['C1', 'C2', 'C3', 'C4', 'C5'];
+        return ['C1', 'C2', 'C3', 'C4', 'C5', 'C6'];
     }
 
     static fromModel(model) {
         return new FormQuestions(model.id, model.form_id, JSON.parse(model.questions));
     }
 
-    constructor(id = null, formId = 0, questions = [{options:[{}]}]) {
+    constructor(id = null, formId = 0, questions = [{options: [{}]}]) {
         this.id = id;
         this.formId = formId;
         this.questions = questions;

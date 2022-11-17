@@ -51,9 +51,12 @@ class FormAnswers extends Model
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * @throws \JsonException
+     */
     public static function createStudentFormFromRequest(Request $request, Form $form): void
     {
-        $competencesAverage = self::getCompetencesAverage($request->input('answers'));
+        $competencesAverage = self::getCompetencesAverage(json_decode(json_encode($request->input('answers'), JSON_THROW_ON_ERROR), false, 512, JSON_THROW_ON_ERROR));
         self::create([
             'user_id' => auth()->user()->id,
             'form_id' => $form->id,
@@ -61,6 +64,12 @@ class FormAnswers extends Model
             'submitted_at' => Carbon::now()->toDateTimeString(),
             'group_id' => $request->input('groupId'),
             'teacher_id' => $request->input('teacherId'),
+            'first_competence_average' => $competencesAverage['C1'],
+            'second_competence_average' => $competencesAverage['C2'],
+            'third_competence_average' => $competencesAverage['C3'],
+            'fourth_competence_average' => $competencesAverage['C4'],
+            'fifth_competence_average' => $competencesAverage['C5'],
+            'sixth_competence_average' => $competencesAverage['C6'],
         ]);
 
         self::updateResponseStatusToAnswered($request->input('groupId'), $request->input('teacherId'));
@@ -68,10 +77,8 @@ class FormAnswers extends Model
 
     public static function getCompetencesAverage($answers)
     {
-        $answersAsObject = json_decode($answers, false);
-        $competences = self::getCompetencesFromFormAnswer($answersAsObject);
-        $averages = self::getAveragesFromCompetences($competences);
-        dd($averages);
+        $competences = self::getCompetencesFromFormAnswer($answers);
+        return self::getAveragesFromCompetences($competences);
     }
 
     private static function getAveragesFromCompetences($competences)
