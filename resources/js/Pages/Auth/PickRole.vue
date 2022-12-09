@@ -101,7 +101,7 @@ export default {
                 return;
             }
             const url = route('api.users.roles.selectRole', {user: this.$page.props.user.id});
-            const redirect = route('landing');
+            const redirect = route('redirect');
             try {
                 await axios.post(url, {
                     role: this.selectedRoleId

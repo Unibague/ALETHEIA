@@ -1,6 +1,6 @@
 <template>
     <GeneralLayout>
-         <v-snackbar
+        <v-snackbar
             v-model="snackbar.status"
             :timeout="snackbar.timeout"
             :color="snackbar.color + ' accent-2'"
@@ -18,6 +18,9 @@
                 </v-btn>
             </template>
         </v-snackbar>
+        <form :action="route('logout')" method="post" ref="logoutform">
+            <input type="hidden" name="_token" :value="$page.props.token">
+        </form>
 
         <template v-slot:custom-v-app-bar-icon>
             <v-app-bar-nav-icon @click="drawer = true" class="white--text"></v-app-bar-nav-icon>
@@ -104,8 +107,8 @@
                             {{ $page.props.user.name }}
                         </v-list-item-title>
                     </v-list-item>
-                    <v-list-item @click="logout">
-                        <v-list-item-title>Cerrar sesion</v-list-item-title>
+                    <v-list-item>
+                        <v-list-item-title class="cursor-pointer" @click="logout" style="cursor:pointer">Cerrar sesion</v-list-item-title>
                     </v-list-item>
                 </v-list>
             </v-menu>
@@ -330,7 +333,7 @@ export default {
     }),
     methods: {
         logout() {
-            this.$inertia.post(route('logout'));
+            this.$refs.logoutform.submit();
         },
         triggerFunction(functionName) {
             this[functionName]();

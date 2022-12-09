@@ -40,6 +40,7 @@ class HandleInertiaRequests extends Middleware
             'user.customRoleId' => function () use ($request) {
                 return $request->user() ? $request->user()->role()->customId : 0;
             },
+            'token' => csrf_token()
         ]);
     }
 }

@@ -12,10 +12,33 @@ use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
 {
+    public function logout(Request $request)
+    {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        //return view('logout');
+        return redirect('/');
+    }
+
+    public function handleAuthRedirect(): \Illuminate\Http\RedirectResponse
+    {
+        $user = auth()->user();
+        if ($user) {
+            return redirect()->route('redirect');
+        }
+        return redirect()->route('login');
+    }
 
     public function handleRoleRedirect()
     {
-
+        $user = auth()->user();
+        if ($user->isAdmin()) {
+            return redirect()->route('forms.index.view');
+        }
+        if ($user->isStudent()) {
+            return redirect()->route('tests.index.view');
+        }
     }
 
     public function redirectGoogleLogin()
@@ -32,7 +55,6 @@ class AuthController extends Controller
             return redirect()->route('login');
         }
         $user = User::where('email', $googleUser->email)->first();
-
         if (!$user) {
             $user = User::create([
                 'name' => $googleUser->name,
@@ -52,7 +74,7 @@ class AuthController extends Controller
         //Check if the user has more than one role
         if ($user->hasOneRole()) {
             session(['role' => $user->roles[0]->id]);
-            return redirect()->route('landing');
+            return redirect()->route('redirect');
         }
         return redirect()->route('pickRole');
     }
