@@ -94,7 +94,7 @@ export default {
             headers: [
                 {text: 'Nombre', value: 'user.name'},
                 {text: 'Documento', value: 'identification_number'},
-                {text: 'Dependencia', value: 'unity'},
+               // {text: 'Dependencia', value: 'unity'},
                 {text: 'Cargo', value: 'position'},
                 {text: 'Escalafón', value: 'teaching_ladder'},
                 {text: 'Tipo empleado', value: 'employee_type'},
@@ -134,7 +134,7 @@ export default {
             try {
                 let request = await axios.post(route('api.teachers.sync'));
                 showSnackbar(this.snackbar, request.data.message, 'success');
-                this.getAllAcademicPeriods();
+                this.getAllTeachers();
             } catch (e) {
                 showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
             }

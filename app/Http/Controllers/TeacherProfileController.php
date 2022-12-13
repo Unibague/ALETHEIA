@@ -66,7 +66,10 @@ class TeacherProfileController extends Controller
             } catch (ModelNotFoundException $e) {
                 continue;
             }
-
+            //todo: quitar esto arreglar servicio
+            if (!in_array($teacher->teaching_ladder, ['NIN', 'AUX', 'ASI', 'ASO', 'TIT'])) {
+                $teacher->teaching_ladder = 'NIN';
+            }
             TeacherProfile::updateOrCreate(
                 [
                     'identification_number' => $teacher->identification_number,
@@ -75,14 +78,13 @@ class TeacherProfileController extends Controller
                 [
                     'unit_id' => $unit->id,
                     'position' => $teacher->position,
-                    //'teaching_ladder' => $teacher->teaching_ladder,
-                    'teaching_ladder' => 'ninguno',
-                    'employee_type' => $teacher->employee_type,
+                    'teaching_ladder' => $teacher->teaching_ladder === '' ? 'NIN' : $teacher->teaching_ladder,
+                    'employee_type' => $teacher->employee_type === '' ? 'ADM' : $teacher->employee_type,
                     'status' => 'activo',
                     'assessment_period_id' => $assessment_period_id
                 ]);
         }
-        return response()->json(['message' => 'Los periodos se han sincronizado exitosamente']);
+        return response()->json(['message' => 'Los docentes se han sincronizado exitosamente']);
 
     }
 }

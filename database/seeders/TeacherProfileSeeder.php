@@ -29,7 +29,7 @@ class TeacherProfileSeeder extends Seeder
             'user_id' => $user->id,
             'unit_id' => 1,
             'position' => 'Profesor Tiempo Completo',
-            'teaching_ladder' => 'Ninguno',
+            'teaching_ladder' => 'NIN',
             'employee_type' => 'DTC',
             'status' => 'Activo']);
 
@@ -44,7 +44,7 @@ class TeacherProfileSeeder extends Seeder
             'user_id' => $user2->id,
             'unit_id' => 1,
             'position' => 'Profesor Tiempo Completo',
-            'teaching_ladder' => 'Ninguno',
+            'teaching_ladder' => 'NIN',
             'employee_type' => 'DTC',
             'status' => 'Suspendido',]);
 
