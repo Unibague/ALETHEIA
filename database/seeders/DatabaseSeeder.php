@@ -18,19 +18,11 @@ class DatabaseSeeder extends Seeder
     public function run()
     {
 
-        //Initial Setup
-        Role::create([
-            'name' => 'administrador',
-            'customId' => 10
-        ]);
+        (new RoleSeeder())->run();
 
-        Role::create([
-            'name' => 'estudiante',
-            'customId' => 1
-        ]);
         //Create admin user
         $user = User::create([
-            'name' => 'Sebastian Godspina',
+            'name' => 'Sebastian Ospina',
             'email' => 'juan.ospina@unibague.edu.co',
             'password' => '12345',
         ]);
