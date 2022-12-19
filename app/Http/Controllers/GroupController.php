@@ -23,7 +23,7 @@ class GroupController extends Controller
 
     public function sync()
     {
-        return response()->json(['message' => 'Los periodos se han sincronizado exitosamente']);
+        return response()->json(['message' => 'Servicio no disponible']);
 
         $url = 'http://integra.unibague.edu.co/groups';
         $curl = new CurlCobain($url);

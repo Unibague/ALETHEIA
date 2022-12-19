@@ -5,14 +5,14 @@
 
         <v-container>
             <div class="d-flex flex-column align-end mb-8">
-                <h2 class="align-self-start">Gestionar profesores</h2>
+                <h2 class="align-self-start">Gestionar docentes</h2>
                 <div>
                     <v-btn
                         color="primario"
                         class="grey--text text--lighten-4"
                         @click="syncTeachers"
                     >
-                        Sincronizar profesores
+                        Sincronizar docentes
                     </v-btn>
                 </div>
             </div>
