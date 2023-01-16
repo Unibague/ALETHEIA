@@ -31,6 +31,7 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|UnityAssessment whereRole($value)
  * @method static \Illuminate\Database\Eloquent\Builder|UnityAssessment whereUpdatedAt($value)
  * @mixin \Eloquent
+ * @property-read \App\Models\Unit $unit
  */
 class UnityAssessment extends Model
 {

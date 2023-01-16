@@ -282,17 +282,25 @@ export default {
                         icon: 'mdi-account-cog'
                     },
                     {
-                        name: 'Grupos',
-                        href: route('groups.index.view'),
-                        role: 10,
-                        icon: 'mdi-account-cog'
-                    },
-                    {
                         name: 'Docentes',
                         href: route('teachers.index.view'),
                         role: 10,
                         icon: 'mdi-account-cog'
                     },
+                    {
+                        name: 'Grupos',
+                        href: route('groups.index.view'),
+                        role: 10,
+                        icon: 'mdi-account-cog'
+                    },
+
+                    {
+                        name: 'Carga académica',
+                        href: route('enrolls.index.view'),
+                        role: 10,
+                        icon: 'mdi-account-cog'
+                    },
+
                     {
                         name: 'Formularios',
                         href: route('forms.index.view'),

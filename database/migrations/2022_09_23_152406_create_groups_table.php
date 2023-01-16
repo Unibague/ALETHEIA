@@ -15,15 +15,18 @@ class CreateGroupsTable extends Migration
     {
         Schema::create('groups', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('group_id')->unique()->nullable();
             $table->string('name');
             $table->foreignId('academic_period_id')->constrained();
             $table->string('class_code');
             $table->string('group');
-            $table->enum('degree', ['pregrado','posgrado']);
-            $table->foreignId('service_area_id')->constrained();
+            $table->enum('degree', ['pregrado', 'posgrado']);
+            $table->string('service_area_code');
+            $table->foreign('service_area_code')->references('code')->on('service_areas');
+
             $table->foreignId('teacher_id')->nullable();
             $table->foreign('teacher_id')->references('id')->on('users');
-            $table->enum('hour_type',['normal','cátedra','cátedra adicional','cátedra administrativa']);
+            $table->enum('hour_type', ['normal', 'cátedra', 'cátedra adicional', 'cátedra administrativa']);
             $table->timestamps();
         });
     }

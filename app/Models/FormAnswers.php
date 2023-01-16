@@ -39,6 +39,25 @@ use Illuminate\Support\Facades\DB;
  * @method static \Illuminate\Database\Eloquent\Builder|FormAnswers whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|FormAnswers whereUserId($value)
  * @mixin \Eloquent
+ * @property int $form_id
+ * @property int|null $group_id
+ * @property int|null $teacher_id
+ * @property float|null $first_competence_average
+ * @property float|null $second_competence_average
+ * @property float|null $third_competence_average
+ * @property float|null $fourth_competence_average
+ * @property float|null $fifth_competence_average
+ * @property float|null $sixth_competence_average
+ * @property-read \App\Models\Group|null $group
+ * @method static \Illuminate\Database\Eloquent\Builder|FormAnswers whereFifthCompetenceAverage($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|FormAnswers whereFirstCompetenceAverage($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|FormAnswers whereFormId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|FormAnswers whereFourthCompetenceAverage($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|FormAnswers whereGroupId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|FormAnswers whereSecondCompetenceAverage($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|FormAnswers whereSixthCompetenceAverage($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|FormAnswers whereTeacherId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|FormAnswers whereThirdCompetenceAverage($value)
  */
 class FormAnswers extends Model
 {

@@ -18,11 +18,14 @@ class CreateTeacherProfilesTable extends Migration
             $table->foreignId('assessment_period_id')->constrained();
             $table->string('identification_number');
             $table->foreignId('user_id')->constrained();
-            $table->foreignId('unit_id')->constrained();
-            $table->string('position');
-            $table->enum('teaching_ladder', ['NIN', 'AUX', 'ASI', 'ASO', 'TIT']);
-            //$table->enum('teaching_ladder', ['ninguno', 'auxiliar', 'asistente', 'asociado', 'titular']);
-            $table->enum('employee_type', ['DTC', 'ADM', 'SEG', 'ESI', 'IDI', 'INT', 'CAT', 'AEL', 'POS', 'AEP']);
+
+            $table->string('unit_code')->nullable();
+            $table->foreign('unit_code')->references('code')->on('units');
+
+            $table->string('position')->nullable();
+            $table->enum('teaching_ladder', ['NIN', 'AUX', 'ASI', 'ASO', 'TIT', 'DOCENTE'])->nullable();
+
+            $table->enum('employee_type', ['DTC', 'ADM', 'SEG', 'ESI', 'IDI', 'INT', 'CAT', 'AEL', 'POS', 'AEP'])->nullable();
             $table->enum('status', ['activo', 'inactivo', 'suspendido']);
             $table->timestamps();
         });

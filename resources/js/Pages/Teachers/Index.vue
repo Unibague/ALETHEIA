@@ -132,6 +132,7 @@ export default {
 
         syncTeachers: async function () {
             try {
+                console.log('entre')
                 let request = await axios.post(route('api.teachers.sync'));
                 showSnackbar(this.snackbar, request.data.message, 'success');
                 this.getAllTeachers();
@@ -154,7 +155,6 @@ export default {
 
         getAllTeachers: async function () {
             let request = await axios.get(route('api.teachers.index'));
-            console.log(request.data);
             this.teachers = request.data;
         },
 

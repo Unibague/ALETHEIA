@@ -36,6 +36,8 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|AcademicPeriod whereStudentsStartDate($value)
  * @method static \Illuminate\Database\Eloquent\Builder|AcademicPeriod whereUpdatedAt($value)
  * @mixin \Eloquent
+ * @property string $description
+ * @method static \Illuminate\Database\Eloquent\Builder|AcademicPeriod whereDescription($value)
  */
 class AcademicPeriod extends Model
 {
@@ -58,10 +60,20 @@ class AcademicPeriod extends Model
         return $this->hasMany(Form::class);
     }
 
+    public static function getCurrentAcademicPeriodsByCommas(): string
+    {
+        $currentAcademicPeriods = self::getCurrentAcademicPeriods();
+        if (count($currentAcademicPeriods) === 0) {
+            throw new \RuntimeException('No hay periodos académicos asociados al periodo de evaluación actual');
+        }
+        $academicPeriodsNames = array_column($currentAcademicPeriods->toArray(), 'name');
+        return implode(',', $academicPeriodsNames);
+    }
+
     public static function getCurrentAcademicPeriods()
     {
-        $currentAcademicPeriod = AssessmentPeriod::getActiveAssessmentPeriod();
-        return self::where('assessment_period_id', '=', $currentAcademicPeriod->id)->with('assessmentPeriod')->get();
+        $currentAssessmentPeriod = AssessmentPeriod::getActiveAssessmentPeriod();
+        return self::where('assessment_period_id', '=', $currentAssessmentPeriod->id)->with('assessmentPeriod')->get();
     }
 
     public static function getCurrentAcademicPeriodIds(): array
@@ -73,6 +85,21 @@ class AcademicPeriod extends Model
         }
         return $ids;
 
+    }
+
+    public static function createOrUpdateFromArray(array $academicPeriods): void
+    {
+        foreach ($academicPeriods as $academicPeriod) {
+            self::updateOrCreate(
+                [
+                    'name' => $academicPeriod->name
+                ],
+                [
+                    'description' => $academicPeriod->description,
+                    'class_start_date' => $academicPeriod->class_start_date,
+                    'class_end_date' => $academicPeriod->class_end_date,
+                ]);
+        }
     }
 
     public static function createFakePeriods(): void

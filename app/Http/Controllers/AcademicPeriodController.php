@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\AtlanteProvider;
 use App\Models\AcademicPeriod;
 use App\Http\Requests\StoreAcademicPeriodRequest;
 use App\Http\Requests\UpdateAcademicPeriodRequest;
@@ -15,43 +16,21 @@ use Ospina\CurlCobain\CurlCobain;
 class AcademicPeriodController extends Controller
 {
 
-    /**
-     */
     public function sync(): JsonResponse
     {
-        $url = 'http://integra.unibague.edu.co/academicPeriods';
-        $curl = new CurlCobain($url);
-        $curl->setQueryParamsAsArray([
-            'year' => '23',
-            'api_token' => env('MIDDLEWARE_API_TOKEN')
-        ]);
-        $curl->setQueryParam('year', '23');
-        $request = $curl->makeRequest();
         try {
-            $academicPeriods = json_decode($request, false, 512, JSON_THROW_ON_ERROR);
+            $academicPeriods = AtlanteProvider::get('academicPeriods', ['year' => 23]);
         } catch (JsonException $e) {
             return response()->json(['message' => 'Ha ocurrido un error con la fuente de datos']);
         }
-
-        //Iterate over received data and create the academic period
-        foreach ($academicPeriods as $academicPeriod) {
-            AcademicPeriod::updateOrCreate(
-                [
-                    'name' => $academicPeriod->name
-                ],
-                [
-                    'description' => $academicPeriod->description,
-                    'class_start_date' => $academicPeriod->class_start_date,
-                    'class_end_date' => $academicPeriod->class_end_date,
-                ]);
-        }
+        AcademicPeriod::createOrUpdateFromArray($academicPeriods);
         return response()->json(['message' => 'Los periodos se han sincronizado exitosamente']);
     }
 
     /**
      * Display a listing of the resource.
      *
-     * @param Request $request
+     * @param \Illuminate\Http\Request $request
      * @return JsonResponse
      */
     public function index(\Illuminate\Http\Request $request): JsonResponse

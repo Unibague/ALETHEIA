@@ -40,10 +40,63 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|Group whereTeacherId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Group whereUpdatedAt($value)
  * @mixin \Eloquent
+ * @property string $group_id
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\FormAnswers[] $formAnswers
+ * @property-read int|null $form_answers_count
+ * @method static \Illuminate\Database\Eloquent\Builder|Group whereGroupId($value)
  */
 class Group extends Model
 {
     use HasFactory;
+
+    protected $guarded = [];
+
+    public static function createOrUpdateFromArray(array $groups, array $possibleAcademicPeriods): object
+    {
+        $academicPeriods = AcademicPeriod::whereIn('name', $possibleAcademicPeriods)->get()->toArray();
+        $academicPeriodNameAndId = array_reduce($academicPeriods, static function ($result, $academicPeriod) {
+            $result[$academicPeriod['name']] = $academicPeriod['id'];
+            return $result;
+        }, []);
+
+        $possibleServiceAreas = array_unique(array_column($groups, 'service_area_code'));
+        $serviceAreas = ServiceArea::whereIn('code', $possibleServiceAreas)->get()->toArray();
+        $serviceAreaNameAndId = array_reduce($serviceAreas, static function ($result, $academicPeriod) {
+            $result[$academicPeriod['code']] = $academicPeriod['id'];
+            return $result;
+        }, []);
+
+        $possibleTeachers = array_unique(array_column($groups, 'teacher_email'));
+        $teachers = User::whereIn('email', $possibleTeachers)->get()->toArray();
+        $teacherAreaNameAndId = array_reduce($teachers, static function ($result, $teacher) {
+            $result[$teacher['email']] = $teacher['id'];
+            return $result;
+        }, []);
+        $errors = [];
+
+        foreach ($groups as $group) {
+            try {
+                self::updateOrCreate(
+                    [
+                        'group_id' => (int)$group['group_id']
+                    ],
+                    [
+                        'group' => $group['group_code'],
+                        'name' => $group['name'],
+                        'academic_period_id' => $academicPeriodNameAndId[$group['academic_period_name']],
+                        'class_code' => $group['class_code'],
+                        'degree' => strtolower($group['degree_code']),
+                        'service_area_id' => $serviceAreaNameAndId[$group['service_area_code']],
+                        'teacher_id' => $teacherAreaNameAndId[$group['teacher_email']],
+                        'hour_type' => $group['hour_type'],
+                    ]);
+            } catch (\Exception $e) {
+                $errors[] = ['group' => $group, 'error' => $e->getMessage()];
+            }
+        }
+        $hasError = count($errors) > 0;
+        return (object)['hasError' => $hasError, 'errors' => $errors];
+    }
 
     public function formAnswers(): \Illuminate\Database\Eloquent\Relations\HasMany
     {

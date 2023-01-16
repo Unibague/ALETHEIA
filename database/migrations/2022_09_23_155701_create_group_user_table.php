@@ -15,7 +15,8 @@ class CreateGroupUserTable extends Migration
     {
         Schema::create('group_user', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('group_id')->constrained();
+            $table->unsignedBigInteger('group_id');
+            $table->foreign('group_id')->references('group_id')->on('groups');
             $table->foreignId('user_id')->constrained();
             $table->boolean('has_answer');
             $table->foreignId('academic_period_id')->constrained();

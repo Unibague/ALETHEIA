@@ -5,13 +5,14 @@ namespace App\Http\Controllers;
 use App\Helpers\AtlanteProvider;
 use App\Http\Requests\GetGroupsRequest;
 use App\Models\AcademicPeriod;
+use App\Models\Enroll;
 use App\Models\Group;
 use App\Http\Requests\StoreGroupRequest;
 use App\Http\Requests\UpdateGroupRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class GroupController extends Controller
+class EnrollController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -21,24 +22,27 @@ class GroupController extends Controller
      */
     public function index(GetGroupsRequest $request): JsonResponse
     {
-        return response()->json(Group::with(['teacher', 'serviceArea', 'academicPeriod'])->get());
+        return response()->json(Enroll::with(['user', 'group', 'academicPeriod','group.teacher'])->paginate(500));
     }
 
     public function sync(Request $request): JsonResponse
     {
-        $namesSeparatedByCommas = AcademicPeriod::getCurrentAcademicPeriodsByCommas();
-        try {
-            $groups = AtlanteProvider::get('groups', [
-                'periods' => $namesSeparatedByCommas,
-            ], true);
-        } catch (\JsonException $e) {
-            return response()->json(['message' => 'Ha ocurrido un error con la fuente de datos: ' . $e->getMessage()]);
+        $academicPeriods = AcademicPeriod::getCurrentAcademicPeriods();
+        $enrollsMigrationResults = 0;
+        foreach ($academicPeriods as $academicPeriod) {
+            try {
+                $enrolls = AtlanteProvider::get('enrolls', [
+                    'periods' => $academicPeriod->name,
+                ], true);
+                $enrollsMigrationResults += Enroll::createOrUpdateFromArray($enrolls, $academicPeriod->id);
+
+            } catch (\JsonException $e) {
+                return response()->json(['message' => 'Ha ocurrido un error con la fuente de datos: ' . $e->getMessage()]);
+            }
         }
-        $groupMigrationResult = Group::createOrUpdateFromArray($groups, explode(',', $namesSeparatedByCommas));
-        if($groupMigrationResult->hasError){
-            return response()->json(['message' => 'Han ocurrido los siguientes errores: '. json_encode($groupMigrationResult->errors)]);
-        }
-        return response()->json(['message' => 'Grupos sincronizados exitosamente']);
+
+
+        return response()->json(['message' => "Se han sincronizado un total de $enrollsMigrationResults Estudiantes"]);
     }
 
     /**

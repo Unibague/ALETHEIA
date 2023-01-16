@@ -5,6 +5,7 @@ namespace App\Models;
 use Eloquent;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 /**
  * App\Models\Unity
@@ -40,18 +41,39 @@ class Unit extends Model
 {
     protected $guarded = [];
     use HasFactory;
+
+
+    public static function createOrUpdateFromArray(array $units): void
+    {
+        $upsertData = [];
+        $assessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        foreach ($units as $unit) {
+            $upsertData[] = [
+                'code' => $unit->code,
+                'name' => $unit->name,
+                'is_custom' => 0,
+                'assessment_period_id' => $assessmentPeriodId
+            ];
+        }
+        DB::table('units')->upsert($upsertData, ['code', 'assessment_period_id'], ['name', 'is_custom', 'assessment_period_id']);
+    }
+
+
     public function users(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
-        return $this->belongsToMany(User::class);
+        return $this->belongsToMany(User::class,'unit_user','unit_code','user_id');
     }
+
     public function forms(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
-    return $this->hasMany(Form::class);
-}
+        return $this->hasMany(Form::class);
+    }
+
     public function unityAssessment(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(UnityAssessment::class);
     }
+
     public function assessmentPeriod(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(AssessmentPeriod::class);

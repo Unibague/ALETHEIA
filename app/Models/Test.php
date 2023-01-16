@@ -6,6 +6,38 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * App\Models\Test
+ *
+ * @property int $id
+ * @property string $name
+ * @property string $type
+ * @property string|null $degree
+ * @property int|null $assessment_period_id
+ * @property mixed|null $units
+ * @property int|null $academic_period_id
+ * @property string|null $unit_role
+ * @property string|null $teaching_ladder
+ * @property mixed|null $service_areas
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @method static \Illuminate\Database\Eloquent\Builder|Test newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Test newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Test query()
+ * @method static \Illuminate\Database\Eloquent\Builder|Test whereAcademicPeriodId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Test whereAssessmentPeriodId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Test whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Test whereDegree($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Test whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Test whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Test whereServiceAreas($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Test whereTeachingLadder($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Test whereType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Test whereUnitRole($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Test whereUnits($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Test whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
 class Test extends Model
 {
     protected $table = 'forms';

@@ -113,7 +113,7 @@ export default {
             try {
                 let request = await axios.post(route('api.groups.sync'));
                 showSnackbar(this.snackbar, request.data.message, 'success');
-                this.getAllAcademicPeriods();
+                this.getAllGroups();
             } catch (e) {
                 showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
             }

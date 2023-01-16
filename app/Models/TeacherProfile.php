@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Hash;
 
 /**
  * App\Models\TeacherProfile
@@ -37,6 +39,8 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|TeacherProfile whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|TeacherProfile whereUserId($value)
  * @mixin \Eloquent
+ * @property int $unit_id
+ * @method static \Illuminate\Database\Eloquent\Builder|TeacherProfile whereUnitId($value)
  */
 class TeacherProfile extends Model
 {
@@ -46,6 +50,42 @@ class TeacherProfile extends Model
     public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * @param array $teachers
+     * @return string
+     */
+    public static function createOrUpdateFromArray(array $teachers): void
+    {
+        $finalTeachers = $teachers;
+        $serialized = array_map('serialize', $finalTeachers);
+        $unique = array_unique($serialized);
+        $finalTeachers = array_intersect_key($finalTeachers, $unique);
+
+        //Iterate over received data and create the academic period
+        $assessment_period_id = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        foreach ($finalTeachers as $teacher) {
+            $user = User::firstOrCreate(['email' => $teacher['email']], ['name' => $teacher['name'], 'password' => Hash::make($teacher['identification_number'] . $teacher['email'])]);
+            try {
+                self::updateOrCreate(
+                    [
+                        'identification_number' => $teacher['identification_number'],
+                        'user_id' => $user->id
+                    ],
+                    [
+                        'unit_code' => $teacher['unit'] === '' ? null : $teacher['unit'],
+                        'position' => $teacher['position'] === '' ? null : $teacher['position'],
+                        'teaching_ladder' => $teacher['teaching_ladder'] === '' ? null : $teacher['teaching_ladder'],
+                        'employee_type' => $teacher['employee_type'] === '' ? null : $teacher['employee_type'],
+                        'status' => 'activo',
+                        'assessment_period_id' => $assessment_period_id
+                    ]);
+            } catch (\Exception $e) {
+                dd($e->getMessage());
+            }
+
+        }
     }
 
     public function assessmentPeriod(): \Illuminate\Database\Eloquent\Relations\BelongsTo

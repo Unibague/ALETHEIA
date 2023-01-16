@@ -14,11 +14,11 @@ class CreateUnitsTable extends Migration
     public function up()
     {
         Schema::create('units', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
+            $table->primary(['code', 'assessment_period_id']);
             $table->string('code');
-            $table->boolean('is_custom');
+            $table->string('name');
             $table->foreignId('assessment_period_id')->constrained();
+            $table->boolean('is_custom');
             $table->timestamps();
         });
     }

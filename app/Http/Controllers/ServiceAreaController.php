@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\AtlanteProvider;
 use App\Http\Requests\DestroyServiceAreaRequest;
 use App\Models\AssessmentPeriod;
 use App\Models\ServiceArea;
@@ -19,33 +20,17 @@ class ServiceAreaController extends Controller
      */
     public function index(): JsonResponse
     {
-        return response()->json(ServiceArea::orderBy('name','asc')->get());
+        return response()->json(ServiceArea::orderBy('name', 'asc')->get());
     }
 
     public function sync(): JsonResponse
     {
-        $url = 'http://integra.unibague.edu.co/serviceAreas';
-        $curl = new CurlCobain($url);
-        $curl->setQueryParamsAsArray([
-            'api_token' => env('MIDDLEWARE_API_TOKEN')
-        ]);
-        $request = $curl->makeRequest();
         try {
-            $serviceAreas = json_decode($request, false, 512, JSON_THROW_ON_ERROR);
-        } catch (JsonException $e) {
-            return response()->json(['message' => 'Ha ocurrido un error con la fuente de datos']);
+            $serviceAreas = AtlanteProvider::get('serviceAreas');
+        } catch (\JsonException $e) {
+            return response()->json(['message' => 'Ha ocurrido un error con la fuente de datos: ' . $e->getMessage()]);
         }
-        //Iterate over received data and create the academic period
-        foreach ($serviceAreas as $serviceArea) {
-            ServiceArea::updateOrCreate(
-                [
-                    'code' => $serviceArea->code
-                ],
-                [
-                    'name' => $serviceArea->name,
-                    'assessment_period_id' => AssessmentPeriod::getActiveAssessmentPeriod()->id
-                ]);
-        }
+        ServiceArea::createOrUpdateFromArray($serviceAreas);
         return response()->json(['message' => 'Las áreas de servicio se han sincronizado exitosamente']);
     }
 }

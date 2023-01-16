@@ -57,14 +57,16 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|AssessmentPeriod whereSelfStartDate($value)
  * @method static \Illuminate\Database\Eloquent\Builder|AssessmentPeriod whereUpdatedAt($value)
  * @mixin \Eloquent
+ * @property int $done_by_head_teacher
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\Unit[] $units
+ * @property-read int|null $units_count
+ * @method static \Illuminate\Database\Eloquent\Builder|AssessmentPeriod whereDoneByHeadTeacher($value)
  */
 class AssessmentPeriod extends Model
 {
     use HasFactory;
 
     protected $guarded = ['active'];
-
-
 
     public function academicPeriods(): \Illuminate\Database\Eloquent\Relations\HasMany
     {

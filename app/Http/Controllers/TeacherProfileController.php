@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\AtlanteProvider;
 use App\Http\Requests\ChangeTeacherStatusRequest;
+use App\Models\AcademicPeriod;
 use App\Models\AssessmentPeriod;
 use App\Models\TeacherProfile;
 use App\Models\Unit;
@@ -45,46 +47,29 @@ class TeacherProfileController extends Controller
         return response()->json(['message' => "El estado del profesor ha sido cambiado a $status."]);
     }
 
+    /**
+     * @throws \JsonException
+     */
     public function sync()
     {
-        $endpoint = 'teachers';
 
         try {
-            $teachers = $this->makeRequest($endpoint);
+            $academicPeriodsSeparatedByComas = AcademicPeriod::getCurrentAcademicPeriodsByCommas();
+            $teachers = AtlanteProvider::get('teachers', [
+                'periods' => $academicPeriodsSeparatedByComas,
+            ], true);
 
         } catch (\JsonException $e) {
-            return response()->json(['message' => 'Ha ocurrido un error con la fuente de datos']);
+            return response()->json(['message' => 'Ha ocurrido un error con la fuente de datos: ' . $e->getMessage()], 400);
+        } catch (\RuntimeException $e) {
+            return response()->json(['message' => 'Ha ocurrido el siguiente error: ' . $e->getMessage()], 400);
+
         }
 
-        //Iterate over received data and create the academic period
-        $assessment_period_id = AssessmentPeriod::getActiveAssessmentPeriod()->id;
-        foreach ($teachers as $teacher) {
-            try {
-                $user = User::firstOrCreate(['email' => $teacher->email], ['name' => $teacher->name, 'password' => Hash::make($teacher->identification_number . $teacher->email)]);
-                //$unit = Unit::where('code', '=', $teacher->unit)->firstOrFail();
-                $unit = (object)['id' => 1];
-            } catch (ModelNotFoundException $e) {
-                continue;
-            }
-            //todo: quitar esto arreglar servicio
-            if (!in_array($teacher->teaching_ladder, ['NIN', 'AUX', 'ASI', 'ASO', 'TIT'])) {
-                $teacher->teaching_ladder = 'NIN';
-            }
-            TeacherProfile::updateOrCreate(
-                [
-                    'identification_number' => $teacher->identification_number,
-                    'user_id' => $user->id
-                ],
-                [
-                    'unit_id' => $unit->id,
-                    'position' => $teacher->position,
-                    'teaching_ladder' => $teacher->teaching_ladder === '' ? 'NIN' : $teacher->teaching_ladder,
-                    'employee_type' => $teacher->employee_type === '' ? 'ADM' : $teacher->employee_type,
-                    'status' => 'activo',
-                    'assessment_period_id' => $assessment_period_id
-                ]);
-        }
+        TeacherProfile::createOrUpdateFromArray($teachers);
         return response()->json(['message' => 'Los docentes se han sincronizado exitosamente']);
 
     }
+
+
 }

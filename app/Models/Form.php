@@ -44,6 +44,13 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|Form whereUnityRole($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Form whereUpdatedAt($value)
  * @mixin \Eloquent
+ * @property mixed|null $units
+ * @property string|null $unit_role
+ * @property mixed|null $service_areas
+ * @property-read \App\Models\Unit|null $unit
+ * @method static \Illuminate\Database\Eloquent\Builder|Form whereServiceAreas($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Form whereUnitRole($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Form whereUnits($value)
  */
 class Form extends Model
 {

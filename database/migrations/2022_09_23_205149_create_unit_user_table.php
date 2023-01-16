@@ -16,7 +16,9 @@ class CreateUnitUserTable extends Migration
         Schema::create('unit_user', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained();
-            $table->foreignId('unit_id')->constrained();
+
+            $table->string('unit_code')->nullable();
+            $table->foreign('unit_code')->references('code')->on('units');
 
             $table->foreignId('role_id')->constrained();
             $table->timestamps();
@@ -30,6 +32,6 @@ class CreateUnitUserTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('unity_user');
+        Schema::dropIfExists('unit_user');
     }
 }

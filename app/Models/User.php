@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
@@ -60,6 +63,8 @@ use Laravel\Sanctum\HasApiTokens;
  * @method static \Illuminate\Database\Eloquent\Builder|User whereTwoFactorSecret($value)
  * @method static \Illuminate\Database\Eloquent\Builder|User whereUpdatedAt($value)
  * @mixin \Eloquent
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\Unit[] $units
+ * @property-read int|null $units_count
  */
 class User extends Authenticatable
 {
@@ -109,6 +114,23 @@ class User extends Authenticatable
     protected $appends = [
         'profile_photo_url',
     ];
+
+    public static function updateOrCreateFromArrayAndGetEmails(array $data): array
+    {
+        $now = Carbon::now()->toDateTimeString();
+        $upsertData = [];
+        $emails = [];
+        foreach ($data as $user) {
+            $emails[] = $user['email'];
+            $upsertData[] = ['email' => $user['email'], 'name' => $user['name'], 'password' => 'automatic_generate_password', 'created_at' => $now, 'updated_at' => $now];
+        }
+
+        //Chunk in 1000 in order to make a safer query
+        foreach (array_chunk($upsertData, 1000) as $sqlData) {
+            DB::table('users')->upsert($sqlData, 'email', null);
+        }
+        return array_unique($emails);
+    }
 
     public function role()
     {

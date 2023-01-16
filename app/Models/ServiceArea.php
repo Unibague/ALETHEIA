@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 /**
  * App\Models\ServiceArea
@@ -35,6 +37,20 @@ class ServiceArea extends Model
 {
     protected $guarded = [];
     use HasFactory;
+
+    public static function createOrUpdateFromArray(array $serviceAreas): void
+    {
+        $upsertData = [];
+        $assessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        foreach ($serviceAreas as $serviceArea) {
+            $upsertData[] = [
+                'code' => $serviceArea->code,
+                'name' => $serviceArea->name,
+                'assessment_period_id' => $assessmentPeriodId,
+            ];
+        }
+        self::upsert($upsertData, ['code', 'assessment_period_id'], ['name', 'assessment_period_id','updated_at']);
+    }
 
     public function groups(): \Illuminate\Database\Eloquent\Relations\HasMany
     {

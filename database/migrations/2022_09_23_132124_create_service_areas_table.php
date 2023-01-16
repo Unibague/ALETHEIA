@@ -14,7 +14,7 @@ class CreateServiceAreasTable extends Migration
     public function up()
     {
         Schema::create('service_areas', function (Blueprint $table) {
-            $table->id();
+            $table->primary(['code', 'assessment_period_id']);
             $table->string('name');
             $table->string('code');
             $table->foreignId('assessment_period_id')->constrained();
