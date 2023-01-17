@@ -22,7 +22,7 @@ class UnitController extends Controller
      */
     public function index(): JsonResponse
     {
-        return response()->json(Unit::with('users')->get());
+        return response()->json(Unit::getCurrentUnits());
     }
 
     public function sync(): JsonResponse

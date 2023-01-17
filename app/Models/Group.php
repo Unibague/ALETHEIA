@@ -51,18 +51,11 @@ class Group extends Model
 
     protected $guarded = [];
 
-    public static function createOrUpdateFromArray(array $groups, array $possibleAcademicPeriods): object
+    public static function createOrUpdateFromArray(array $groups, array $possibleAcademicPeriods): void
     {
         $academicPeriods = AcademicPeriod::whereIn('name', $possibleAcademicPeriods)->get()->toArray();
         $academicPeriodNameAndId = array_reduce($academicPeriods, static function ($result, $academicPeriod) {
             $result[$academicPeriod['name']] = $academicPeriod['id'];
-            return $result;
-        }, []);
-
-        $possibleServiceAreas = array_unique(array_column($groups, 'service_area_code'));
-        $serviceAreas = ServiceArea::whereIn('code', $possibleServiceAreas)->get()->toArray();
-        $serviceAreaNameAndId = array_reduce($serviceAreas, static function ($result, $academicPeriod) {
-            $result[$academicPeriod['code']] = $academicPeriod['id'];
             return $result;
         }, []);
 
@@ -72,30 +65,23 @@ class Group extends Model
             $result[$teacher['email']] = $teacher['id'];
             return $result;
         }, []);
-        $errors = [];
-
+        $upsertData = [];
         foreach ($groups as $group) {
-            try {
-                self::updateOrCreate(
-                    [
-                        'group_id' => (int)$group['group_id']
-                    ],
-                    [
-                        'group' => $group['group_code'],
-                        'name' => $group['name'],
-                        'academic_period_id' => $academicPeriodNameAndId[$group['academic_period_name']],
-                        'class_code' => $group['class_code'],
-                        'degree' => strtolower($group['degree_code']),
-                        'service_area_id' => $serviceAreaNameAndId[$group['service_area_code']],
-                        'teacher_id' => $teacherAreaNameAndId[$group['teacher_email']],
-                        'hour_type' => $group['hour_type'],
-                    ]);
-            } catch (\Exception $e) {
-                $errors[] = ['group' => $group, 'error' => $e->getMessage()];
-            }
+            $upsertData[] = [
+                'group_id' => (int)$group['group_id'],
+                'academic_period_id' => $academicPeriodNameAndId[$group['academic_period_name']],
+                'group' => $group['group_code'],
+                'name' => $group['name'],
+                'class_code' => $group['class_code'],
+                'degree' => strtolower($group['degree_code']),
+                'service_area_code' => $group['service_area_code'],
+                'teacher_id' => $teacherAreaNameAndId[$group['teacher_email']],
+                'hour_type' => $group['hour_type'],
+            ];
         }
-        $hasError = count($errors) > 0;
-        return (object)['hasError' => $hasError, 'errors' => $errors];
+        /*$justGroupsIds = array_column($upsertData,'group_id');
+        dd(array_diff_assoc($justGroupsIds, array_unique($justGroupsIds)));*/
+        self::upsert($upsertData, ['group_id'], ['academic_period_id', 'name', 'class_code', 'degree', 'service_area_code', 'teacher_id', 'hour_type']);
     }
 
     public function formAnswers(): \Illuminate\Database\Eloquent\Relations\HasMany
@@ -120,7 +106,7 @@ class Group extends Model
 
     public function serviceArea(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        return $this->belongsTo(ServiceArea::class);
+        return $this->belongsTo(ServiceArea::class,'service_area_code','code');
     }
 
 

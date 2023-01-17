@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
 use Ospina\CurlCobain\CurlCobain;
+use SebastianBergmann\LinesOfCode\RuntimeException;
 
 /**
  *
@@ -47,12 +48,9 @@ class TeacherProfileController extends Controller
         return response()->json(['message' => "El estado del profesor ha sido cambiado a $status."]);
     }
 
-    /**
-     * @throws \JsonException
-     */
-    public function sync()
-    {
 
+    public function sync(): JsonResponse
+    {
         try {
             $academicPeriodsSeparatedByComas = AcademicPeriod::getCurrentAcademicPeriodsByCommas();
             $teachers = AtlanteProvider::get('teachers', [
@@ -63,12 +61,13 @@ class TeacherProfileController extends Controller
             return response()->json(['message' => 'Ha ocurrido un error con la fuente de datos: ' . $e->getMessage()], 400);
         } catch (\RuntimeException $e) {
             return response()->json(['message' => 'Ha ocurrido el siguiente error: ' . $e->getMessage()], 400);
-
         }
-
-        TeacherProfile::createOrUpdateFromArray($teachers);
+        try {
+            TeacherProfile::createOrUpdateFromArray($teachers);
+        } catch (RuntimeException $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
         return response()->json(['message' => 'Los docentes se han sincronizado exitosamente']);
-
     }
 
 

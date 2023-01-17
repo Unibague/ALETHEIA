@@ -19,7 +19,10 @@ class CreateFormAnswersTable extends Migration
             $table->foreignId('form_id')->constrained();
             $table->json('answers');
             $table->dateTime('submitted_at');
-            $table->foreignId('group_id')->nullable()->constrained();
+
+            $table->unsignedBigInteger('group_id');
+            $table->foreign('group_id')->references('group_id')->on('groups');
+
             $table->foreignId('teacher_id')->nullable()->references('id')->on('users');
             $table->foreignId('unity_assessment_id')->nullable()->constrained();
             $table->double('first_competence_average')->nullable();

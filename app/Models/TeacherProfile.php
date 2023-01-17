@@ -54,7 +54,6 @@ class TeacherProfile extends Model
 
     /**
      * @param array $teachers
-     * @return string
      */
     public static function createOrUpdateFromArray(array $teachers): void
     {
@@ -65,6 +64,7 @@ class TeacherProfile extends Model
 
         //Iterate over received data and create the academic period
         $assessment_period_id = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        $errorMessage = '';
         foreach ($finalTeachers as $teacher) {
             $user = User::firstOrCreate(['email' => $teacher['email']], ['name' => $teacher['name'], 'password' => Hash::make($teacher['identification_number'] . $teacher['email'])]);
             try {
@@ -82,9 +82,11 @@ class TeacherProfile extends Model
                         'assessment_period_id' => $assessment_period_id
                     ]);
             } catch (\Exception $e) {
-                dd($e->getMessage());
+                $errorMessage .= nl2br("Ha ocurrido el siguiente error mirando al docente $teacher[name] : {$e->getMessage()}");
             }
-
+        }
+        if ($errorMessage !== '') {
+            throw new \RuntimeException($errorMessage);
         }
     }
 

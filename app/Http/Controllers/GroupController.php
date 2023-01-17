@@ -24,19 +24,18 @@ class GroupController extends Controller
         return response()->json(Group::with(['teacher', 'serviceArea', 'academicPeriod'])->get());
     }
 
-    public function sync(Request $request): JsonResponse
+    public function sync(): JsonResponse
     {
-        $namesSeparatedByCommas = AcademicPeriod::getCurrentAcademicPeriodsByCommas();
         try {
+            $namesSeparatedByCommas = AcademicPeriod::getCurrentAcademicPeriodsByCommas();
             $groups = AtlanteProvider::get('groups', [
                 'periods' => $namesSeparatedByCommas,
             ], true);
+            Group::createOrUpdateFromArray($groups, explode(',', $namesSeparatedByCommas));
         } catch (\JsonException $e) {
             return response()->json(['message' => 'Ha ocurrido un error con la fuente de datos: ' . $e->getMessage()]);
-        }
-        $groupMigrationResult = Group::createOrUpdateFromArray($groups, explode(',', $namesSeparatedByCommas));
-        if($groupMigrationResult->hasError){
-            return response()->json(['message' => 'Han ocurrido los siguientes errores: '. json_encode($groupMigrationResult->errors)]);
+        } catch (\RuntimeException $e) {
+            return response()->json(['message' => 'Ha ocurrido el siguiente error: ' . $e->getMessage()], 400);
         }
         return response()->json(['message' => 'Grupos sincronizados exitosamente']);
     }

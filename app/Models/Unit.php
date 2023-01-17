@@ -42,6 +42,9 @@ class Unit extends Model
     protected $guarded = [];
     use HasFactory;
 
+    public static function getCurrentUnits(){
+        return self::where('assessment_period_id','=', AssessmentPeriod::getActiveAssessmentPeriod()->id)->with('users')->get();
+    }
 
     public static function createOrUpdateFromArray(array $units): void
     {
