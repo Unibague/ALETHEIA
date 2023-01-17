@@ -38,6 +38,10 @@ class ServiceArea extends Model
     protected $guarded = [];
     use HasFactory;
 
+    public static function getCurrentServiceAreas(){
+        return self::where('assessment_period_id','=', AssessmentPeriod::getActiveAssessmentPeriod()->id)->orderBy('name', 'asc')->get();
+    }
+
     public static function createOrUpdateFromArray(array $serviceAreas): void
     {
         $upsertData = [];

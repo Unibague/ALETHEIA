@@ -20,7 +20,7 @@ class ServiceAreaController extends Controller
      */
     public function index(): JsonResponse
     {
-        return response()->json(ServiceArea::orderBy('name', 'asc')->get());
+        return response()->json(ServiceArea::getCurrentServiceAreas());
     }
 
     public function sync(): JsonResponse
