@@ -18,17 +18,30 @@
             </div>
 
             <!--Inicia tabla-->
-            <v-data-table
-                loading-text="Cargando, por favor espere..."
-                :loading="isLoading"
-                :headers="headers"
-                :items="groups"
-                :items-per-page="20"
-                class="elevation-1"
-                :item-class="getRowColor"
 
-            >
-            </v-data-table>
+            <v-card>
+                <v-card-title>
+                    <v-text-field
+                        v-model="search"
+                        append-icon="mdi-magnify"
+                        label="Filtrar por nombre o fecha"
+                        single-line
+                        hide-details
+                    ></v-text-field>
+                </v-card-title>
+                <v-data-table
+                    :search="search"
+                    loading-text="Cargando, por favor espere..."
+                    :loading="isLoading"
+                    :headers="headers"
+                    :items="groups"
+                    :items-per-page="20"
+                    class="elevation-1"
+                    :item-class="getRowColor"
+
+                >
+                </v-data-table>
+            </v-card>
             <!--Acaba tabla-->
 
             <!------------Seccion de dialogos ---------->
@@ -69,6 +82,7 @@ export default {
     },
     data: () => {
         return {
+            search: '',
             //Table info
             headers: [
                 {text: 'Periodo académico', value: 'academic_period.name'},

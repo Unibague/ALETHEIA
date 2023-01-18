@@ -25,22 +25,34 @@
                     @input="onPageChange"
                 ></v-pagination>
             </div>
-            <v-data-table
-                loading-text="Cargando, por favor espere..."
-                :loading="isLoading"
-                :headers="headers"
-                :items="enrolls"
-                :items-per-page="20"
-                
-                class="elevation-1"
+            <v-card>
+                <v-card-title>
+                    <v-text-field
+                        v-model="search"
+                        append-icon="mdi-magnify"
+                        label="Filtrar por nombre o fecha"
+                        single-line
+                        hide-details
+                    ></v-text-field>
+                </v-card-title>
+                <v-data-table
+                    :search="search"
+                    loading-text="Cargando, por favor espere..."
+                    :loading="isLoading"
+                    :headers="headers"
+                    :items="enrolls"
+                    :items-per-page="20"
 
-            >
-            </v-data-table>
+                    class="elevation-1"
+
+                >
+                </v-data-table>
+            </v-card>
 
 
-                <!--Acaba tabla-->
+            <!--Acaba tabla-->
 
-                <!------------Seccion de dialogos ---------->
+            <!------------Seccion de dialogos ---------->
 
         </v-container>
     </AuthenticatedLayout>
@@ -63,11 +75,13 @@ export default {
     },
     data: () => {
         return {
+
             pagination: {
                 current: 1,
                 total: 0
             },
             //Table info
+            search: '',
             headers: [
                 {text: 'Nombre estudiante', value: 'user.name'},
                 {text: 'Grupo', value: 'group.name'},

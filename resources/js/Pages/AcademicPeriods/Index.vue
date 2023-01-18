@@ -18,23 +18,36 @@
             </div>
 
             <!--Inicia tabla-->
-            <v-data-table
-                loading-text="Cargando, por favor espere..."
-                :loading="isLoading"
-                :headers="headers"
-                :items="academicPeriods"
-                :items-per-page="20"
-                class="elevation-1"
-            >
-                <template v-slot:item.actions="{ item }">
-                    <v-icon
-                        class="mr-2 primario--text"
-                        @click="setAcademicPeriodDialogToCreateOrEdit('edit',item)"
-                    >
-                        mdi-pencil
-                    </v-icon>
-                </template>
-            </v-data-table>
+            <v-card>
+                <v-card-title>
+                    <v-text-field
+                        v-model="search"
+                        append-icon="mdi-magnify"
+                        label="Filtrar por nombre o fecha"
+                        single-line
+                        hide-details
+                    ></v-text-field>
+                </v-card-title>
+                <v-data-table
+                    :search="search"
+
+                    loading-text="Cargando, por favor espere..."
+                    :loading="isLoading"
+                    :headers="headers"
+                    :items="academicPeriods"
+                    :items-per-page="20"
+                    class="elevation-1"
+                >
+                    <template v-slot:item.actions="{ item }">
+                        <v-icon
+                            class="mr-2 primario--text"
+                            @click="setAcademicPeriodDialogToCreateOrEdit('edit',item)"
+                        >
+                            mdi-pencil
+                        </v-icon>
+                    </template>
+                </v-data-table>
+            </v-card>
             <!--Acaba tabla-->
 
             <!------------Seccion de dialogos ---------->
@@ -128,6 +141,7 @@ export default {
     data: () => {
         return {
             //Table info
+            search: '',
             headers: [
                 {text: 'Periodo de evaluación', value: 'assessment_period.name'},
                 {text: 'Nombre del periodo académico', value: 'name'},

@@ -21,36 +21,49 @@
             </div>
 
             <!--Inicia tabla-->
-            <v-data-table
-                loading-text="Cargando, por favor espere..."
-                :loading="isLoading"
-                :headers="headers"
-                :items="assessmentPeriods"
-                :items-per-page="15"
-                class="elevation-1"
-                :item-class="getRowColor"
-            >
-                <template v-slot:item.actions="{ item }">
-                    <v-icon
-                        class="mr-2 primario--text"
-                        @click="setAssessmentPeriodDialogToCreateOrEdit('edit',item)"
-                    >
-                        mdi-pencil
-                    </v-icon>
-                    <v-icon
-                        class="primario--text"
-                        @click="confirmDeleteAssessmentPeriod(item)"
-                    >
-                        mdi-delete
-                    </v-icon>
-                    <v-icon v-if="!(item.active)"
+
+            <v-card>
+                <v-card-title>
+                    <v-text-field
+                        v-model="search"
+                        append-icon="mdi-magnify"
+                        label="Filtrar por nombre o fecha"
+                        single-line
+                        hide-details
+                    ></v-text-field>
+                </v-card-title>
+                <v-data-table
+                    :search="search"
+                    loading-text="Cargando, por favor espere..."
+                    :loading="isLoading"
+                    :headers="headers"
+                    :items="assessmentPeriods"
+                    :items-per-page="15"
+                    class="elevation-1"
+                    :item-class="getRowColor"
+                >
+                    <template v-slot:item.actions="{ item }">
+                        <v-icon
                             class="mr-2 primario--text"
-                            @click="setAssessmentPeriodAsActive(item.id)"
-                    >
-                        mdi-cursor-default-click
-                    </v-icon>
-                </template>
-            </v-data-table>
+                            @click="setAssessmentPeriodDialogToCreateOrEdit('edit',item)"
+                        >
+                            mdi-pencil
+                        </v-icon>
+                        <v-icon
+                            class="primario--text"
+                            @click="confirmDeleteAssessmentPeriod(item)"
+                        >
+                            mdi-delete
+                        </v-icon>
+                        <v-icon v-if="!(item.active)"
+                                class="mr-2 primario--text"
+                                @click="setAssessmentPeriodAsActive(item.id)"
+                        >
+                            mdi-cursor-default-click
+                        </v-icon>
+                    </template>
+                </v-data-table>
+            </v-card>
             <!--Acaba tabla-->
 
             <!------------Seccion de dialogos ---------->
@@ -213,6 +226,7 @@ export default {
     data: () => {
         return {
             //Table info
+            search: '',
             headers: [
                 {text: 'Nombre del periodo', value: 'name'},
                 {text: 'Fecha de inicio autoevaluación', value: 'self_start_date'},

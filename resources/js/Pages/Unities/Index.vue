@@ -23,7 +23,19 @@
             </div>
 
             <!--Inicia tabla-->
-            <v-data-table
+
+            <v-card>
+                <v-card-title>
+                    <v-text-field
+                        v-model="search"
+                        append-icon="mdi-magnify"
+                        label="Filtrar por nombre o fecha"
+                        single-line
+                        hide-details
+                    ></v-text-field>
+                </v-card-title>
+                <v-data-table
+                    :search="search"
                 loading-text="Cargando, por favor espere..."
                 :loading="isLoading"
                 :headers="headers"
@@ -57,6 +69,7 @@
 
                 </template>
             </v-data-table>
+            </v-card>
             <!--Acaba tabla-->
 
             <!------------Seccion de dialogos ---------->
@@ -144,6 +157,7 @@ export default {
     data: () => {
         return {
             //Table info
+            search:'',
             headers: [
                 {text: 'Nombre', value: 'name'},
                 {text: 'Tipo de unidad', value: 'type'},

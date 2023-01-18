@@ -18,38 +18,51 @@
             </div>
 
             <!--Inicia tabla-->
-            <v-data-table
-                loading-text="Cargando, por favor espere..."
-                :loading="isLoading"
-                :headers="headers"
-                :items="teachers"
-                :items-per-page="20"
-                class="elevation-1"
-                :item-class="getRowColor"
 
-            >
-                <template v-slot:item.type="{ item }">
-                    {{ item.is_custom ? 'Personalizada' : 'Integración' }}
-                </template>
+            <v-card>
+                <v-card-title>
+                    <v-text-field
+                        v-model="search"
+                        append-icon="mdi-magnify"
+                        label="Filtrar por nombre o fecha"
+                        single-line
+                        hide-details
+                    ></v-text-field>
+                </v-card-title>
+                <v-data-table
+                    :search="search"
+                    loading-text="Cargando, por favor espere..."
+                    :loading="isLoading"
+                    :headers="headers"
+                    :items="teachers"
+                    :items-per-page="20"
+                    class="elevation-1"
+                    :item-class="getRowColor"
 
-                <template v-slot:item.actions="{ item }">
-                    <v-icon
-                        v-if="item.status === 'suspendido'"
-                        class="mr-2 primario--text"
-                        @click="changeTeacherStatus(item,'activo')"
-                    >
-                        mdi-check
-                    </v-icon>
+                >
+                    <template v-slot:item.type="{ item }">
+                        {{ item.is_custom ? 'Personalizada' : 'Integración' }}
+                    </template>
 
-                    <v-icon
-                        v-if="item.status === 'activo'"
-                        class="mr-2 primario--text"
-                        @click="changeTeacherStatus(item,'suspendido')"
-                    >
-                        mdi-close
-                    </v-icon>
-                </template>
-            </v-data-table>
+                    <template v-slot:item.actions="{ item }">
+                        <v-icon
+                            v-if="item.status === 'suspendido'"
+                            class="mr-2 primario--text"
+                            @click="changeTeacherStatus(item,'activo')"
+                        >
+                            mdi-check
+                        </v-icon>
+
+                        <v-icon
+                            v-if="item.status === 'activo'"
+                            class="mr-2 primario--text"
+                            @click="changeTeacherStatus(item,'suspendido')"
+                        >
+                            mdi-close
+                        </v-icon>
+                    </template>
+                </v-data-table>
+            </v-card>
             <!--Acaba tabla-->
 
             <!------------Seccion de dialogos ---------->
@@ -91,10 +104,11 @@ export default {
     data: () => {
         return {
             //Table info
+            search: '',
             headers: [
                 {text: 'Nombre', value: 'user.name'},
                 {text: 'Documento', value: 'identification_number'},
-               // {text: 'Dependencia', value: 'unity'},
+                // {text: 'Dependencia', value: 'unity'},
                 {text: 'Cargo', value: 'position'},
                 {text: 'Escalafón', value: 'teaching_ladder'},
                 {text: 'Tipo empleado', value: 'employee_type'},
