@@ -22,27 +22,26 @@ class EnrollController extends Controller
      */
     public function index(GetGroupsRequest $request): JsonResponse
     {
-        return response()->json(Enroll::with(['user', 'group', 'academicPeriod','group.teacher'])->paginate(500));
+        return response()->json(Enroll::getActiveEnrolls());
     }
 
-    public function sync(Request $request): JsonResponse
+    public function sync(): JsonResponse
     {
         $academicPeriods = AcademicPeriod::getCurrentAcademicPeriods();
-        $enrollsMigrationResults = 0;
         foreach ($academicPeriods as $academicPeriod) {
             try {
                 $enrolls = AtlanteProvider::get('enrolls', [
                     'periods' => $academicPeriod->name,
                 ], true);
-                $enrollsMigrationResults += Enroll::createOrUpdateFromArray($enrolls, $academicPeriod->id);
-
+                Enroll::createOrUpdateFromArray($enrolls, $academicPeriod->id);
             } catch (\JsonException $e) {
                 return response()->json(['message' => 'Ha ocurrido un error con la fuente de datos: ' . $e->getMessage()]);
+            } catch (\Exception $e) {
+                return response()->json(['message' => 'Ha ocurrido el siguiente error: ' . $e->getMessage()]);
             }
         }
 
-
-        return response()->json(['message' => "Se han sincronizado un total de $enrollsMigrationResults Estudiantes"]);
+        return response()->json(['message' => "Se han sincronizado exitosamente los datos"]);
     }
 
     /**

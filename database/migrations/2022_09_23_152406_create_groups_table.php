@@ -20,7 +20,7 @@ class CreateGroupsTable extends Migration
             $table->foreignId('academic_period_id')->constrained();
             $table->string('class_code');
             $table->string('group');
-            $table->enum('degree', ['pregrado', 'posgrado']);
+            $table->enum('degree', ['pregrado', 'posgrado','Cursos']);
             $table->string('service_area_code');
             $table->foreign('service_area_code')->references('code')->on('service_areas');
 

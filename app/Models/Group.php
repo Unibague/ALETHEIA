@@ -75,8 +75,8 @@ class Group extends Model
                 'class_code' => $group['class_code'],
                 'degree' => strtolower($group['degree_code']),
                 'service_area_code' => $group['service_area_code'],
-                'teacher_id' => $teacherAreaNameAndId[$group['teacher_email']],
-                'hour_type' => $group['hour_type'],
+                'teacher_id' => $teacherAreaNameAndId[$group['teacher_email']] ?? null,
+                'hour_type' => $group['hour_type'] === '' ? 'normal' : $group['hour_type'],
             ];
         }
         /*$justGroupsIds = array_column($upsertData,'group_id');
@@ -106,7 +106,7 @@ class Group extends Model
 
     public function serviceArea(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        return $this->belongsTo(ServiceArea::class,'service_area_code','code');
+        return $this->belongsTo(ServiceArea::class, 'service_area_code', 'code');
     }
 
 

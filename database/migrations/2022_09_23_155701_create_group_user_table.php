@@ -14,7 +14,7 @@ class CreateGroupUserTable extends Migration
     public function up()
     {
         Schema::create('group_user', function (Blueprint $table) {
-            $table->id();
+            $table->primary(['group_id', 'user_id', 'academic_period_id']);
             $table->unsignedBigInteger('group_id');
             $table->foreign('group_id')->references('group_id')->on('groups');
             $table->foreignId('user_id')->constrained();
