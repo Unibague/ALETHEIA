@@ -51,9 +51,8 @@ class Enroll extends Model
     public static function createOrUpdateFromArray(array $enrolls, int $academicPeriodId): void
     {
         //Create users
-        $emails = User::updateOrCreateFromArrayAndGetEmails($enrolls);
+        $users = User::updateOrCreateFromArrayAndGetUsers($enrolls);
 
-        $users = DB::table('users')->whereIn('email', $emails)->select('id', 'email')->get()->toArray();
         $userEmailAndId = array_reduce($users, static function ($result, $user) {
             $result[$user->email] = $user->id;
             return $result;

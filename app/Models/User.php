@@ -115,7 +115,7 @@ class User extends Authenticatable
         'profile_photo_url',
     ];
 
-    public static function updateOrCreateFromArrayAndGetEmails(array $data): array
+    public static function updateOrCreateFromArrayAndGetUsers(array $data): array
     {
         $now = Carbon::now()->toDateTimeString();
         $upsertData = [];
@@ -124,12 +124,25 @@ class User extends Authenticatable
             $emails[] = $user['email'];
             $upsertData[] = ['email' => $user['email'], 'name' => $user['name'], 'password' => 'automatic_generate_password', 'created_at' => $now, 'updated_at' => $now];
         }
-
         //Chunk in 1000 in order to make a safer query
         foreach (array_chunk($upsertData, 1000) as $sqlData) {
             DB::table('users')->upsert($sqlData, 'email', null);
         }
-        return array_unique($emails);
+
+
+        $uniqueEmails = array_unique($emails);
+        $users = DB::table('users')->whereIn('email', $uniqueEmails)->select('id', 'email')->get()->toArray();
+        $roleUpsertData = [];
+        $roleId = Role::where('name', '=', 'estudiante')->firstOrFail()->id;
+
+        foreach ($users as $user) {
+            $roleUpsertData[] = ['user_id' => $user->id, 'role_id' => $roleId];
+        }
+        foreach (array_chunk($roleUpsertData, 1000) as $sqlData) {
+            DB::table('role_user')->upsert($sqlData, ['user_id'], ['role_id']);
+        }
+
+        return $users;
     }
 
     public function role()
@@ -178,7 +191,6 @@ class User extends Authenticatable
     public function isStudent(): bool
     {
         return $this->hasRole('estudiante');
-
     }
 
     public function teacherProfile(): \Illuminate\Database\Eloquent\Relations\HasOne
@@ -204,8 +216,8 @@ class User extends Authenticatable
 
     public function groups(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
-        return $this->belongsToMany(Group::class)->with('teacher', 'academicPeriod')
-            ->wherePivotIn('academic_period_id', [AcademicPeriod::getCurrentAcademicPeriodIds()])
+        return $this->belongsToMany(Group::class,'group_user','user_id','group_id','id','group_id')->with(['teacher', 'academicPeriod'])
+            ->wherePivotIn('academic_period_id', AcademicPeriod::getCurrentAcademicPeriodIds())
             ->withPivot('has_answer');
     }
 

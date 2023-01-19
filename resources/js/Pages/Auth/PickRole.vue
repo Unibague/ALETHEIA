@@ -100,7 +100,7 @@ export default {
                 showSnackbar(this.snackbar, 'Por favor, selecciona un rol de la lista', 'red');
                 return;
             }
-            const url = route('api.users.roles.selectRole', {user: this.$page.props.user.id});
+            const url = route('api.roles.selectRole');
             const redirect = route('redirect');
             try {
                 await axios.post(url, {

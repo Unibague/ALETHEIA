@@ -18,14 +18,14 @@ class TestsController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return JsonResponse
      */
     public function index()
     {
         return response()->json(Test::getUserTests());
     }
 
-    public function indexView()
+    public function indexView(): Response
     {
         $token = csrf_token();
         return Inertia::render('Tests/Index', ['token' => $token]);
@@ -36,6 +36,7 @@ class TestsController extends Controller
      *
      * @param Request $request
      * @return JsonResponse
+     * @throws \JsonException
      */
     public function store(Request $request): JsonResponse
     {
@@ -60,7 +61,7 @@ class TestsController extends Controller
             return response('Ya has contestado esta evaluación', 401);
         }
         $test = Test::getQuestionsFromTestId($testId);
-        return Inertia::render('Tests/Show', ['test' => $test, 'group' => ['id' => $data->id, 'name' => $data->name], 'teacher' => $data->teacher]);
+        return Inertia::render('Tests/Show', ['test' => $test, 'group' => ['id' => $data->group_id, 'name' => $data->name], 'teacher' => $data->teacher]);
     }
 
 }

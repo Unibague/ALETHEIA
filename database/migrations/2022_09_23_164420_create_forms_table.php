@@ -24,6 +24,8 @@ class CreateFormsTable extends Migration
             $table->enum('unit_role', ['jefe', 'par', 'autoevaluación'])->nullable();
             $table->enum('teaching_ladder', ['ninguno', 'auxiliar', 'asistente', 'asociado', 'titular'])->nullable();
             $table->json('service_areas')->nullable();
+            $table->foreignId('creation_assessment_period_id')->references('id')->on('assessment_periods');
+            $table->json('questions')->nullable();
             $table->timestamps();
         });
     }

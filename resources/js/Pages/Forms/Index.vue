@@ -558,7 +558,6 @@ export default {
             this.degrees = Form.getPossibleDegrees();
         },
 
-
         getAssessmentPeriods: async function () {
             let request = await axios.get(route('api.assessmentPeriods.index'));
             this.assessmentPeriods = request.data;

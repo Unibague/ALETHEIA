@@ -32,7 +32,7 @@ export default class Form {
             {name: 'Todos', value: null},
             {name: 'pregrado', value: 'pregrado'},
             {name: 'posgrado', value: 'posgrado'},
-            {name: 'cursos', value: 'cursos'},
+            {name: 'Cursos', value: 'cursos'},
         ];
     }
 

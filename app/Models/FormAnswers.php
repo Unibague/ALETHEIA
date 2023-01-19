@@ -91,7 +91,7 @@ class FormAnswers extends Model
             'sixth_competence_average' => $competencesAverage['C6'],
         ]);
 
-        self::updateResponseStatusToAnswered($request->input('groupId'), $request->input('teacherId'));
+        self::updateResponseStatusToAnswered($request->input('groupId'), auth()->user()->id);
     }
 
     public static function getCompetencesAverage($answers)

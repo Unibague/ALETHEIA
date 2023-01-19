@@ -28,7 +28,7 @@ class UpdateFormRequest extends FormRequest
         return [
             'name' => 'String',
             'type' => ['required', Rule::in([null, 'estudiantes', 'otros'])],
-            'degree' => [Rule::in([null, 'pregrado', 'posgrado'])],
+            'degree' => [Rule::in([null, 'pregrado', 'posgrado','cursos'])],
             'academic_period_id' => 'Integer',
             'assessment_period_id' => 'Integer',
             'units' => 'Array|min:1',

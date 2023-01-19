@@ -10,29 +10,48 @@
             </div>
 
             <!--Inicia tabla-->
-            <v-data-table
-                loading-text="Cargando, por favor espere..."
-                :loading="isLoading"
-                :headers="headers"
-                :items="users"
-                :items-per-page="15"
-                class="elevation-1"
-            >
-                <template v-slot:item.roles="{ item }">
+
+            <v-card>
+                <v-card-title>
+                    <v-text-field
+                        v-model="search"
+                        append-icon="mdi-magnify"
+                        label="Filtrar por nombre o fecha"
+                        single-line
+                        hide-details
+                    ></v-text-field>
+                </v-card-title>
+                <v-data-table
+                    :search="search"
+                    loading-text="Cargando, por favor espere..."
+                    :loading="isLoading"
+                    :headers="headers"
+                    :items="users"
+                    :items-per-page="15"
+                    class="elevation-1"
+                >
+                    <template v-slot:item.roles="{ item }">
                    <span v-for="(role,key) in item.roles" :key="item.id">
                        {{ key !== (item.roles.length - 1) ? `${role.name},` : role.name }}
                    </span>
-                </template>
+                    </template>
 
-                <template v-slot:item.actions="{ item }">
-                    <v-icon
-                        class="mr-2 primario--text"
-                        @click="openEditRoleModal(item)"
-                    >
-                        mdi-pencil
-                    </v-icon>
-                </template>
-            </v-data-table>
+                    <template v-slot:item.actions="{ item }">
+                        <v-icon
+                            class="mr-2 primario--text"
+                            @click="openEditRoleModal(item)"
+                        >
+                            mdi-pencil
+                        </v-icon>
+                        <v-icon
+                            class="mr-2 primario--text"
+                            @click="impersonateUser(item.id)"
+                        >
+                            mdi-account-arrow-right
+                        </v-icon>
+                    </template>
+                </v-data-table>
+            </v-card>
             <!--Acaba tabla-->
 
             <!------------Seccion de dialogos ---------->
@@ -99,11 +118,12 @@ export default {
     data: () => {
         return {
             //Table info
+            search: '',
             headers: [
                 {text: 'ID', value: 'id'},
                 {text: 'Nombre', value: 'name'},
                 {text: 'Correo electrónico', value: 'email'},
-                {text: 'Roles', value: 'roles'},
+                {text: 'Roles', value: 'roles', filterable: true},
                 {text: 'Acciones', value: 'actions', sortable: false},
             ],
             users: [],
@@ -134,6 +154,21 @@ export default {
         this.isLoading = false;
     },
     methods: {
+        impersonateUser: async function (userId) {
+            const url = route('users.impersonate', {userId: userId});
+            try {
+                await axios.post(url);
+                showSnackbar(this.snackbar, 'Te has autentificado como el usuario seleccionado');
+                setTimeout(function () {
+                        window.location.href = route('pickRole');
+                    },
+                    3000);
+            } catch (e) {
+                showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
+
+            }
+
+        },
         formatRoles: function () {
             const users = this.users;
             users.forEach((user) => {
@@ -169,7 +204,7 @@ export default {
                     name: ''
                 };
             } catch (e) {
-                showSnackbar(this.snackbar, prepareErrorText(e),'alert');
+                showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
 
                 this.snackbar.text = prepareErrorText(e);
                 this.snackbar.status = true;
