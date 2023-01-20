@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 /**
  * App\Models\Group
@@ -19,12 +20,12 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $service_area_id
  * @property int|null $teacher_id
  * @property string $hour_type
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \App\Models\AcademicPeriod $academicPeriod
- * @property-read \App\Models\ServiceArea $serviceArea
- * @property-read \App\Models\User|null $teacher
- * @property-read Collection|\App\Models\User[] $users
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read AcademicPeriod $academicPeriod
+ * @property-read ServiceArea $serviceArea
+ * @property-read User|null $teacher
+ * @property-read Collection|User[] $users
  * @property-read int|null $users_count
  * @method static \Database\Factories\GroupFactory factory(...$parameters)
  * @method static Builder|Group newModelQuery()
@@ -43,7 +44,7 @@ use Illuminate\Database\Eloquent\Model;
  * @method static Builder|Group whereUpdatedAt($value)
  * @mixin \Eloquent
  * @property string $group_id
- * @property-read Collection|\App\Models\FormAnswers[] $formAnswers
+ * @property-read Collection|FormAnswers[] $formAnswers
  * @property-read int|null $form_answers_count
  * @method static Builder|Group whereGroupId($value)
  */

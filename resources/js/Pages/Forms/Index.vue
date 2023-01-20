@@ -6,7 +6,65 @@
         <v-container>
             <div class="d-flex flex-column align-end">
                 <h2 class="align-self-start">Gestionar formularios</h2>
-                <div>
+                <div class="d-flex justify-end">
+                    <v-bottom-sheet v-model="sheet">
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-btn
+                                class="mr-3"
+                                color="red"
+                                dark
+                                v-bind="attrs"
+                                v-on="on"
+                            >
+                                Otras opciones
+                            </v-btn>
+                        </template>
+                        <v-list>
+                            <v-subheader>Menú de otras opciones</v-subheader>
+                            <v-list-item
+                                @click="getFormsWithoutQuestions"
+                            >
+                                <v-list-item-avatar>
+
+                                    <v-icon>
+                                        mdi-rotate-right
+                                    </v-icon>
+
+                                </v-list-item-avatar>
+                                <v-list-item-title>Migrar formularios del periodo pasado</v-list-item-title>
+                            </v-list-item>
+                            <v-list-item
+                                @click="getFormsWithoutQuestions"
+                            >
+                                <v-list-item-avatar>
+                                    <v-avatar
+                                        size="32px"
+                                        tile
+                                    >
+                                        <v-icon>
+                                            mdi-file-question
+                                        </v-icon>
+                                    </v-avatar>
+                                </v-list-item-avatar>
+                                <v-list-item-title>Ver formularios sin preguntas</v-list-item-title>
+                            </v-list-item>
+                            <v-list-item
+                                @click="getAllForms(true)"
+                            >
+                                <v-list-item-avatar>
+                                    <v-avatar
+                                        size="32px"
+                                        tile
+                                    >
+                                        <v-icon>
+                                            mdi-file-document-outline
+                                        </v-icon>
+                                    </v-avatar>
+                                </v-list-item-avatar>
+                                <v-list-item-title>Ver todos los formularios</v-list-item-title>
+                            </v-list-item>
+                        </v-list>
+                    </v-bottom-sheet>
                     <v-btn
                         class="mr-3"
                         @click="openFormDialog('create','othersForm')"
@@ -31,7 +89,7 @@
                 :headers="studentTableHeaders"
                 :items="studentsForms"
                 :items-per-page="20"
-                    :footer-props="{
+                :footer-props="{
                         'items-per-page-options': [20,50,100,-1]
                     }"
                 class="elevation-1"
@@ -87,7 +145,7 @@
                 :headers="othersTableHeaders"
                 :items="othersForms"
                 :items-per-page="20"
-                    :footer-props="{
+                :footer-props="{
                         'items-per-page-options': [20,50,100,-1]
                     }"
                 class="elevation-1"
@@ -337,7 +395,6 @@
                 </v-card>
             </v-dialog>
 
-
             <!--Confirmar borrar rol-->
             <confirm-dialog
                 :show="deleteFormDialog"
@@ -354,6 +411,7 @@
                     Borrar
                 </template>
             </confirm-dialog>
+
 
         </v-container>
 
@@ -377,6 +435,7 @@ export default {
     },
     data: () => {
         return {
+            sheet: false,
             //Table info
             studentTableHeaders: [
                 {text: 'Nombre', value: 'name'},
@@ -447,7 +506,13 @@ export default {
     },
 
     methods: {
-
+        getFormsWithoutQuestions: async function () {
+            let request = await axios.get(route('api.forms.withoutQuestions'));
+            this.forms = Form.createFormsFromArray(request.data);
+            this.formatForms();
+            showSnackbar(this.snackbar, 'Se han cargado los formularios sin preguntas', 'success');
+            this.sheet = false;
+        },
         getTableServiceAreas: function (item) {
             if (!(Array.isArray(item))) {
                 return 'Ninguna';
@@ -521,10 +586,14 @@ export default {
             }
         },
 
-        getAllForms: async function () {
+        getAllForms: async function (notify = false) {
             let request = await axios.get(route('api.forms.index'));
             this.forms = Form.createFormsFromArray(request.data);
             this.formatForms();
+            if(notify){
+
+                showSnackbar(this.snackbar, 'Mostrando todos los formularios')
+            }
         },
         getServiceAreas: async function () {
             let request = await axios.get(route('api.serviceAreas.index'));

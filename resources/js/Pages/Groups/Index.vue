@@ -7,18 +7,51 @@
             <div class="d-flex flex-column align-end mb-8">
                 <h2 class="align-self-start">Gestionar grupos</h2>
                 <div>
-                    <v-btn
-                        class="mr-2"
-                        @click="getGroupsWithoutTeacher"
-                    >
-                        Ver grupos sin docentes
-                    </v-btn>
-                    <v-btn
-                        class="mr-2 "
-                        @click="getAllGroups(true)"
-                    >
-                        Ver todos los grupos
-                    </v-btn>
+                    <v-bottom-sheet v-model="sheet">
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-btn
+                                class="mr-3"
+                                color="red"
+                                dark
+                                v-bind="attrs"
+                                v-on="on"
+                            >
+                                Otras opciones
+                            </v-btn>
+                        </template>
+                        <v-list>
+                            <v-subheader>Menú de otras opciones</v-subheader>
+                            <v-list-item
+                                @click="getGroupsWithoutTeacher"
+                            >
+                                <v-list-item-avatar>
+
+                                    <v-icon>
+                                        mdi-account-alert
+                                    </v-icon>
+
+                                </v-list-item-avatar>
+                                <v-list-item-title>Ver grupos sin docente</v-list-item-title>
+                            </v-list-item>
+                            <v-list-item
+                                @click="getAllGroups(true)"
+                            >
+                                <v-list-item-avatar>
+                                    <v-avatar
+                                        size="32px"
+                                        tile
+                                    >
+                                        <v-icon>
+                                            mdi-account-multiple
+                                        </v-icon>
+                                    </v-avatar>
+                                </v-list-item-avatar>
+                                <v-list-item-title>Ver todos los grupos</v-list-item-title>
+                            </v-list-item>
+
+                        </v-list>
+                    </v-bottom-sheet>
+
                     <v-btn
                         color="primario"
                         class="grey--text text--lighten-4"
@@ -122,6 +155,7 @@ export default {
                 timeout: 2000,
             },
             //Dialogs
+            sheet:false,
             deleteGroupDialog: false,
             createOrEditDialog: {
                 model: 'newGroup',

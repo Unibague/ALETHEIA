@@ -35,9 +35,9 @@ class EnrollController extends Controller
                 ], true);
                 Enroll::createOrUpdateFromArray($enrolls, $academicPeriod->id);
             } catch (\JsonException $e) {
-                return response()->json(['message' => 'Ha ocurrido un error con la fuente de datos: ' . $e->getMessage()]);
+                return response()->json(['message' => 'Ha ocurrido un error con la fuente de datos: ' . $e->getMessage()],500);
             } catch (\Exception $e) {
-                return response()->json(['message' => 'Ha ocurrido el siguiente error: ' . $e->getMessage()]);
+                return response()->json(['message' => 'Ha ocurrido el siguiente error: ' . $e->getMessage()],400);
             }
         }
 

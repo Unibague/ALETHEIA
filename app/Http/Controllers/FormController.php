@@ -12,6 +12,12 @@ use Illuminate\Http\Response;
 
 class FormController extends Controller
 {
+
+    public static function getWithoutQuestions(array $academicPeriodsIds = null): JsonResponse
+    {
+        return response()->json(Form::withoutQuestions());
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -19,7 +25,7 @@ class FormController extends Controller
      */
     public function index(): JsonResponse
     {
-        return response()->json(Form::with(['academicPeriod', 'assessmentPeriod'])->get());
+        return response()->json(Form::getCurrentForms());
     }
 
     public function copy(CopyFormRequest $request, Form $form): JsonResponse

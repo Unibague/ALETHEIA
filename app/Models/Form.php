@@ -2,8 +2,13 @@
 
 namespace App\Models;
 
+use Database\Factories\FormFactory;
+use Eloquent;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 /**
  * App\Models\Form
@@ -18,44 +23,62 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $unity_role
  * @property string|null $teaching_ladder
  * @property int|null $service_area_id
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \App\Models\AcademicPeriod|null $academicPeriod
- * @property-read \App\Models\AssessmentPeriod|null $assessmentPeriod
- * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\FormAnswers[] $formAnswers
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read AcademicPeriod|null $academicPeriod
+ * @property-read AssessmentPeriod|null $assessmentPeriod
+ * @property-read Collection|FormAnswers[] $formAnswers
  * @property-read int|null $form_answers_count
- * @property-read \App\Models\FormQuestion|null $formQuestions
- * @property-read \App\Models\ServiceArea|null $serviceArea
- * @property-read \App\Models\Unit|null $unity
- * @method static \Database\Factories\FormFactory factory(...$parameters)
- * @method static \Illuminate\Database\Eloquent\Builder|Form newModelQuery()
- * @method static \Illuminate\Database\Eloquent\Builder|Form newQuery()
- * @method static \Illuminate\Database\Eloquent\Builder|Form query()
- * @method static \Illuminate\Database\Eloquent\Builder|Form whereAcademicPeriodId($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Form whereAssessmentPeriodId($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Form whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Form whereDegree($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Form whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Form whereName($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Form whereServiceAreaId($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Form whereTeachingLadder($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Form whereType($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Form whereUnityId($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Form whereUnityRole($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Form whereUpdatedAt($value)
- * @mixin \Eloquent
+ * @property-read FormQuestion|null $formQuestions
+ * @property-read ServiceArea|null $serviceArea
+ * @property-read Unit|null $unity
+ * @method static FormFactory factory(...$parameters)
+ * @method static Builder|Form newModelQuery()
+ * @method static Builder|Form newQuery()
+ * @method static Builder|Form query()
+ * @method static Builder|Form whereAcademicPeriodId($value)
+ * @method static Builder|Form whereAssessmentPeriodId($value)
+ * @method static Builder|Form whereCreatedAt($value)
+ * @method static Builder|Form whereDegree($value)
+ * @method static Builder|Form whereId($value)
+ * @method static Builder|Form whereName($value)
+ * @method static Builder|Form whereServiceAreaId($value)
+ * @method static Builder|Form whereTeachingLadder($value)
+ * @method static Builder|Form whereType($value)
+ * @method static Builder|Form whereUnityId($value)
+ * @method static Builder|Form whereUnityRole($value)
+ * @method static Builder|Form whereUpdatedAt($value)
+ * @mixin Eloquent
  * @property mixed|null $units
  * @property string|null $unit_role
  * @property mixed|null $service_areas
- * @property-read \App\Models\Unit|null $unit
- * @method static \Illuminate\Database\Eloquent\Builder|Form whereServiceAreas($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Form whereUnitRole($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Form whereUnits($value)
+ * @property-read Unit|null $unit
+ * @method static Builder|Form whereServiceAreas($value)
+ * @method static Builder|Form whereUnitRole($value)
+ * @method static Builder|Form whereUnits($value)
  */
 class Form extends Model
 {
     protected $guarded = [];
     use HasFactory;
+
+    public static function withoutQuestions(int $assessmentPeriodId = null)
+    {
+        if ($assessmentPeriodId === null) {
+            $assessmentPeriodId = (int)AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        }
+        return self::where('creation_assessment_period_id', '=', $assessmentPeriodId)
+            ->where('questions', '=', null)
+            ->with(['academicPeriod', 'assessmentPeriod'])
+            ->get();
+    }
+
+    public static function getCurrentForms()
+    {
+        $assessmentPeriodId = (int)AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        return self::where('creation_assessment_period_id', '=', $assessmentPeriodId)
+            ->with(['academicPeriod', 'assessmentPeriod'])->get();
+    }
 
     public function assessmentPeriod(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
@@ -112,8 +135,7 @@ class Form extends Model
                 'unit_role' => $request->input('unit_role'),
                 'teaching_ladder' => $request->input('teaching_ladder'),
                 'units' => json_encode($request->input('units')),
+                'creation_assessment_period_id' => AssessmentPeriod::getActiveAssessmentPeriod()->id
             ]);
     }
-
-
 }
