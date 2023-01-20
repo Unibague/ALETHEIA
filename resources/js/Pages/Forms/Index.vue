@@ -503,7 +503,6 @@ export default {
             this.formMethod = method;
             if (method === 'edit') {
                 this[model] = Form.copy(form)
-                console.log('editar', this[model])
             } else {
                 this[model] = new Form();
             }
@@ -519,7 +518,6 @@ export default {
         getAllForms: async function () {
             let request = await axios.get(route('api.forms.index'));
             this.forms = Form.createFormsFromArray(request.data);
-            console.log('All Forms', this.forms)
             this.formatForms();
         },
         getServiceAreas: async function () {
@@ -575,7 +573,6 @@ export default {
                 id: null,
                 name: "Todos"
             });
-            console.log('academic periods',this.academicPeriods)
         },
         formatForms: function () {
             const forms = this.forms;

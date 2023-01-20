@@ -3,7 +3,6 @@ import {checkIfModelHasEmptyProperties, toObjectRequest} from "@/HelperFunctions
 export default class Form {
 
     toObjectRequest() {
-        console.log('antes', this, 'despues', toObjectRequest(this));
         return toObjectRequest(this);
     }
 

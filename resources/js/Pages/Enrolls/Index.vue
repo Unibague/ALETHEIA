@@ -112,10 +112,8 @@ export default {
     },
 
     methods: {
-
         syncEnrolls: async function () {
             try {
-                console.log('entre')
                 let request = await axios.post(route('api.enrolls.sync'));
                 showSnackbar(this.snackbar, request.data.message, 'success');
                 this.getAllEnrolls();
@@ -123,7 +121,6 @@ export default {
                 showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
             }
         },
-
 
         getAllEnrolls: async function () {
             let request = await axios.get(route('api.enrolls.index'), {
@@ -138,9 +135,6 @@ export default {
         onPageChange() {
             this.getAllEnrolls();
         }
-
     },
-
-
 }
 </script>

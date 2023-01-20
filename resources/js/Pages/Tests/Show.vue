@@ -135,7 +135,7 @@ export default {
                 await axios.post(route('api.tests.store'),
                     {
                         answers: this.test.questions,
-                        form_id: this.test.form_id,
+                        form_id: this.test.id,
                         teacherId: this.teacher.id,
                         groupId: this.group.id,
                     });

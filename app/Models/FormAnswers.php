@@ -83,12 +83,12 @@ class FormAnswers extends Model
             'submitted_at' => Carbon::now()->toDateTimeString(),
             'group_id' => $request->input('groupId'),
             'teacher_id' => $request->input('teacherId'),
-            'first_competence_average' => $competencesAverage['C1'],
-            'second_competence_average' => $competencesAverage['C2'],
-            'third_competence_average' => $competencesAverage['C3'],
-            'fourth_competence_average' => $competencesAverage['C4'],
-            'fifth_competence_average' => $competencesAverage['C5'],
-            'sixth_competence_average' => $competencesAverage['C6'],
+            'first_competence_average' => $competencesAverage['C1'] ?? null,
+            'second_competence_average' => $competencesAverage['C2'] ?? null,
+            'third_competence_average' => $competencesAverage['C3'] ?? null,
+            'fourth_competence_average' => $competencesAverage['C4'] ?? null,
+            'fifth_competence_average' => $competencesAverage['C5'] ?? null,
+            'sixth_competence_average' => $competencesAverage['C6'] ?? null,
         ]);
 
         self::updateResponseStatusToAnswered($request->input('groupId'), auth()->user()->id);

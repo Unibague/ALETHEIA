@@ -67,7 +67,6 @@ class Test extends Model
             ->whereRaw("json_contains(service_areas->'$[*].id',JSON_ARRAY($serviceAreaId))")
             ->where('academic_period_id', '=', $group->academic_period_id)
             ->where('degree', '=', $group->degree)
-            ->join('form_')
             ->latest()->first();
         if ($form !== null) {
             return $form;

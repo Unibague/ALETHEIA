@@ -122,7 +122,6 @@ export default {
     },
     async created() {
         await this.getAllGroups();
-        console.log(this.tests)
         this.isLoading = false;
     },
 

@@ -22,7 +22,7 @@
                         outlined
                         rounded="lg"
                         elevation="2"
-                        v-for="(question,questionKey) in formQuestions.questions" :key="questionKey">
+                        v-for="(question,questionKey) in questions" :key="questionKey">
 
                         <v-card-text>
                             <v-row>
@@ -30,7 +30,7 @@
                                     <v-select
                                         color="primario"
                                         v-model="question.competence"
-                                        :items="formQuestions.getPossibleCompetences()"
+                                        :items="questionModel.getPossibleCompetences()"
                                         label="Selecciona una competencia"
                                     ></v-select>
                                 </v-col>
@@ -188,8 +188,8 @@ export default {
     },
     data: () => {
         return {
-
-            formQuestions: new FormQuestions(),
+            questionModel: new FormQuestions(),
+            questions: [],
             formMethod: 'create',
             deletedFormId: 0,
 
@@ -218,13 +218,14 @@ export default {
             const url = route('api.forms.questions.show', {form: this.getFormId()});
             try {
                 let request = await axios.get(url);
-                const formQuestions = request.data;
-                this.formQuestions = FormQuestions.fromModel(formQuestions)
+                const questions = request.data;
+                this.questions = questions === '' ? [] : request.data;
+                console.log(this.questions);
             } catch (e) {
             }
         },
         async saveForm() {
-            let data = this.formQuestions.questions;
+            let data = this.questions;
             const url = route('api.forms.questions.store', {form: this.getFormId()});
             try {
                 let request = await axios.patch(url, {
@@ -241,26 +242,26 @@ export default {
             return items[items.length - 1];
         },
         copyQuestion(questionKey) {
-            const question = JSON.parse(JSON.stringify(this.formQuestions.questions[questionKey]));
-            this.formQuestions.questions.push(question);
+            const question = JSON.parse(JSON.stringify(this.questions[questionKey]));
+            this.questions.push(question);
         },
         confirmDeleteQuestion(questionKey) {
             this.deletedQuestionKey = questionKey;
             this.deleteQuestionDialog = true;
         },
         deleteQuestion() {
-            this.formQuestions.questions.splice(this.deletedQuestionKey, 1);
+            this.questions.splice(this.deletedQuestionKey, 1);
             this.deleteQuestionDialog = false;
         },
         addAnotherQuestion() {
-            this.formQuestions.questions.push({options: [{}]});
+            this.questions.push({options: [{}]});
         },
         addAnotherOption(questionKey) {
-            this.formQuestions.questions[questionKey].options.push({});
+            this.questions[questionKey].options.push({});
         },
         removeQuestionOption(questionKey, optionKey) {
 
-            this.formQuestions.questions[questionKey].options.splice(optionKey, 1);
+            this.questions[questionKey].options.splice(optionKey, 1);
         }
     }
 

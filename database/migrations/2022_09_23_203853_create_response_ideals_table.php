@@ -16,7 +16,7 @@ class CreateResponseIdealsTable extends Migration
         Schema::create('response_ideals', function (Blueprint $table) {
             $table->id();
             $table->enum('teaching_ladder',['ninguno','auxiliar','asistente','asociado','titular']);
-            $table->foreignId('form_questions_id')->constrained();
+            $table->foreignId('form_id')->constrained();
             $table->json('response');
             $table->timestamps();
         });

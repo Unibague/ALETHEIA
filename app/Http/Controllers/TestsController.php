@@ -60,7 +60,7 @@ class TestsController extends Controller
         if ($data->pivot->has_answer === 1) {
             return response('Ya has contestado esta evaluación', 401);
         }
-        $test = Test::getQuestionsFromTestId($testId);
+        $test = Form::findOrFail($testId);
         return Inertia::render('Tests/Show', ['test' => $test, 'group' => ['id' => $data->group_id, 'name' => $data->name], 'teacher' => $data->teacher]);
     }
 

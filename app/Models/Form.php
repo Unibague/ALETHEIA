@@ -97,6 +97,7 @@ class Form extends Model
                 'degree' => $request->input('degree'),
                 'academic_period_id' => $request->input('academic_period')['id'],
                 'service_areas' => json_encode($request->input('service_areas')),
+                'creation_assessment_period_id' => AssessmentPeriod::getActiveAssessmentPeriod()->id
             ]);
     }
 
