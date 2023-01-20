@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -22,35 +24,58 @@ use Illuminate\Database\Eloquent\Model;
  * @property-read \App\Models\AcademicPeriod $academicPeriod
  * @property-read \App\Models\ServiceArea $serviceArea
  * @property-read \App\Models\User|null $teacher
- * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\User[] $users
+ * @property-read Collection|\App\Models\User[] $users
  * @property-read int|null $users_count
  * @method static \Database\Factories\GroupFactory factory(...$parameters)
- * @method static \Illuminate\Database\Eloquent\Builder|Group newModelQuery()
- * @method static \Illuminate\Database\Eloquent\Builder|Group newQuery()
- * @method static \Illuminate\Database\Eloquent\Builder|Group query()
- * @method static \Illuminate\Database\Eloquent\Builder|Group whereAcademicPeriodId($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Group whereClassCode($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Group whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Group whereDegree($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Group whereGroup($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Group whereHourType($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Group whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Group whereName($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Group whereServiceAreaId($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Group whereTeacherId($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Group whereUpdatedAt($value)
+ * @method static Builder|Group newModelQuery()
+ * @method static Builder|Group newQuery()
+ * @method static Builder|Group query()
+ * @method static Builder|Group whereAcademicPeriodId($value)
+ * @method static Builder|Group whereClassCode($value)
+ * @method static Builder|Group whereCreatedAt($value)
+ * @method static Builder|Group whereDegree($value)
+ * @method static Builder|Group whereGroup($value)
+ * @method static Builder|Group whereHourType($value)
+ * @method static Builder|Group whereId($value)
+ * @method static Builder|Group whereName($value)
+ * @method static Builder|Group whereServiceAreaId($value)
+ * @method static Builder|Group whereTeacherId($value)
+ * @method static Builder|Group whereUpdatedAt($value)
  * @mixin \Eloquent
  * @property string $group_id
- * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\FormAnswers[] $formAnswers
+ * @property-read Collection|\App\Models\FormAnswers[] $formAnswers
  * @property-read int|null $form_answers_count
- * @method static \Illuminate\Database\Eloquent\Builder|Group whereGroupId($value)
+ * @method static Builder|Group whereGroupId($value)
  */
 class Group extends Model
 {
     use HasFactory;
 
+    /**
+     * @var array
+     */
     protected $guarded = [];
 
+    /**
+     * @param array|null $academicPeriodsIds
+     * @return Group[]|Builder[]|Collection|\Illuminate\Database\Query\Builder[]|\Illuminate\Support\Collection
+     */
+    public static function withoutTeacher(array $academicPeriodsIds = null)
+    {
+        if ($academicPeriodsIds === null) {
+            $academicPeriodsIds = AcademicPeriod::getCurrentAcademicPeriodIds();
+        }
+        return self::whereIn('academic_period_id', $academicPeriodsIds)
+            ->where('teacher_id', '=', null)
+            ->with(['academicPeriod','serviceArea','teacher'])
+            ->get();
+    }
+
+    /**
+     * @param array $groups
+     * @param array $possibleAcademicPeriods
+     * @return void
+     */
     public static function createOrUpdateFromArray(array $groups, array $possibleAcademicPeriods): void
     {
         $academicPeriods = AcademicPeriod::whereIn('name', $possibleAcademicPeriods)->get()->toArray();
@@ -84,26 +109,41 @@ class Group extends Model
         self::upsert($upsertData, ['group_id'], ['academic_period_id', 'name', 'class_code', 'degree', 'service_area_code', 'teacher_id', 'hour_type']);
     }
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
     public function formAnswers(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(FormAnswers::class);
     }
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
     public function users(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
         return $this->belongsToMany(User::class);
     }
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
     public function teacher(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
     public function academicPeriod(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(AcademicPeriod::class);
     }
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
     public function serviceArea(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(ServiceArea::class, 'service_area_code', 'code');

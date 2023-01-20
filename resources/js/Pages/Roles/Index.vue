@@ -41,7 +41,10 @@
                 :loading="isLoading"
                 :headers="headers"
                 :items="roles"
-                :items-per-page="15"
+                :items-per-page="20"
+                    :footer-props="{
+                        'items-per-page-options': [20,50,100,-1]
+                    }"
                 class="elevation-1"
             >
                 <template v-slot:item.actions="{ item }">

@@ -36,6 +36,9 @@
                     :headers="headers"
                     :items="teachers"
                     :items-per-page="20"
+                    :footer-props="{
+                        'items-per-page-options': [20,50,100,-1]
+                    }"
                     class="elevation-1"
                     :item-class="getRowColor"
 

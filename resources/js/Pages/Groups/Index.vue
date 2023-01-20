@@ -5,8 +5,20 @@
 
         <v-container>
             <div class="d-flex flex-column align-end mb-8">
-                <h2 class="align-self-start">Sincronizar grupos por periodo</h2>
+                <h2 class="align-self-start">Gestionar grupos</h2>
                 <div>
+                    <v-btn
+                        class="mr-2"
+                        @click="getGroupsWithoutTeacher"
+                    >
+                        Ver grupos sin docentes
+                    </v-btn>
+                    <v-btn
+                        class="mr-2 "
+                        @click="getAllGroups(true)"
+                    >
+                        Ver todos los grupos
+                    </v-btn>
                     <v-btn
                         color="primario"
                         class="grey--text text--lighten-4"
@@ -36,6 +48,9 @@
                     :headers="headers"
                     :items="groups"
                     :items-per-page="20"
+                    :footer-props="{
+                        'items-per-page-options': [20,50,100,-1]
+                    }"
                     class="elevation-1"
                     :item-class="getRowColor"
 
@@ -122,6 +137,15 @@ export default {
     },
 
     methods: {
+        getGroupsWithoutTeacher: async function () {
+            try {
+                let request = await axios.get(route('api.groups.withoutTeacher'));
+                showSnackbar(this.snackbar, 'Se han cargado los grupos sin docentes', 'success');
+                this.groups = request.data;
+            } catch (e) {
+                showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
+            }
+        },
 
         syncGroups: async function () {
             try {
@@ -144,9 +168,12 @@ export default {
             }
         },
 
-        getAllGroups: async function () {
+        getAllGroups: async function (showMessage = false) {
             let request = await axios.get(route('api.groups.index'));
             this.groups = request.data;
+            if(showMessage){
+                showSnackbar(this.snackbar, 'Se han cargado todos los grupos', 'success')
+            }
         },
 
         getRowColor: function (item) {

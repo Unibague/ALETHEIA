@@ -13,6 +13,12 @@ use Illuminate\Http\Request;
 
 class GroupController extends Controller
 {
+
+    public function getWithoutTeacher(): JsonResponse
+    {
+        return response()->json(Group::withoutTeacher());
+    }
+
     /**
      * Display a listing of the resource.
      *

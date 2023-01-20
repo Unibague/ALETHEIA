@@ -16,7 +16,7 @@ export default new Vuetify({
     lang: {
         locales: {es},
         current: 'es'
-    }
+    },
 })
 
 Vue.mixin({methods: {route}});

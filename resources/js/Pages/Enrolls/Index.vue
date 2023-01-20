@@ -42,6 +42,9 @@
                     :headers="headers"
                     :items="enrolls"
                     :items-per-page="20"
+                    :footer-props="{
+                        'items-per-page-options': [20,50,100,-1]
+                    }"
 
                     class="elevation-1"
 
