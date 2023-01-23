@@ -10,7 +10,7 @@ export default class AssessmentPeriod {
     }
 
     static fromModel(model) {
-        return new AssessmentPeriod(model.id, model.name, model.self_start_date, model.self_end_date, model.boss_start_date, model.boss_end_date, model.colleague_start_date, model.colleague_end_date, model.done_by_none, model.dony_by_auxiliary, model.done_by_assistant, model.done_by_associated, model.done_by_head_teacher);
+        return new AssessmentPeriod(model.id, model.name, model.self_start_date, model.self_end_date, model.boss_start_date, model.boss_end_date, model.colleague_start_date, model.colleague_end_date, model.done_by_none, model.done_by_auxiliary, model.done_by_assistant, model.done_by_associated, model.done_by_head_teacher);
     }
 
     constructor(id = null, name = '', selfStartDate = '', selfEndDate = '', bossStartDate = '', bossEndDate = '', colleagueStartDate = '', colleagueEndDate = '', doneByNone = false, doneByAuxiliary = false, doneByAssistant = false, doneByAssociated = false, doneByHeadTeacher = false) {

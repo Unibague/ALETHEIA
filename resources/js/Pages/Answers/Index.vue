@@ -133,8 +133,6 @@ export default {
                 showSnackbar(this.snackbar, 'Mostrando todos los formularios')
             }
         },
-
     },
-
 }
 </script>

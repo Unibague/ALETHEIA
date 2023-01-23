@@ -239,7 +239,7 @@ export default {
                 {text: 'Fecha de inicio jefe', value: 'boss_start_date'},
                 {text: 'Fecha de fin jefe', value: 'boss_start_date'},
                 {text: 'sin escalafón', value: 'done_by_none', sortable: false},
-                {text: 'Auxiliar', value: 'done_by_none', sortable: false},
+                {text: 'Auxiliar', value: 'done_by_auxiliary', sortable: false},
                 {text: 'Asistente', value: 'done_by_assistant', sortable: false},
                 {text: 'Asociado', value: 'done_by_associated', sortable: false},
                 {text: 'Titular', value: 'done_by_head_teacher', sortable: false},
