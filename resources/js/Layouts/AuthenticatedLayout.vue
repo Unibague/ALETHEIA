@@ -108,7 +108,8 @@
                         </v-list-item-title>
                     </v-list-item>
                     <v-list-item>
-                        <v-list-item-title class="cursor-pointer" @click="logout" style="cursor:pointer">Cerrar sesion</v-list-item-title>
+                        <v-list-item-title class="cursor-pointer" @click="logout" style="cursor:pointer">Cerrar sesion
+                        </v-list-item-title>
                     </v-list-item>
                 </v-list>
             </v-menu>
@@ -300,10 +301,15 @@ export default {
                         role: 10,
                         icon: 'mdi-account-cog'
                     },
-
                     {
                         name: 'Formularios',
                         href: route('forms.index.view'),
+                        role: 10,
+                        icon: 'mdi-account-cog'
+                    },
+                    {
+                        name: 'Respuestas',
+                        href: route('answers.index.view'),
                         role: 10,
                         icon: 'mdi-account-cog'
                     },

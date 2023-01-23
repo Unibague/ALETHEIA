@@ -25,11 +25,9 @@
                                 @click="getGroupsWithoutTeacher"
                             >
                                 <v-list-item-avatar>
-
                                     <v-icon>
                                         mdi-account-alert
                                     </v-icon>
-
                                 </v-list-item-avatar>
                                 <v-list-item-title>Ver grupos sin docente</v-list-item-title>
                             </v-list-item>

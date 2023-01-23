@@ -5,78 +5,35 @@ namespace App\Http\Controllers;
 use App\Models\FormAnswers;
 use App\Http\Requests\StoreFormAnswersRequest;
 use App\Http\Requests\UpdateFormAnswersRequest;
+use Illuminate\Http\JsonResponse;
 
 class FormAnswersController extends Controller
 {
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return JsonResponse
      */
-    public function index()
+    public function index(): JsonResponse
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \App\Http\Requests\StoreFormAnswersRequest  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(StoreFormAnswersRequest $request)
-    {
-        //
+        return response()->json(FormAnswers::getCurrentFormAnswers());
     }
 
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\FormAnswers  $formAnswers
-     * @return \Illuminate\Http\Response
+     * @param \App\Models\FormAnswers $formAnswers
+     * @return JsonResponse
      */
-    public function show(FormAnswers $formAnswers)
+    public function show(FormAnswers $answer)
     {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\FormAnswers  $formAnswers
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(FormAnswers $formAnswers)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \App\Http\Requests\UpdateFormAnswersRequest  $request
-     * @param  \App\Models\FormAnswers  $formAnswers
-     * @return \Illuminate\Http\Response
-     */
-    public function update(UpdateFormAnswersRequest $request, FormAnswers $formAnswers)
-    {
-        //
+        return response()->json($answer);
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\FormAnswers  $formAnswers
+     * @param \App\Models\FormAnswers $formAnswers
      * @return \Illuminate\Http\Response
      */
     public function destroy(FormAnswers $formAnswers)

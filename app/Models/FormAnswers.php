@@ -62,12 +62,25 @@ use Illuminate\Support\Facades\DB;
 class FormAnswers extends Model
 {
     use HasFactory;
-
+    protected $table = 'form_answers';
     protected $guarded = [];
 
     public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public static function getCurrentFormAnswers(): \Illuminate\Support\Collection
+    {
+        $activeAssessmentPeriodsId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        return DB::table('form_answers as fa')
+            ->select(['fa.id', 'fa.submitted_at', 'u.name as studentName', 't.name as teacherName','g.name as groupName', 'fa.first_competence_average','fa.second_competence_average','fa.third_competence_average','fa.fourth_competence_average','fa.fifth_competence_average','fa.sixth_competence_average'])
+            ->join('forms as f', 'fa.form_id', '=', 'f.id')
+            ->join('users as u', 'fa.user_id', '=', 'u.id')
+            ->join('users as t', 'fa.teacher_id', '=', 't.id')
+            ->join('groups as g', 'fa.group_id', '=', 'g.group_id')
+            ->where('f.creation_assessment_period_id', '=', $activeAssessmentPeriodsId)
+            ->get();
     }
 
     /**
@@ -100,7 +113,7 @@ class FormAnswers extends Model
         return self::getAveragesFromCompetences($competences);
     }
 
-    private static function getAveragesFromCompetences($competences)
+    private static function getAveragesFromCompetences($competences): array
     {
         $averages = [];
         foreach ($competences as $competence => $attributes) {
