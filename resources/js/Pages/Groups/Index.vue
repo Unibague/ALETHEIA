@@ -49,6 +49,12 @@
 
                         </v-list>
                     </v-bottom-sheet>
+                    <v-btn
+                        class="mr-3"
+                        @click="syncEnrolls"
+                    >
+                        Cargar estudiantes
+                    </v-btn>
 
                     <v-btn
                         color="primario"
@@ -143,9 +149,7 @@ export default {
             ],
             groups: [],
             //Groups models
-            newGroup: new Group(),
-            editedGroup: new Group(),
-            deletedGroupId: 0,
+
             //Snackbars
             snackbar: {
                 text: "",
@@ -155,12 +159,6 @@ export default {
             },
             //Dialogs
             sheet: false,
-            deleteGroupDialog: false,
-            createOrEditDialog: {
-                model: 'newGroup',
-                method: 'createGroup',
-                dialogStatus: false,
-            },
             isLoading: true,
         }
     },
@@ -170,6 +168,14 @@ export default {
     },
 
     methods: {
+        syncEnrolls: async function () {
+            try {
+                let request = await axios.post(route('api.enrolls.sync'));
+                showSnackbar(this.snackbar, request.data.message, 'success');
+            } catch (e) {
+                showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
+            }
+        },
         getGroupsWithoutTeacher: async function () {
             try {
                 let request = await axios.get(route('api.groups.withoutTeacher'));

@@ -17,7 +17,6 @@
                     </InertiaLink>
                 </div>
             </div>
-
             <!--Inicia tabla-->
 
             <v-card>
@@ -50,8 +49,6 @@
                 </v-data-table>
             </v-card>
             <!--Acaba tabla-->
-
-            <!------------Seccion de dialogos ---------->
         </v-container>
     </AuthenticatedLayout>
 </template>

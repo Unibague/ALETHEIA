@@ -41,7 +41,7 @@ class EnrollController extends Controller
             }
         }
 
-        return response()->json(['message' => "Se han sincronizado exitosamente los datos"]);
+        return response()->json(['message' => "Estudiantes sincronizados exitosamente"]);
     }
 
     /**

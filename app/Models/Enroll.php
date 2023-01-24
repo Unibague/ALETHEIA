@@ -58,13 +58,23 @@ class Enroll extends Model
             return $result;
         }, []);
         $upsertData = [];
+        $deleteData = [];
         foreach ($enrolls as $enroll) {
-            $upsertData[] = [
-                'user_id' => $userEmailAndId[$enroll["email"]],
-                'group_id' => $enroll['group_id'],
-                'has_answer' => 0,
-                'academic_period_id' => $academicPeriodId
-            ];
+            if ($enroll['pago'] === 'SI' && $enroll['estado'] === "Matriculada") {
+                $upsertData[] = [
+                    'user_id' => $userEmailAndId[$enroll["email"]],
+                    'group_id' => $enroll['group_id'],
+                    'has_answer' => 0,
+                    'academic_period_id' => $academicPeriodId
+                ];
+            } else {
+                $deleteData[] = [
+                    'user_id' => $userEmailAndId[$enroll["email"]],
+                    'group_id' => $enroll['group_id'],
+                    'academic_period_id' => $academicPeriodId
+                ];
+            }
+
         }
 
         /* foreach ($upsertData as $item) {
@@ -89,7 +99,14 @@ class Enroll extends Model
             throw new \RuntimeException($message);
         }
 
-
+        //Delete the other registers
+        foreach ($deleteData as $deleteItem) {
+            DB::table('group_user')
+                ->where('group_id', '=', $deleteItem['group_id'])
+                ->where('user_id', '=', $deleteItem['user_id'])
+                ->where('academic_period_id', '=', $deleteItem['academic_period_id'])
+                ->delete();
+        }
     }
 
 
