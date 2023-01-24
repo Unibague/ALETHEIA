@@ -220,7 +220,6 @@ export default {
                 let request = await axios.get(url);
                 const questions = request.data;
                 this.questions = questions === '' ? [] : request.data;
-                console.log(this.questions);
             } catch (e) {
             }
         },
@@ -237,9 +236,7 @@ export default {
             }
         },
         getFormId() {
-            const path = window.location.pathname;
-            const items = path.split('/');
-            return items[items.length - 1];
+            return route().params.form;
         },
         copyQuestion(questionKey) {
             const question = JSON.parse(JSON.stringify(this.questions[questionKey]));

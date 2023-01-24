@@ -59,11 +59,14 @@ Route::post('/api/serviceAreas/sync', [\App\Http\Controllers\ServiceAreaControll
 Route::get('borrarForm/{form}', [\App\Http\Controllers\FormController::class, 'destroy']);
 
 /* >>>>>>>>>>>>>>>>>>>>>>>>> Groups routes <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< */
+Route::inertia('/groups', 'Groups/Index')->middleware(['auth', 'isAdmin'])->name('groups.index.view');
+Route::inertia('groups/{groupId}/enrolls', 'Groups/Enrolls')->middleware(['auth'])->name('groups.enrolls.view');
 Route::get('/api/groups/withoutTeacher', [\App\Http\Controllers\GroupController::class, 'getWithoutTeacher'])->middleware(['auth'])->name('api.groups.withoutTeacher');
 //Sync groups
 Route::post('/api/groups/sync', [\App\Http\Controllers\GroupController::class, 'sync'])->middleware(['auth'])->name('api.groups.sync');
-Route::inertia('/groups', 'Groups/Index')->middleware(['auth', 'isAdmin'])->name('groups.index.view');
-//Create fake unites
+//Group enrolls
+Route::get('/api/groups/{groupId}/enrolls', [\App\Http\Controllers\GroupController::class, 'getEnrolls'])->middleware(['auth'])->name('api.groups.enrolls');
+//Group general API
 Route::resource('api/groups', \App\Http\Controllers\GroupController::class, [
     'as' => 'api'
 ])->middleware('auth');

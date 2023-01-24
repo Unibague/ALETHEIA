@@ -19,6 +19,14 @@ class GroupController extends Controller
         return response()->json(Group::withoutTeacher());
     }
 
+    public function getEnrolls(int $groupId): JsonResponse
+    {
+        $group = Group::where('group_id', '=', $groupId)
+            ->with('enrolls')
+            ->first();
+        return response()->json($group);
+    }
+
     /**
      * Display a listing of the resource.
      *

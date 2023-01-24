@@ -67,7 +67,7 @@
                     <v-text-field
                         v-model="search"
                         append-icon="mdi-magnify"
-                        label="Filtrar por nombre o fecha"
+                        label="Filtrar grupos"
                         single-line
                         hide-details
                     ></v-text-field>
@@ -83,30 +83,29 @@
                         'items-per-page-options': [20,50,100,-1]
                     }"
                     class="elevation-1"
-                    :item-class="getRowColor"
 
                 >
+                    <template v-slot:item.actions="{ item }">
+                        <v-tooltip bottom>
+                            <template v-slot:activator="{ on, attrs }">
+                                <InertiaLink
+                                    as="v-icon"
+                                    v-on="on"
+                                    v-bind="attrs"
+                                    class="mr-2 primario--text"
+                                    :href="route('groups.enrolls.view',{ groupId: item.group_id})"
+                                >
+                                    mdi-account-group
+                                </InertiaLink>
+                            </template>
+                            <span>Ver estudiantes</span>
+                        </v-tooltip>
+                    </template>
                 </v-data-table>
             </v-card>
             <!--Acaba tabla-->
 
             <!------------Seccion de dialogos ---------->
-
-            <confirm-dialog
-                :show="deleteGroupDialog"
-                @canceled-dialog="deleteGroupDialog = false"
-                @confirmed-dialog="deleteGroup(deletedGroupId)"
-            >
-                <template v-slot:title>
-                    Suspender la sincronización del usuario {{ editedGroup.name }}
-                </template>
-
-                ¡Cuidado! esta acción es irreversible
-
-                <template v-slot:confirm-button-text>
-                    Borrar
-                </template>
-            </confirm-dialog>
         </v-container>
     </AuthenticatedLayout>
 </template>
@@ -133,12 +132,14 @@ export default {
             headers: [
                 {text: 'Periodo académico', value: 'academic_period.name'},
                 {text: 'Código de asignatura', value: 'class_code'},
+                {text: 'ID', value: 'group_id'},
                 {text: 'Nombre', value: 'name'},
                 {text: 'Número de grupo', value: 'group'},
                 {text: 'Nivel de formación', value: 'degree'},
                 {text: 'Area de servicio', value: 'service_area.name'},
                 {text: 'Profesor', value: 'teacher.name'},
-                {text: 'Tipo de hora grupo', value: 'hour_type'},
+                {text: 'Tipo de hora', value: 'hour_type'},
+                {text: 'Acciones', value: 'actions', sortable: false},
             ],
             groups: [],
             //Groups models
@@ -153,7 +154,7 @@ export default {
                 timeout: 2000,
             },
             //Dialogs
-            sheet:false,
+            sheet: false,
             deleteGroupDialog: false,
             createOrEditDialog: {
                 model: 'newGroup',
@@ -203,14 +204,11 @@ export default {
         getAllGroups: async function (showMessage = false) {
             let request = await axios.get(route('api.groups.index'));
             this.groups = request.data;
-            if(showMessage){
+            if (showMessage) {
                 showSnackbar(this.snackbar, 'Se han cargado todos los grupos', 'success')
             }
         },
 
-        getRowColor: function (item) {
-            return item.status === 'activo' ? 'green lighten-5' : item.status === 'suspendido' ? 'red lighten-5' : '';
-        },
     },
 
 

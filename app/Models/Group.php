@@ -68,8 +68,14 @@ class Group extends Model
         }
         return self::whereIn('academic_period_id', $academicPeriodsIds)
             ->where('teacher_id', '=', null)
-            ->with(['academicPeriod','serviceArea','teacher'])
+            ->with(['academicPeriod', 'serviceArea', 'teacher'])
             ->get();
+    }
+
+    public function enrolls(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'group_user', 'group_id', 'user_id', 'group_id', 'id')
+            ->withPivot(['has_answer']);
     }
 
     /**
