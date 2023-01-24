@@ -216,8 +216,13 @@ class User extends Authenticatable
 
     public function groups(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
+        $now = Carbon::now();
+        $date = $now->toDateString();
         return $this->belongsToMany(Group::class,'group_user','user_id','group_id','id','group_id')->with(['teacher', 'academicPeriod'])
             ->wherePivotIn('academic_period_id', AcademicPeriod::getCurrentAcademicPeriodIds())
+            ->join('academic_periods as ap','ap.id','=','group_user.academic_period_id')
+            ->where('ap.students_start_date','<=',$date)
+            ->where('ap.students_end_date','>=',$date)
             ->withPivot('has_answer');
     }
 
