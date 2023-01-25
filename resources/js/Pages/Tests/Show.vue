@@ -36,6 +36,9 @@
                                             item-value="value"
                                             :rules="selectRules"
                                         >
+                                            <template v-slot:item="slotProps">
+                                                {{slotProps.item.placeholder}}
+                                            </template>
                                         </v-select>
                                     </v-col>
                                 </v-row>

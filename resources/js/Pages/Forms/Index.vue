@@ -4,9 +4,9 @@
                   :show="snackbar.status" @closeSnackbar="snackbar.status = false"></Snackbar>
 
         <v-container>
-            <div class="d-flex flex-column align-end">
+            <div class="d-flex flex-column align-end mb-5">
                 <h2 class="align-self-start">Gestionar formularios</h2>
-                <div class="d-flex justify-end">
+                <div class="d-flex justify-end mt-5">
                     <v-bottom-sheet v-model="sheet">
                         <template v-slot:activator="{ on, attrs }">
                             <v-btn

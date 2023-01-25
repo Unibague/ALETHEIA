@@ -34,13 +34,6 @@ class FormController extends Controller
         $newForm->name = 'Copia de ' . $form->name;
         $newForm->save();
 
-        //Copy the form questions
-        $oldFormQuestions = $form->formQuestions;
-        if ($oldFormQuestions) {
-            $newFormQuestion = $oldFormQuestions->replicate(['form_id']);
-            $newFormQuestion->form_id = $newForm->id;
-            $newFormQuestion->save();
-        }
         return response()->json(['message' => 'Formulario copiado exitosamente']);
     }
 
@@ -68,7 +61,7 @@ class FormController extends Controller
     public function destroy(DestroyFormRequest $request, Form $form): JsonResponse
     {
         if (count($form->formAnswers) !== 0) {
-            return response()->json(['message' => 'No puedes borrar un formulario con respuestas']);
+            return response()->json(['message' => 'No puedes borrar un formulario con respuestas'],400);
         }
         $form->delete();
         return response()->json(['message' => 'Formulario borrado exitosamente']);
