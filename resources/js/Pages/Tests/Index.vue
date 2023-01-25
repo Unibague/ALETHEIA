@@ -101,7 +101,7 @@ export default {
         return {
             //Table info
             headers: [
-                {text: 'Periodo acdémico', value: 'academic_period.name'},
+                {text: 'Periodo académico', value: 'academic_period.name'},
                 {text: 'Código de asignatura', value: 'class_code'},
                 {text: 'Grupo', value: 'group'},
                 {text: 'Nombre', value: 'name'},
