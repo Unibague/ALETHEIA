@@ -14,10 +14,7 @@
                     >
                         Crear nuevo periodo
                     </v-btn>
-
-
                 </div>
-
             </div>
 
             <!--Inicia tabla-->
@@ -237,7 +234,7 @@ export default {
                 {text: 'Fecha de inicio par', value: 'colleague_start_date'},
                 {text: 'Fecha de fin par', value: 'colleague_end_date'},
                 {text: 'Fecha de inicio jefe', value: 'boss_start_date'},
-                {text: 'Fecha de fin jefe', value: 'boss_start_date'},
+                {text: 'Fecha de fin jefe', value: 'boss_end_date'},
                 {text: 'sin escalafón', value: 'done_by_none', sortable: false},
                 {text: 'Auxiliar', value: 'done_by_auxiliary', sortable: false},
                 {text: 'Asistente', value: 'done_by_assistant', sortable: false},
