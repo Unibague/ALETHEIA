@@ -96,6 +96,7 @@ Route::post('/api/teachers/sync', [\App\Http\Controllers\TeacherProfileControlle
 /* >>>>>>>>>>>>>>>>>>>>>>>>>>>> Test routes  (students) <<<<<<<<<<<<<<<<<<<<<<<<<<< */
 Route::get('/tests', [\App\Http\Controllers\TestsController::class, 'indexView'])->middleware(['auth'])->name('tests.index.view');
 Route::post('/tests/{testId}', [\App\Http\Controllers\TestsController::class, 'startTest'])->middleware(['auth'])->name('tests.startTest');
+Route::get('/tests/{testId}/preview', [\App\Http\Controllers\TestsController::class, 'preview'])->middleware(['auth'])->name('tests.preview');
 
 //Change teacher status
 Route::resource('api/tests', \App\Http\Controllers\TestsController::class, [

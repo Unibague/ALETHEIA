@@ -107,7 +107,7 @@ class FormAnswers extends Model
         self::updateResponseStatusToAnswered($request->input('groupId'), auth()->user()->id);
     }
 
-    public static function getCompetencesAverage($answers)
+    public static function getCompetencesAverage($answers): array
     {
         $competences = self::getCompetencesFromFormAnswer($answers);
         return self::getAveragesFromCompetences($competences);

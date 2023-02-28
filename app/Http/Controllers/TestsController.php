@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\TestPreviewRequest;
 use App\Models\Form;
 use App\Models\FormAnswers;
 use App\Models\Test;
@@ -48,7 +49,7 @@ class TestsController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Student request for attempting to start the test.
      *
      * @param Request $request
      * @param int $testId
@@ -61,7 +62,13 @@ class TestsController extends Controller
             return response('Ya has contestado esta evaluación', 401);
         }
         $test = Form::findOrFail($testId);
-        return Inertia::render('Tests/Show', ['test' => $test, 'group' => ['id' => $data->group_id, 'name' => $data->name], 'teacher' => $data->teacher]);
+        return Inertia::render('Tests/Show', ['test' => $test, 'group' => ['id' => $data->group_id, 'name' => $data->name], 'teacher' => $data->teacher, 'canSend' => true]);
+    }
+
+    public function preview(TestPreviewRequest $request, int $testId): Response
+    {
+        $test = Form::findOrFail($testId);
+        return Inertia::render('Tests/Show', ['test' => $test, 'group' => ['id' => 'No. grupo', 'name' => 'Nombre del docente'], 'teacher' => (object)[], 'canSend' => false]);
     }
 
 }

@@ -106,34 +106,84 @@
                             {{ item.academicPeriod != null ? item.academicPeriod.name : 'Todos' }}
                         </td>
                         <td>
-                            {{ getTableServiceAreas(item.serviceAreas) }}
+                            <span>
+                                {{ getTableServiceAreas(item.serviceAreas) }}
+                            </span>
+                        </td>
+                        <td>
+                            {{ item.description === '' ? 'No proporcionada' : item.description }}
                         </td>
 
-                        <td>
-                            <v-icon
-                                class="mr-2 primario--text"
-                                @click="openFormDialog('edit','studentForm',item)"
-                            >
-                                mdi-pencil
-                            </v-icon>
-                            <v-icon
-                                class="primario--text"
-                                @click="copy(item.id)"
-                            >
-                                mdi-content-copy
-                            </v-icon>
-                            <InertiaLink as="v-icon" class="primario--text"
-                                         :href="route('forms.show.view',{form:item.id})">
-                                mdi-format-list-bulleted
-                            </InertiaLink>
+                        <td class="d-flex" style="gap: 5px">
+                            <v-tooltip top>
+                                <template v-slot:activator="{on,attrs}">
+                                    <v-icon
+                                        v-bind="attrs"
+                                        v-on="on"
+                                        class="mr-2 primario--text"
+                                        @click="openFormDialog('edit','studentForm',item)"
+                                    >
+                                        mdi-pencil
+                                    </v-icon>
+                                </template>
+                                <span>Editar formulario</span>
+                            </v-tooltip>
 
-                            <v-icon
-                                class="primario--text"
-                                @click="confirmDeleteForm(item)"
-                            >
-                                mdi-delete
-                            </v-icon>
+                            <v-tooltip top>
+                                <template v-slot:activator="{on,attrs}">
+                                    <v-icon
+                                        v-bind="attrs"
+                                        v-on="on"
+                                        class="primario--text"
+                                        @click="copy(item.id)"
+                                    >
+                                        mdi-content-copy
+                                    </v-icon>
+                                </template>
+                                <span>Copiar formulario</span>
+                            </v-tooltip>
 
+
+                            <v-tooltip top>
+                                <template v-slot:activator="{on,attrs}">
+
+                                    <InertiaLink as="v-icon" class="primario--text"
+                                                 v-bind="attrs"
+                                                 v-on="on"
+                                                 :href="route('forms.show.view',{form:item.id})">
+                                        mdi-format-list-bulleted
+                                    </InertiaLink>
+                                </template>
+                                <span>Editar preguntas</span>
+                            </v-tooltip>
+                            <v-tooltip top>
+                                <template v-slot:activator="{on,attrs}">
+
+                                    <InertiaLink
+                                        v-bind="attrs"
+                                        v-on="on" as="v-icon" class="primario--text"
+                                        :href="route('tests.preview',{testId:item.id})">
+                                        mdi-check
+                                    </InertiaLink>
+                                </template>
+                                <span>Visualizar formulario</span>
+                            </v-tooltip>
+
+
+                            <v-tooltip top>
+                                <template v-slot:activator="{on,attrs}">
+
+                                    <v-icon
+                                        v-bind="attrs"
+                                        v-on="on"
+                                        class="primario--text"
+                                        @click="confirmDeleteForm(item)"
+                                    >
+                                        mdi-delete
+                                    </v-icon>
+                                </template>
+                                <span>Borrar formulario</span>
+                            </v-tooltip>
                         </td>
                     </tr>
                 </template>
@@ -223,6 +273,14 @@
                                         required
                                         v-model="studentForm.name"
                                     ></v-text-field>
+                                </v-col>
+                                <v-col cols="12">
+                                    <v-textarea
+                                        label="Descripción del formulario *"
+                                        required
+                                        rows="3"
+                                        v-model="studentForm.description"
+                                    ></v-textarea>
                                 </v-col>
                                 <v-col cols="12">
                                     <v-select
@@ -442,6 +500,7 @@ export default {
                 {text: 'Nivel de formación', value: 'degree'},
                 {text: 'Periodo académico', value: 'academic_period.name'},
                 {text: 'Área de servicio', value: 'service_area.name'},
+                {text: 'Descripción del formulario', value: 'description'},
                 {text: 'Acciones', value: 'actions', sortable: false},
             ],
             othersTableHeaders: [
@@ -590,7 +649,7 @@ export default {
             let request = await axios.get(route('api.forms.index'));
             this.forms = Form.createFormsFromArray(request.data);
             this.formatForms();
-            if(notify){
+            if (notify) {
 
                 showSnackbar(this.snackbar, 'Mostrando todos los formularios')
             }
@@ -706,7 +765,6 @@ export default {
             }
         },
         'studentForm.academicPeriod'(newAcademicPeriod, oldAcademicPeriod) {
-            console.log(newAcademicPeriod);
             if (newAcademicPeriod.id === null) {
                 this.studentForm.serviceAreas = [{id: null, name: 'Todas'}];
             }

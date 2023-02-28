@@ -130,7 +130,6 @@ export default {
 
 
     methods: {
-
         applyForTestStarting: async function () {
             let request = await axios.post(route('api.tests.index'));
             this.tests = request.data;

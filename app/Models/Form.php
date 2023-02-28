@@ -116,6 +116,7 @@ class Form extends Model
             ['id' => $request->input('id')],
             [
                 'name' => $request->input('name'),
+                'description' => $request->input('description'),
                 'type' => $request->input('type'),
                 'degree' => $request->input('degree'),
                 'academic_period_id' => $request->input('academic_period')['id'],

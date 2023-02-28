@@ -16,6 +16,7 @@ class CreateFormsTable extends Migration
         Schema::create('forms', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->text('description')->nullable();
             $table->enum('type', ['estudiantes', 'otros']);
             $table->enum('degree', ['pregrado', 'posgrado', 'cursos'])->nullable();
             $table->foreignId('assessment_period_id')->nullable()->constrained();

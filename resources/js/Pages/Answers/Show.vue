@@ -29,14 +29,16 @@
                                         label="Pregunta"
                                         required
                                         v-model="question.name"
+                                        readonly
                                     ></v-text-field>
                                 </v-col>
                                 <v-col cols="12">
-                                    <v-radio-group v-model="question.answer">
+                                    <v-radio-group v-model="question.answer" v-if="question.type === 'multiple'">
                                         <v-radio v-for="(option, optionKey) in question.options" :key="option.value"
                                         :value="option.value" :label="option.placeholder" readonly>
                                         </v-radio>
                                     </v-radio-group>
+                                    <v-text-field v-else :value="question.answer" readonly  label="Respuesta del usuario"/>
                                 </v-col>
                             </v-row>
 
@@ -97,7 +99,6 @@ export default {
                 let request = await axios.get(url);
                 this.record = request.data;
                 this.answers = JSON.parse(this.record.answers);
-                console.log(this.answers);
             } catch (e) {
             }
         },

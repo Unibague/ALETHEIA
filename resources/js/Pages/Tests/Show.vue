@@ -4,16 +4,19 @@
                   :show="snackbar.status" @closeSnackbar="snackbar.status = false"></Snackbar>
 
         <v-container>
-            <v-row class="mb-2">
+            <v-row class="mb-2" justify="center">
                 <v-col cols="12">
                     <h2 class="text-center ">
                         Estás realizando la evaluación del profesor {{ teacher.name }} ({{ group.name }})
                     </h2>
                 </v-col>
+                <v-col cols="12" md="8" align-self="center">
+                    <div class="text-justify text-h6" style="white-space: pre-wrap">{{ test.description }}</div>
+                </v-col>
             </v-row>
 
             <v-row class="mt-3" justify="center" dense>
-                <v-col cols="12" :lg="7">
+                <v-col cols="12" md="8">
                     <v-form
                         ref="form"
                         lazy-validation
@@ -25,8 +28,9 @@
                                     {{ question.name }}
                                 </div>
                                 <v-row>
-                                    <v-col cols="12" :lg="10">
+                                    <v-col cols="12">
                                         <v-select
+                                            v-if="question.type === 'multiple'"
                                             v-model="question.answer"
                                             required
                                             outlined
@@ -37,9 +41,12 @@
                                             :rules="selectRules"
                                         >
                                             <template v-slot:item="slotProps">
-                                                {{slotProps.item.placeholder}}
+                                                {{ slotProps.item.placeholder }}
                                             </template>
                                         </v-select>
+                                        <v-text-field v-model="question.answer" v-else outlined
+                                                      placeholder="Por favor, ingresa tu respuesta en este campo"
+                                        />
                                     </v-col>
                                 </v-row>
                             </v-card-text>
@@ -47,7 +54,7 @@
                     </v-form>
                 </v-col>
             </v-row>
-            <v-row justify="center">
+            <v-row justify="center" v-if="canSend">
                 <v-col cols="12" class="d-flex justify-center">
                     <v-btn color="primario"
                            large
@@ -123,6 +130,7 @@ export default {
         test: Object,
         group: Object,
         teacher: Object,
+        canSend: Boolean
     },
     async created() {
         this.parseQuestions()

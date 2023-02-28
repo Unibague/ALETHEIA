@@ -149,7 +149,6 @@ export default {
 
         syncTeachers: async function () {
             try {
-                console.log('entre')
                 let request = await axios.post(route('api.teachers.sync'));
                 showSnackbar(this.snackbar, request.data.message, 'success');
                 this.getAllTeachers();
