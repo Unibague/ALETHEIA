@@ -103,7 +103,7 @@
                             {{ item.degree ? item.degree : 'Todos' }}
                         </td>
                         <td>
-                            {{ item.academicPeriod != null ? item.academicPeriod.name : 'Todos' }}
+                            {{ getTableAcademicPeriod(item.academicPeriodId) }}
                         </td>
                         <td>
                             <span>
@@ -295,11 +295,11 @@
                                 <v-col cols="12">
                                     <v-select
                                         color="primario"
-                                        v-model="studentForm.academicPeriod"
+                                        v-model="studentForm.academicPeriodId"
                                         :items="academicPeriods"
                                         label="Periodo académico"
                                         :item-text="(academicPeriod)=>academicPeriod.name"
-                                        :item-value="(academicPeriod)=>academicPeriod"
+                                        :item-value="(academicPeriod)=>academicPeriod.id"
                                         :disabled="studentForm.degree === null"
                                     ></v-select>
                                 </v-col>
@@ -311,8 +311,8 @@
                                         :items="serviceAreas"
                                         label="Área de servicio"
                                         :item-text="(serviceArea)=>serviceArea.name"
-                                        :item-value="(serviceArea)=>serviceArea"
-                                        :disabled="studentForm.academicPeriod.id === null"
+                                        :item-value="(serviceArea)=>serviceArea.code"
+                                        :disabled="studentForm.academicPeriodId === null"
                                     >
                                         <template v-slot:selection="{ item, index }">
                                             <v-chip v-if="index === 0">
@@ -565,6 +565,16 @@ export default {
     },
 
     methods: {
+        getTableAcademicPeriod: function (academicPeriodId) {
+            if (academicPeriodId === null) {
+                return 'Todos';
+            }
+            const selectedAcademicPeriod = this.academicPeriods.find((academicPeriod) => academicPeriod.id === academicPeriodId);
+            if (selectedAcademicPeriod === undefined) {
+                return 'Error obteniendo periodo académico';
+            }
+            return selectedAcademicPeriod.name;
+        },
         getFormsWithoutQuestions: async function () {
             let request = await axios.get(route('api.forms.withoutQuestions'));
             this.forms = Form.createFormsFromArray(request.data);
@@ -576,16 +586,21 @@ export default {
             if (!(Array.isArray(item))) {
                 return 'Ninguna';
             }
-            let isNull = false;
             let names = [];
+            const serviceAreas = this.serviceAreas;
             item.forEach(function (serviceArea) {
-                if (serviceArea.id === null) {
-                    isNull = true;
+                if (serviceArea === null) {
+                    names.push('Todas');
+                    return;
                 }
-                names.push(serviceArea.name);
-            })
+                const selectedServiceArea = serviceAreas.find(pServiceArea => pServiceArea.code == serviceArea);
+                if (selectedServiceArea === undefined) {
+                    return;
+                }
 
-            return isNull ? 'Todas' : names.join(', ');
+                names.push(selectedServiceArea.name);
+            })
+            return names.join(', ');
         },
         getTableUnits: function (item) {
             if (!(Array.isArray(item))) {
@@ -650,7 +665,6 @@ export default {
             this.forms = Form.createFormsFromArray(request.data);
             this.formatForms();
             if (notify) {
-
                 showSnackbar(this.snackbar, 'Mostrando todos los formularios')
             }
         },
@@ -658,7 +672,7 @@ export default {
             let request = await axios.get(route('api.serviceAreas.index'));
             this.serviceAreas = request.data;
             this.serviceAreas.unshift({
-                id: null,
+                code: null,
                 name: "Todas"
             });
         },
@@ -757,25 +771,22 @@ export default {
     },
 
     watch: {
-
         'studentForm.degree'(newDegree, oldAcademicPeriod) {
             if (newDegree === null) {
-                this.studentForm.academicPeriod = {id: null, name: 'Todos'};
-                this.studentForm.serviceAreas = [{id: null, name: 'Todas'}];
+                this.studentForm.academicPeriodId = null;
+                this.studentForm.serviceAreas = [null];
             }
         },
-        'studentForm.academicPeriod'(newAcademicPeriod, oldAcademicPeriod) {
-            if (newAcademicPeriod.id === null) {
-                this.studentForm.serviceAreas = [{id: null, name: 'Todas'}];
+        'studentForm.academicPeriodId'(newAcademicPeriodId, oldAcademicPeriodId) {
+            if (newAcademicPeriodId === null) {
+                this.studentForm.serviceAreas = [null];
             }
         },
 
         'othersForm.assessmentPeriod'(newAssessmentPeriod, oldAcademicPeriod) {
             if (newAssessmentPeriod.id === null) {
                 this.othersForm.unitRole = null;
-
                 this.othersForm.teachingLadder = null;
-
                 this.othersForm.units = [{id: null, name: 'Todas'}]
             }
         },

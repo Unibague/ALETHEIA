@@ -60,11 +60,10 @@ class Test extends Model
 
     public static function getTestFromGroup(Group $group)
     {
-        $serviceAreaId = $group->serviceArea->id;
-
+        $serviceAreaCode = [$group->serviceArea->code];
         //All params
         $form = DB::table('forms')
-            ->whereRaw("json_contains(service_areas->'$[*].id',JSON_ARRAY($serviceAreaId))")
+            ->whereRaw("json_contains(service_areas->'$[*]',JSON_ARRAY(?))", $serviceAreaCode)
             ->where('academic_period_id', '=', $group->academic_period_id)
             ->where('degree', '=', $group->degree)
             ->latest()->first();
@@ -73,7 +72,7 @@ class Test extends Model
         }
         //Only last two params
         $form = DB::table('forms')
-            ->whereRaw("json_contains(service_areas->'$[*].id',JSON_ARRAY(null))")
+            ->whereRaw("json_contains(service_areas->'$[*]',JSON_ARRAY(?))",[null])
             ->where('academic_period_id', '=', $group->academic_period_id)
             ->where('degree', '=', $group->degree)
             ->latest()->first();
@@ -83,7 +82,7 @@ class Test extends Model
         }
         //Only first param
         $form = DB::table('forms')
-            ->whereRaw("json_contains(service_areas->'$[*].id',JSON_ARRAY(null))")
+            ->whereRaw("json_contains(service_areas->'$[*]',JSON_ARRAY(?))",[null])
             ->where('academic_period_id', '=', null)
             ->where('degree', '=', $group->degree)
             ->latest()->first();
@@ -93,7 +92,7 @@ class Test extends Model
         }
         //Any params
         $form = DB::table('forms')
-            ->whereRaw("json_contains(service_areas->'$[*].id',JSON_ARRAY(null))")
+            ->whereRaw("json_contains(service_areas->'$[*]',JSON_ARRAY(?))",[null])
             ->where('academic_period_id', '=', null)
             ->where('degree', '=', null)
             ->latest()->first();
