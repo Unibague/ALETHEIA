@@ -11,7 +11,7 @@ export default class Form {
     }
 
     static copy(form) {
-        return new Form(form.id, form.name, form.description, form.type, form.degree, form.assessmentPeriod, form.units, form.academicPeriodId, form.unitRole, form.teachingLadder, form.serviceAreas);
+        return new Form(form.id, form.name, form.description, form.type, form.degree, form.assessmentPeriodId, form.units, form.academicPeriodId, form.unitRole, form.teachingLadder, form.serviceAreas);
     }
 
     static createFormsFromArray(models) {
@@ -23,7 +23,7 @@ export default class Form {
     }
 
     static fromModel(model) {
-        return new Form(model.id, model.name, model.description, model.type, model.degree, model.assessment_period, JSON.parse(model.units), model.academic_period_id, model.unit_role, model.teaching_ladder, JSON.parse(model.service_areas));
+        return new Form(model.id, model.name, model.description, model.type, model.degree, model.assessment_period_id, JSON.parse(model.units), model.academic_period_id, model.unit_role, model.teaching_ladder, JSON.parse(model.service_areas));
     }
 
     static getPossibleDegrees() {
@@ -60,17 +60,14 @@ export default class Form {
         ];
     }
 
-    constructor(id = null, name = '', description = '', type = '', degree = null, assessmentPeriod = null, units = null, academicPeriodId = {
-        id: null,
-        name: 'Todos'
-    }, unitRole = null, teachingLadder = null, serviceAreas = null) {
+    constructor(id = null, name = '', description = '', type = '', degree = null, assessmentPeriodId = null, units = null, academicPeriodId = null, unitRole = null, teachingLadder = null, serviceAreas = null) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.type = type;
         this.degree = degree;
-        this.assessmentPeriod = assessmentPeriod ?? {id: null, name: 'Todos'};
-        this.units = units === null ? [{id: null, name: 'Todas'}] : units;
+        this.assessmentPeriodId = assessmentPeriodId;
+        this.units = units === null ? [null] : units;
         this.academicPeriodId = academicPeriodId;
         this.unitRole = unitRole;
         this.teachingLadder = teachingLadder;

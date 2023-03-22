@@ -131,8 +131,9 @@ class Form extends Model
             ['id' => $request->input('id')],
             [
                 'name' => $request->input('name'),
+                'description' => $request->input('description'),
                 'type' => $request->input('type'),
-                'assessment_period_id' => $request->input('assessment_period')['id'],
+                'assessment_period_id' => $request->input('assessment_period_id'),
                 'unit_role' => $request->input('unit_role'),
                 'teaching_ladder' => $request->input('teaching_ladder'),
                 'units' => json_encode($request->input('units')),
