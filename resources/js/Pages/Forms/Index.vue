@@ -289,7 +289,7 @@
                                         v-model="studentForm.degree"
                                         :items="degrees"
                                         label="Nivel de formación"
-                                        :item-value="(degree)=> degree.value "
+                                        :item-value="(degree)=> degree.value"
                                         :item-text="(degree)=> degree.name.charAt(0).toUpperCase() + degree.name.slice(1)"
                                     ></v-select>
                                 </v-col>

@@ -63,16 +63,21 @@ class AcademicPeriod extends Model
     public static function getCurrentAcademicPeriodsByCommas(): string
     {
         $currentAcademicPeriods = self::getCurrentAcademicPeriods();
+
         if (count($currentAcademicPeriods) === 0) {
             throw new \RuntimeException('No hay periodos académicos asociados al periodo de evaluación actual');
         }
         $academicPeriodsNames = array_column($currentAcademicPeriods->toArray(), 'name');
+
         return implode(',', $academicPeriodsNames);
+
+
     }
 
     public static function getCurrentAcademicPeriods()
     {
         $currentAssessmentPeriod = AssessmentPeriod::getActiveAssessmentPeriod();
+
         return self::where('assessment_period_id', '=', $currentAssessmentPeriod->id)->with('assessmentPeriod')->get();
     }
 

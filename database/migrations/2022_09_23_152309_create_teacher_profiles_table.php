@@ -19,8 +19,8 @@ class CreateTeacherProfilesTable extends Migration
             $table->string('identification_number');
             $table->foreignId('user_id')->constrained();
 
-            $table->string('unit_code')->nullable();
-            $table->foreign('unit_code')->references('code')->on('units');
+            $table->string('unit_identifier');
+            $table->foreign('unit_identifier')->references('identifier')->on('units');
 
             $table->string('position')->nullable();
             $table->enum('teaching_ladder', ['NIN', 'AUX', 'ASI', 'ASO', 'TIT', 'DOCENTE'])->nullable();
@@ -29,6 +29,7 @@ class CreateTeacherProfilesTable extends Migration
             $table->enum('status', ['activo', 'inactivo', 'suspendido']);
             $table->timestamps();
         });
+
     }
 
     /**

@@ -11,11 +11,25 @@
                         color="primario"
                         class="grey--text text--lighten-4"
                         @click="syncTeachers"
+                        :disabled="isSync"
                     >
                         Sincronizar docentes
                     </v-btn>
+
                 </div>
+
             </div>
+
+            <div class="d-flex flex-column align-center mt-12" v-if="">
+
+                <h3 v-if="isSync">
+
+                    Por favor espera, estamos realizando la sincronización de los docentes...
+
+                </h3>
+
+            </div>
+
 
             <!--Inicia tabla-->
 
@@ -138,6 +152,7 @@ export default {
                 dialogStatus: false,
             },
             isLoading: true,
+            isSync: false
         }
     },
     async created() {
@@ -149,11 +164,14 @@ export default {
 
         syncTeachers: async function () {
             try {
+                this.isSync= true;
                 let request = await axios.post(route('api.teachers.sync'));
                 showSnackbar(this.snackbar, request.data.message, 'success');
                 this.getAllTeachers();
+                this.isSync = false;
             } catch (e) {
-                showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
+                showSnackbar(this.snackbar, prepareErrorText(e), 'alert', 10000);
+                this.isSync = false;
             }
         },
 
@@ -172,6 +190,7 @@ export default {
         getAllTeachers: async function () {
             let request = await axios.get(route('api.teachers.index'));
             this.teachers = request.data;
+            console.log(this.teachers);
         },
 
         getRowColor: function (item) {

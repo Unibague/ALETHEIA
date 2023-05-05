@@ -100,6 +100,31 @@ class AssessmentPeriod extends Model
 
     public static function getActiveAssessmentPeriod()
     {
-        return self::where('active', '=', 1)->firstOrFail();
+        return self::where('active', '=',   1)->firstOrFail();
     }
+
+    public function getSuitableTeachingLadders()
+    {
+        $teachingLadders = ['done_by_none' => 'NIN', 'done_by_auxiliary' => 'AUX', 'done_by_assistant' => 'ASI', 'done_by_associated' => 'ASO', 'done_by_head_teacher' => 'TIT'];
+
+
+        $suitableTeachingLadders = [];
+
+        foreach ($teachingLadders as $key => $teachingLadder) {
+
+            if ($this->$key == 1) {
+
+                $suitableTeachingLadders [] = $teachingLadder;
+            }
+        }
+
+        if (in_array('TIT', $suitableTeachingLadders )){
+
+            $suitableTeachingLadders [] = 'DOCENTE';
+
+        }
+
+        return $suitableTeachingLadders;
+    }
+
 }

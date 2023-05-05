@@ -52,6 +52,7 @@
                     <v-btn
                         class="mr-3"
                         @click="syncEnrolls"
+                        :disabled="isSync"
                     >
                         Cargar estudiantes
                     </v-btn>
@@ -60,11 +61,30 @@
                         color="primario"
                         class="grey--text text--lighten-4"
                         @click="syncGroups"
+
                     >
                         Sincronizar grupos
                     </v-btn>
+
+
+
                 </div>
+
+
             </div>
+
+
+
+            <div class="d-flex flex-column align-center mt-12" v-if="">
+
+                <h3 v-if="isSync">
+
+                    Por favor espera, estamos realizando la sincronización de los estudiantes...
+
+                </h3>
+
+            </div>
+
 
             <!--Inicia tabla-->
 
@@ -160,6 +180,7 @@ export default {
             //Dialogs
             sheet: false,
             isLoading: true,
+            isSync: false
         }
     },
     async created() {
@@ -170,7 +191,9 @@ export default {
     methods: {
         syncEnrolls: async function () {
             try {
+                this.isSync = true;
                 let request = await axios.post(route('api.enrolls.sync'));
+                this.isSync = false;
                 showSnackbar(this.snackbar, request.data.message, 'success');
             } catch (e) {
                 showSnackbar(this.snackbar, prepareErrorText(e), 'alert');

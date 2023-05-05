@@ -186,6 +186,7 @@ export default {
         openEditRoleModal: function (user) {
             this.editedUser = {...user};
             this.editUserDialog = true;
+
         },
         changeUserRoles: async function () {
             //Recollect information

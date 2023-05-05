@@ -40,6 +40,38 @@ class Role extends Model
 
     }
 
+    public static function getTeacherRoleId(): int
+    {
+        $id = DB::table('roles')
+            ->select('id')->where('name','docente')->pluck('id');
+
+        $id = $id[0];
+
+        return $id;
+
+    }
+
+    public static function getStaffMemberRoleId(): int
+    {
+        $id = DB::table('roles')->select('id')->where('name','funcionario')->pluck('id');
+
+        $id = $id[0];
+
+        return $id;
+
+    }
+
+    public static function getUnitAdminRoleId(): int
+    {
+        $id = DB::table('roles')->select('id')->where('name','administrador de unidad')->pluck('id');
+
+        $id = $id[0];
+
+        return $id;
+
+    }
+
+
     public static function getRoleNumber(string $roleName): int
     {
         $selectedRole = self::where('name', '=', $roleName)->first();

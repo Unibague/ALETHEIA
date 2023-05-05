@@ -2,6 +2,7 @@
 
 namespace App\Helpers;
 
+use Doctrine\DBAL\Exception\DatabaseDoesNotExist;
 use Ospina\CurlCobain\CurlCobain;
 
 class AtlanteProvider

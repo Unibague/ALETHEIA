@@ -2,9 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Unit;
 use App\Models\UnityAssessment;
 use App\Http\Requests\StoreUnityAssessmentRequest;
 use App\Http\Requests\UpdateUnityAssessmentRequest;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Js;
 
 class UnityAssessmentController extends Controller
 {
@@ -13,10 +18,33 @@ class UnityAssessmentController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(): JsonResponse
     {
-        //
+
+        return response()->json(UnityAssessment::getAllAssignments());
+
+
     }
+
+
+    public function getUnitAssignments(Request $request): JsonResponse
+    {
+        $teachers = $request->all();
+
+        $unitTeachersId = [];
+
+        foreach ($teachers as $teacher)
+        {
+
+            $unitTeachersId [] = $teacher['id'];
+
+        }
+
+        return response()->json(UnityAssessment::getUnitAssignments($unitTeachersId));
+
+
+    }
+
 
     /**
      * Show the form for creating a new resource.
@@ -34,9 +62,26 @@ class UnityAssessmentController extends Controller
      * @param  \App\Http\Requests\StoreUnityAssessmentRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(StoreUnityAssessmentRequest $request)
+    public function store(Request $request): JsonResponse
     {
-        //
+        $beingAssignedUserId = $request->input('beingAssignedUserId');
+        $assignedToUserId = $request->input('assignedToUserId');
+        $role = $request->input('role');
+
+
+        try {
+
+            UnityAssessment::assignRolesToTeacher($beingAssignedUserId, $assignedToUserId, $role);
+
+        }
+
+        catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
+
+        return response()->json(['message' => 'Asignación correcta']);
+
+
     }
 
     /**

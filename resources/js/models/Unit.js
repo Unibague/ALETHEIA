@@ -16,7 +16,7 @@ export default class Unit {
     constructor(id = null, name = '', code = '', isCustom = '', assessmentPeriodId = 0) {
         this.id = id;
         this.name = name;
-        this.code = code;
+        this.code = code+"-"+assessmentPeriodId;
         this.isCustom = isCustom;
         this.assessmentPeriodId = assessmentPeriodId;
 

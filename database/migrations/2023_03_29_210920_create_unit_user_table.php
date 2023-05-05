@@ -16,10 +16,8 @@ class CreateUnitUserTable extends Migration
         Schema::create('unit_user', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained();
-
-            $table->string('unit_code')->nullable();
-            $table->foreign('unit_code')->references('code')->on('units');
-
+            $table->string('unit_identifier');
+            $table->foreign('unit_identifier')->references('identifier')->on('units');
             $table->foreignId('role_id')->constrained();
             $table->timestamps();
         });

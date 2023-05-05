@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Eloquent;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use mysql_xdevapi\Table;
 
 /**
  * App\Models\Unity
@@ -40,10 +43,17 @@ use Illuminate\Support\Facades\DB;
 class Unit extends Model
 {
     protected $guarded = [];
+    protected $primaryKey = 'identifier';
+    public $incrementing = false;
+    protected $keyType = 'string';
     use HasFactory;
 
     public static function getCurrentUnits(){
-        return self::where('assessment_period_id','=', AssessmentPeriod::getActiveAssessmentPeriod()->id)->with('users')->get();
+
+        return self::where('assessment_period_id','=', AssessmentPeriod::getActiveAssessmentPeriod()
+            ->id)->with('users.teacherProfile')->get();
+
+
     }
 
     public static function createOrUpdateFromArray(array $units): void
@@ -51,25 +61,143 @@ class Unit extends Model
         $upsertData = [];
         $assessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
         foreach ($units as $unit) {
+
+            $unitAsString = (string)$unit->code;
+            $assessmentPeriodAsString = (string)$assessmentPeriodId;
+            $identifier = $unitAsString.'-'.$assessmentPeriodAsString;
+
             $upsertData[] = [
+                'identifier' => $identifier,
                 'code' => $unit->code,
                 'name' => $unit->name,
                 'is_custom' => 0,
                 'assessment_period_id' => $assessmentPeriodId
             ];
+
+            DB::table('units')->upsert($upsertData, $identifier, ['name', 'is_custom', 'assessment_period_id']);
+
         }
-        DB::table('units')->upsert($upsertData, ['code', 'assessment_period_id'], ['name', 'is_custom', 'assessment_period_id']);
+
+    }
+
+    public static function transferTeacherToSelectedUnit($unit, $userId): void{
+
+        DB::table('unit_user')->updateOrInsert(
+
+            ['user_id' => $userId],
+            ['unit_identifier' => $unit]
+
+        );
+    }
+    public static function getUnitInfo($unitIdentifier){
+
+        return self::where('units.identifier', $unitIdentifier)
+            ->with('users.teacherProfile')->get();
+
+    }
+
+
+    public static function getUnitTeachersSuitableForAssessment(){
+
+        $activeAssessmentPeriod = AssessmentPeriod::getActiveAssessmentPeriod();
+
+        $suitableTeachingLadders = $activeAssessmentPeriod->getSuitableTeachingLadders();
+
+         $teachers = DB::table('units')
+            ->where('units.assessment_period_id','=', $activeAssessmentPeriod->id)
+            ->join('unit_user','unit_user.unit_identifier','=','units.identifier')
+            ->join('users','users.id','=','unit_user.user_id')
+            ->join('teacher_profiles','teacher_profiles.user_id','=','users.id')
+            ->where('teacher_profiles.employee_type','DTC',)
+            ->whereIn('teacher_profiles.teaching_ladder', $suitableTeachingLadders)->get();
+
+    }
+
+    public static function createOrUpdateStaffMembersUsers($staffMembers)
+    {
+        $now = Carbon::now()->toDateTimeString();
+        $staffMemberRole = Role::getStaffMemberRoleId();
+        $upsertData = [];
+        $emails = [];
+        foreach ($staffMembers as $staffMember) {
+
+            $staffMemberEmail = $staffMember->mail;
+            $staffMemberName = $staffMember->label;
+            $staffMemberIdentification = $staffMember->value;
+
+            $emails[] = $staffMemberEmail;
+            $upsertData[] = ['email' => $staffMemberEmail,
+                'name' => $staffMemberName,
+                'password' => 'automatic_generate_password',
+                'created_at' => $now, 'updated_at' => $now];
+        }
+        foreach ($upsertData as $sqlData) {
+            DB::table('users')->upsert($sqlData, 'email', null);
+        }
+
+        $users = DB::table('users')->whereIn('email', $emails)->select('id', 'email')
+            ->get()->toArray();
+        $roleUpsertData = [];
+
+        foreach ($users as $user) {
+            $roleUpsertData[] = ['user_id' => $user->id, 'role_id' => $staffMemberRole];
+        }
+
+        foreach ($roleUpsertData as $sqlData) {
+            DB::table('role_user')->upsert($sqlData, ['user_id', 'role_id'],null);
+        }
+
+    }
+
+    public static function getStaffMembers(){
+
+        $staffMemberRole = Role::getStaffMemberRoleId();
+
+        return DB::table('role_user')->where('role_id', $staffMemberRole )
+            ->join('users','users.id','=', 'role_user.user_id')
+            ->select('users.email','users.name','users.id')->get();
+
+    }
+
+
+    public static function assignStaffMemberAsUnitAdmin($unitId, $userId, $roleId){
+
+
+/*    Recuerda, solo puede haber un administrador por unidad,
+            pero una persona puede administrar varias unidades    */
+
+        DB::table('unit_user')
+            ->updateOrInsert(['unit_identifier' => $unitId, 'role_id' => $roleId] , ['user_id' => $userId]);
+
+    }
+
+
+    public static function getUnitAdmin ($unitIdentifier){
+
+       $unitAdminRole = Role::getUnitAdminRoleId();
+
+       return DB::table('unit_user')->where('unit_identifier',$unitIdentifier)
+           ->where('role_id',$unitAdminRole)
+           ->join('users','users.id','unit_user.user_id')->select('name', 'user_id')->get();
+
+
+
     }
 
 
     public function users(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
-        return $this->belongsToMany(User::class,'unit_user','unit_code','user_id');
+        return $this->belongsToMany(User::class,'unit_user','unit_identifier','user_id', 'identifier', 'id')->withPivot(['role_id']);;
     }
 
     public function forms(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(Form::class);
+    }
+
+    public function teachers(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(TeacherProfile::class);
     }
 
     public function unityAssessment(): \Illuminate\Database\Eloquent\Relations\HasMany
@@ -81,5 +209,7 @@ class Unit extends Model
     {
         return $this->belongsTo(AssessmentPeriod::class);
     }
+
+
 
 }

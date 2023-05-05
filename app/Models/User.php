@@ -122,16 +122,19 @@ class User extends Authenticatable
         $emails = [];
         foreach ($data as $user) {
             $emails[] = $user['email'];
-            $upsertData[] = ['email' => $user['email'], 'name' => $user['name'], 'password' => 'automatic_generate_password', 'created_at' => $now, 'updated_at' => $now];
+            $upsertData[] = ['email' => $user['email'],
+                'name' => $user['name'],
+                'password' => 'automatic_generate_password',
+                'created_at' => $now, 'updated_at' => $now];
         }
         //Chunk in 1000 in order to make a safer query
         foreach (array_chunk($upsertData, 1000) as $sqlData) {
             DB::table('users')->upsert($sqlData, 'email', null);
         }
 
-
         $uniqueEmails = array_unique($emails);
-        $users = DB::table('users')->whereIn('email', $uniqueEmails)->select('id', 'email')->get()->toArray();
+        $users = DB::table('users')->whereIn('email', $uniqueEmails)->select('id', 'email')
+            ->get()->toArray();
         $roleUpsertData = [];
         $roleId = Role::where('name', '=', 'estudiante')->firstOrFail()->id;
 
