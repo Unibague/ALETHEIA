@@ -338,6 +338,7 @@ export default {
                 this.createRoleDialog = false;
                 this.snackbar.text = request.data.message;
                 this.snackbar.status = true;
+                this.snackbar.color='success';
                 this.getAllRoles();
             } catch (e) {
                 this.snackbar.text = e.response.data.message;

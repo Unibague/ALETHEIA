@@ -39,6 +39,8 @@ class AuthController extends Controller
         if ($user->isStudent()) {
             return redirect()->route('tests.index.view');
         }
+
+
     }
 
     public function redirectGoogleLogin()

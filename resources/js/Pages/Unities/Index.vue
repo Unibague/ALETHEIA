@@ -4,7 +4,7 @@
                   :show="snackbar.status" @closeSnackbar="snackbar.status = false"></Snackbar>
 
         <v-container>
-            <div class="d-flex flex-column align-end mb-8">
+            <div class="d-flex flex-column align-end mb-7">
                 <h2 class="align-self-start">Gestionar unidades</h2>
                 <div>
                     <v-btn
@@ -12,6 +12,15 @@
                     >
                         Sincronizar unidades
                     </v-btn>
+
+                    <v-btn
+                        color="primario"
+                        class="grey--text text--lighten-4 ml-4"
+                        @click="syncStaffMembers"
+                    >
+                        Sincronizar Funcionarios
+                    </v-btn>
+
                     <v-btn
                         color="primario"
                         class="grey--text text--lighten-4 ml-4"
@@ -19,6 +28,8 @@
                     >
                         Crear nueva unidad
                     </v-btn>
+
+
                 </div>
             </div>
 
@@ -39,14 +50,22 @@
                 loading-text="Cargando, por favor espere..."
                 :loading="isLoading"
                 :headers="headers"
-                :items="units"
+                :items="filteredUnits"
                 :items-per-page="20"
                     :footer-props="{
                         'items-per-page-options': [20,50,100,-1]
                     }"
                 class="elevation-1"
             >
-                <template v-slot:item.type="{ item }">
+
+                    <template v-slot:item.name="{ item }"  >
+
+                        {{ item.name}}
+
+                    </template>
+
+
+                <template v-slot:item.type="{ item }"  >
                     {{ item.is_custom ? 'Personalizada' : 'Integración' }}
                 </template>
 
@@ -55,20 +74,62 @@
                 </template>
 
                 <template v-slot:item.actions="{ item }">
-                    <v-icon
-                        class="mr-2 primario--text"
-                        @click="setUnitDialogToCreateOrEdit('edit',item)"
-                    >
-                        mdi-account-group
-                    </v-icon>
 
-                    <v-icon
-                        v-if="item.is_custom"
-                        class="mr-2 primario--text"
-                        @click="confirmDeleteUnit(item)"
+                    <v-tooltip top
+                               v-if="item.is_custom"
                     >
-                        mdi-delete
-                    </v-icon>
+                        <template v-slot:activator="{on,attrs}">
+
+                                <v-icon
+                                    v-bind="attrs"
+                                    v-on="on"
+                                    class="mr-2 primario--text"
+                                    @click="setUnitDialogToCreateOrEdit('edit',item)"
+                                >
+                                    mdi-pencil
+                                </v-icon>
+
+                        </template>
+                        <span>Editar nombre de unidad personalizada</span>
+                    </v-tooltip>
+
+
+                    <v-tooltip top
+                               v-if="item.is_custom"
+                    >
+                        <template v-slot:activator="{on,attrs}">
+
+                            <v-icon
+                                v-bind="attrs"
+                                v-on="on"
+                                class="mr-2 primario--text"
+                                @click="confirmDeleteUnit(item)"
+                            >
+                                mdi-delete
+                            </v-icon>
+
+                        </template>
+                        <span>Borrar unidad personalizada</span>
+                    </v-tooltip>
+
+                    <v-tooltip top>
+                        <template v-slot:activator="{on,attrs}">
+
+                            <InertiaLink :href="route('units.manageUnit', {unit:item.identifier})">
+
+                                <v-icon
+                                    v-bind="attrs"
+                                    v-on="on"
+                                    class="mr-2 primario--text"
+                                >
+                                    mdi-account-group
+                                </v-icon>
+
+                            </InertiaLink>
+
+                        </template>
+                        <span>Gestionar Unidad</span>
+                    </v-tooltip>
 
                 </template>
             </v-data-table>
@@ -105,6 +166,7 @@
                     </v-card-text>
                     <v-card-actions>
                         <v-spacer></v-spacer>
+
                         <v-btn
                             color="primario"
                             text
@@ -119,6 +181,9 @@
                         >
                             Guardar cambios
                         </v-btn>
+
+
+
                     </v-card-actions>
                 </v-card>
             </v-dialog>
@@ -150,19 +215,24 @@ import ConfirmDialog from "@/Components/ConfirmDialog";
 import Unit from "@/models/Unit";
 import Snackbar from "@/Components/Snackbar";
 
+
 export default {
     components: {
         ConfirmDialog,
         AuthenticatedLayout,
         InertiaLink,
         Snackbar,
+
     },
     data: () => {
         return {
             //Table info
+
+            suitableTeachers: [],
+            teachers: [],
             search:'',
             headers: [
-                {text: 'Nombre', value: 'name'},
+                {text: 'Nombre', value: 'name', align: 'center'},
                 {text: 'Tipo de unidad', value: 'type'},
                 {text: 'Cantidad de docentes', value: 'users'},
                 {text: 'Acciones', value: 'actions', sortable: false},
@@ -185,32 +255,96 @@ export default {
             createOrEditDialog: {
                 model: 'newUnit',
                 method: 'createUnit',
-                dialogStatus: false,
+                    dialogStatus: false,
             },
             isLoading: true,
+
         }
     },
+
+    computed:{
+
+      filteredUnits(){
+
+          return this.units.filter(unit => {
+
+              return unit.users.length>0 || unit.is_custom == 1;
+
+          })
+
+      }
+
+    },
+
+    async mounted(){
+
+
+    },
+
     async created() {
+
+        /*await this.assignTeachers();*/
         await this.getAllUnits();
+        this.capitalize();
         this.isLoading = false;
     },
 
     methods: {
+
+        /*assignTeachers: async function () {
+            try {
+                let request = await axios.post(route('api.units.assign'));
+
+                showSnackbar(this.snackbar, request.data.message, 'success');
+            } catch (e) {
+                showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
+            }
+        },*/
+
+        capitalize(){
+
+            this.units.forEach((unit) => {
+
+                unit.name = unit.name.toLowerCase().split(' ').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+
+            })
+
+        },
+
         syncUnits: async function () {
             try {
                 let request = await axios.post(route('api.units.sync'));
+                console.log(request);
                 showSnackbar(this.snackbar, request.data.message, 'success');
                 await this.getAllUnits();
             } catch (e) {
                 showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
             }
         },
+
+        syncStaffMembers: async function () {
+
+            try {
+                let request = await axios.post(route('api.staffMembers.sync'));
+                console.log(request);
+                showSnackbar(this.snackbar, request.data.message, 'success');
+
+            } catch (e) {
+                showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
+            }
+
+
+        },
+
         confirmDeleteUnit: function (unit) {
-            this.deletedUnitId = unit.id;
+            this.deletedUnitId = unit.identifier;
+            console.log(this.deletedUnitId);
             this.deleteUnitDialog = true;
         },
         deleteUnit: async function (unitId) {
             try {
+
+                console.log(unitId);
                 let request = await axios.delete(route('api.units.destroy', {unit: unitId}));
                 this.deleteUnitDialog = false;
                 showSnackbar(this.snackbar, request.data.message, 'success');
@@ -230,16 +364,17 @@ export default {
                 return;
             }
             let data = this.editedUnit.toObjectRequest();
-            try {
-                let request = await axios.patch(route('api.units.update', {'unit': this.editedUnit.id}), data);
+
+                console.log(this.editedUnit);
+                let request = await axios.patch(route('api.units.update', {'unit': this.editedUnit.code}),data);
                 this.createOrEditDialog.dialogStatus = false;
                 showSnackbar(this.snackbar, request.data.message, 'success');
                 this.getAllUnits();
                 //Clear role information
                 this.editedUnit = new Unit();
-            } catch (e) {
-                showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
-            }
+             /*catch {
+                showSnackbar(this.snackbar, prepareErrorText(), 'alert');
+            }*/
         },
 
         createUnit: async function () {
@@ -248,8 +383,10 @@ export default {
                 return;
             }
             let data = this.newUnit.toObjectRequest();
+            console.log(data);
 
             try {
+
                 let request = await axios.post(route('api.units.store'), data);
                 this.createOrEditDialog.dialogStatus = false;
                 showSnackbar(this.snackbar, request.data.message, 'success', 2000);
@@ -260,10 +397,18 @@ export default {
             }
         },
 
+
         getAllUnits: async function () {
+
             let request = await axios.get(route('api.units.index'));
-            this.units = request.data;
+
+            this.units = request.data
+
+            console.log(this.units)
+
         },
+
+
         setUnitDialogToCreateOrEdit(which, item = null) {
             if (which === 'create') {
                 this.createOrEditDialog.method = 'createUnit';
@@ -271,6 +416,7 @@ export default {
                 this.createOrEditDialog.dialogStatus = true;
             }
             if (which === 'edit') {
+
                 this.editedUnit = Unit.fromModel(item);
                 this.createOrEditDialog.method = 'editUnit';
                 this.createOrEditDialog.model = 'editedUnit';
@@ -282,3 +428,5 @@ export default {
 
 }
 </script>
+
+

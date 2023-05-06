@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 /**
  * App\Models\UnityAssessment
@@ -36,6 +37,57 @@ use Illuminate\Database\Eloquent\Model;
 class UnityAssessment extends Model
 {
     use HasFactory;
+
+    protected $guarded = [];
+
+
+    public static function assignRolesToTeacher($beingAssignedUserId, $assignedToUserId, $role): void{
+
+        /*Si ya está asignado al par/jefe que desea asignar, se sale de la funcion*/
+        $record = DB::table('unity_assessments')->where('evaluated_id', $beingAssignedUserId)
+            ->where('evaluator_id', $assignedToUserId)->exists();
+
+        if($record){
+
+            throw new \RuntimeException('Ese docente ya es par/jefe del respectivo docente');
+        }
+
+        if(!$record){
+
+            /*Si ya hay un par o jefe asignado, se encarga de que no se pueda colocar a esa misma persona como jefe o par*/
+            $record = DB::table('unity_assessments')->where('evaluated_id', $beingAssignedUserId)
+                ->where('evaluator_id',$assignedToUserId);
+
+            if($record){
+
+                UnityAssessment::updateOrCreate(
+                    ['evaluated_id' => $beingAssignedUserId,
+                        'role' => $role],
+                    [ 'evaluator_id' => $assignedToUserId,
+                        'pending' => true]);
+
+            }
+        }
+
+    }
+
+    public static function getAllAssignments(){
+
+           return self::get();
+    }
+
+
+    public static function getUnitAssignments($unitTeachersId){
+
+        $finalTeachers = DB::table('unity_assessments')
+            ->whereIn('unity_assessments.evaluated_id', $unitTeachersId)
+            ->join('users','users.id','unity_assessments.evaluator_id')->get();
+
+        return $finalTeachers;
+
+    }
+
+
     public function evaluated(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(User::class,'evaluated_id');

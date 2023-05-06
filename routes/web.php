@@ -46,9 +46,49 @@ Route::post('/api/academicPeriods/sync', [\App\Http\Controllers\AcademicPeriodCo
 /* >>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Units routes <<<<<<<<<<<<<<<<<<<<<<<<<<< */
 Route::inertia('/units', 'Unities/Index')->middleware(['auth', 'isAdmin'])->name('unities.index.view');
 Route::resource('api/units', \App\Http\Controllers\UnitController::class, [
-    'as' => 'api'
-])->middleware('auth');
+    'as' => 'api'])->middleware('auth');
+
 Route::post('/api/units/sync', [\App\Http\Controllers\UnitController::class, 'sync'])->middleware(['auth'])->name('api.units.sync');
+Route::post('/api/units/assign', [\App\Http\Controllers\UnitController::class, 'assign'])->middleware(['auth'])->name('api.units.assign');
+Route::post('/api/units/transfer', [\App\Http\Controllers\UnitController::class, 'transferTeacherToUnit'])->middleware(['auth'])->name('api.units.transfer');
+
+//Sync staffMembers
+Route::post('api/staffMembers/sync', [\App\Http\Controllers\UnitController::class, 'syncStaffMembers'])->middleware(['auth'])->name('api.staffMembers.sync');
+Route::get('staffMembers/index', [\App\Http\Controllers\UnitController::class, 'getStaffMembersFromDB'])->middleware(['auth'])->name('staffMembers.index');
+
+
+//assignUnitAdmin
+Route::post('/api/units/assignUnitAdmin', [\App\Http\Controllers\UnitController::class, 'assignUnitAdmin'])->middleware(['auth'])->name('api.units.assignUnitAdmin');
+
+//getUnitAdmin
+Route::post('/units/unitAdmin', [\App\Http\Controllers\UnitController::class, 'getUnitAdmin'])->middleware(['auth'])->name('units.unitAdmin.index');
+
+
+//TODO PARA NO OLVIDAR
+Route::get('/units/{unit}', [\App\Http\Controllers\UnitController::class, 'edit'])->middleware(['auth', 'isAdmin'])->name('units.manageUnit');
+
+
+Route::get('/api/units/{unitId}', [\App\Http\Controllers\UnitController::class, 'show'])->name('api.units.teachers')->middleware(['auth']);
+
+
+Route::get('/units/{unitId}/manage', [\App\Http\Controllers\UnitController::class, 'manageRoles'])->middleware(['auth', 'isAdmin'])->name('units.roles.manage');
+
+
+Route::get('/units/{unitId}/assessmentStatus', [\App\Http\Controllers\UnitController::class, 'assessmentStatus'])->middleware(['auth', 'isAdmin'])->name('units.assessment.status');
+
+
+Route::get('/api/suitableTeachers', [\App\Http\Controllers\UnitController::class, 'getSuitableTeachers'])->middleware(['auth'])->name('api.suitableTeachers');
+
+
+/* >>>>>>>>>>>>>>>>>>>>>>>>> Unity Assessment routes <<<<<<<<<<<<<<<<<<<<<<<<< */
+
+
+Route::post('/unity/assignRoles', [\App\Http\Controllers\UnityAssessmentController::class, 'store'])->middleware(['auth'])->name('unity.roles.assignment');
+
+Route::get('api/unity/allAssignments', [\App\Http\Controllers\UnityAssessmentController::class, 'index'])->middleware(['auth'])->name('api.unity.roles.assignment');
+
+Route::post('api/unity/unitAssignments', [\App\Http\Controllers\UnityAssessmentController::class, 'getUnitAssignments'])->middleware(['auth'])->name('api.unity.roles.unitAssignments');
+
 
 /* >>>>>>>>>>>>>>>>>>>>>>>>> Service Areas routes <<<<<<<<<<<<<<<<<<<<<<<<< */
 Route::inertia('/serviceAreas', 'ServiceAreas/Index')->middleware(['auth', 'isAdmin'])->name('serviceAreas.index.view');
@@ -91,6 +131,10 @@ Route::resource('api/teachers', \App\Http\Controllers\TeacherProfileController::
     'as' => 'api'
 ])->middleware('auth');
 Route::post('/api/teachers/sync', [\App\Http\Controllers\TeacherProfileController::class, 'sync'])->middleware(['auth'])->name('api.teachers.sync');
+Route::get('/teachers/suitableList', [\App\Http\Controllers\TeacherProfileController::class, 'getSuitableList'])->middleware(['auth'])->name('teachers.getSuitableList');
+
+
+/* >>>>>>>>>>>>>>>>>>>>>>>>StaffMembers routes <<<<<<<<<<<<<<<<<<<<<<<<<<<< */
 
 
 /* >>>>>>>>>>>>>>>>>>>>>>>>>>>> Test routes  (students) <<<<<<<<<<<<<<<<<<<<<<<<<<< */
@@ -132,3 +176,55 @@ Route::post('/logout', [\App\Http\Controllers\AuthController::class, 'logout'])-
 Route::get('/google/callback', [\App\Http\Controllers\AuthController::class, 'handleGoogleCallback']);
 Route::get('/pickRole', [\App\Http\Controllers\AuthController::class, 'pickRole'])->name('pickRole');
 
+
+Route::get('/migrateToV2', function () {
+
+
+    $units = DB::table('units')->get();
+    $now = \Carbon\Carbon::now()->toDateTimeString();
+
+    foreach ($units as $unit) {
+
+        $unitIdentifier = $unit->code . "-" . $unit->assessment_period_id;
+
+        DB::table('v2_units')
+            ->insert(
+                [
+                    'identifier' => $unitIdentifier,
+                    'code' => $unit->code,
+                    'name' => $unit->name,
+                    'assessment_period_id' => $unit->assessment_period_id,
+                    'is_custom' => $unit->is_custom,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]
+            );
+    }
+
+    $teacherProfiles = DB::table('teacher_profiles')->get();
+
+    foreach ($teacherProfiles as $teacherProfile) {
+
+        if($teacherProfile->unit_code==""){
+            continue;
+        }
+
+        $unitIdentifier = $teacherProfile->unit_code . "-" . $teacherProfile->assessment_period_id;
+
+        DB::table('v2_teacher_profiles')->insert(
+            [
+                'assessment_period_id' => $teacherProfile->assessment_period_id,
+                'identification_number' => $teacherProfile->identification_number,
+                'user_id' => $teacherProfile->user_id,
+                'unit_identifier' => $unitIdentifier,
+                'position' => $teacherProfile->position,
+                'teaching_ladder' => $teacherProfile->teaching_ladder,
+                'employee_type' => $teacherProfile->employee_type,
+                'status' => $teacherProfile->status,
+                'created_at' => $now,
+                'updated_at' => $now
+            ]
+        );
+    }
+
+});

@@ -45,6 +45,7 @@ class GroupController extends Controller
             $groups = AtlanteProvider::get('groups', [
                 'periods' => $namesSeparatedByCommas,
             ], true);
+
             Group::createOrUpdateFromArray($groups, explode(',', $namesSeparatedByCommas));
         } catch (\JsonException $e) {
             return response()->json(['message' => 'Ha ocurrido un error con la fuente de datos: ' . $e->getMessage()]);

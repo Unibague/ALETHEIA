@@ -22,8 +22,8 @@ class DatabaseSeeder extends Seeder
 
         //Create admin user
         $user = User::create([
-            'name' => 'Sebastian Ospina',
-            'email' => 'juan.ospina@unibague.edu.co',
+            'name' => 'Desarrollador G3',
+            'email' => 'desarrolladorg3@unibague.edu.co',
             'password' => '12345',
         ]);
 
