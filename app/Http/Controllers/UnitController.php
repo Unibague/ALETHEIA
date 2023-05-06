@@ -30,16 +30,6 @@ class UnitController extends Controller
     public function index(): JsonResponse
     {
 
-     /*   $unit = Unit::where('code',"018")
-            ->first();
-
-        dd($unit->users);
-
-        $unit = DB::table('units')->where('code',"018")
-            ->join('unit_user','unit_user.unit_identifier','=','units.identifier')->get();*/
-
-
-
         return response()->json(Unit::getCurrentUnits());
     }
 
@@ -154,7 +144,7 @@ class UnitController extends Controller
         $unit = $request->input('unitIdentifier');
         $userId = $request->input('userId');
 
-        $user = DB::table('unit_user')->where([['user_id', $userId], ['unit_identifier', $unit]])->first();
+        $user = DB::table('v2_unit_user')->where([['user_id', $userId], ['unit_identifier', $unit]])->first();
 
         if ($user) {
             return response()->json(['message' => 'El docente ya se encuentra en la unidad a la que desea transferir'], 500);

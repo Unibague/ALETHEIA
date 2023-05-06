@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateUnitsTable extends Migration
+class CreateV2UnitsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,11 +13,12 @@ class CreateUnitsTable extends Migration
      */
     public function up()
     {
-        Schema::create('units', function (Blueprint $table) {
-            $table->primary(['code', 'assessment_period_id']);
+        Schema::create('v2_units', function (Blueprint $table) {
+            $table->primary('identifier');
             $table->string('code');
             $table->string('name');
             $table->foreignId('assessment_period_id')->constrained();
+            $table->string('identifier');
             $table->boolean('is_custom');
             $table->timestamps();
         });
@@ -30,6 +31,6 @@ class CreateUnitsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('units');
+        Schema::dropIfExists('v2_units');
     }
 }

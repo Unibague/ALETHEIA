@@ -65,7 +65,7 @@ Route::post('/units/unitAdmin', [\App\Http\Controllers\UnitController::class, 'g
 
 
 //TODO PARA NO OLVIDAR
-Route::get('/units/{unit}',[\App\Http\Controllers\UnitController::class, 'edit'])->middleware(['auth', 'isAdmin'])->name('units.manageUnit');
+Route::get('/units/{unit}', [\App\Http\Controllers\UnitController::class, 'edit'])->middleware(['auth', 'isAdmin'])->name('units.manageUnit');
 
 
 Route::get('/api/units/{unitId}', [\App\Http\Controllers\UnitController::class, 'show'])->name('api.units.teachers')->middleware(['auth']);
@@ -88,9 +88,6 @@ Route::post('/unity/assignRoles', [\App\Http\Controllers\UnityAssessmentControll
 Route::get('api/unity/allAssignments', [\App\Http\Controllers\UnityAssessmentController::class, 'index'])->middleware(['auth'])->name('api.unity.roles.assignment');
 
 Route::post('api/unity/unitAssignments', [\App\Http\Controllers\UnityAssessmentController::class, 'getUnitAssignments'])->middleware(['auth'])->name('api.unity.roles.unitAssignments');
-
-
-
 
 
 /* >>>>>>>>>>>>>>>>>>>>>>>>> Service Areas routes <<<<<<<<<<<<<<<<<<<<<<<<< */
@@ -137,24 +134,7 @@ Route::post('/api/teachers/sync', [\App\Http\Controllers\TeacherProfileControlle
 Route::get('/teachers/suitableList', [\App\Http\Controllers\TeacherProfileController::class, 'getSuitableList'])->middleware(['auth'])->name('teachers.getSuitableList');
 
 
-
-
 /* >>>>>>>>>>>>>>>>>>>>>>>>StaffMembers routes <<<<<<<<<<<<<<<<<<<<<<<<<<<< */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 /* >>>>>>>>>>>>>>>>>>>>>>>>>>>> Test routes  (students) <<<<<<<<<<<<<<<<<<<<<<<<<<< */
@@ -166,10 +146,6 @@ Route::get('/tests/{testId}/preview', [\App\Http\Controllers\TestsController::cl
 Route::resource('api/tests', \App\Http\Controllers\TestsController::class, [
     'as' => 'api'
 ])->middleware('auth');
-
-
-
-
 
 
 /* >>>>>>>>>>>>>>>>>>>>>>>>Roles routes <<<<<<<<<<<<<<<<<<<<<<<<<<<< */
@@ -200,3 +176,55 @@ Route::post('/logout', [\App\Http\Controllers\AuthController::class, 'logout'])-
 Route::get('/google/callback', [\App\Http\Controllers\AuthController::class, 'handleGoogleCallback']);
 Route::get('/pickRole', [\App\Http\Controllers\AuthController::class, 'pickRole'])->name('pickRole');
 
+
+Route::get('/migrateToV2', function () {
+
+
+    $units = DB::table('units')->get();
+    $now = \Carbon\Carbon::now()->toDateTimeString();
+
+    foreach ($units as $unit) {
+
+        $unitIdentifier = $unit->code . "-" . $unit->assessment_period_id;
+
+        DB::table('v2_units')
+            ->insert(
+                [
+                    'identifier' => $unitIdentifier,
+                    'code' => $unit->code,
+                    'name' => $unit->name,
+                    'assessment_period_id' => $unit->assessment_period_id,
+                    'is_custom' => $unit->is_custom,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]
+            );
+    }
+
+    $teacherProfiles = DB::table('teacher_profiles')->get();
+
+    foreach ($teacherProfiles as $teacherProfile) {
+
+        if($teacherProfile->unit_code==""){
+            continue;
+        }
+
+        $unitIdentifier = $teacherProfile->unit_code . "-" . $teacherProfile->assessment_period_id;
+
+        DB::table('v2_teacher_profiles')->insert(
+            [
+                'assessment_period_id' => $teacherProfile->assessment_period_id,
+                'identification_number' => $teacherProfile->identification_number,
+                'user_id' => $teacherProfile->user_id,
+                'unit_identifier' => $unitIdentifier,
+                'position' => $teacherProfile->position,
+                'teaching_ladder' => $teacherProfile->teaching_ladder,
+                'employee_type' => $teacherProfile->employee_type,
+                'status' => $teacherProfile->status,
+                'created_at' => $now,
+                'updated_at' => $now
+            ]
+        );
+    }
+
+});

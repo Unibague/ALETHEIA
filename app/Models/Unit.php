@@ -42,6 +42,7 @@ use mysql_xdevapi\Table;
  */
 class Unit extends Model
 {
+    protected $table = 'v2_units';
     protected $guarded = [];
     protected $primaryKey = 'identifier';
     public $incrementing = false;
@@ -74,7 +75,7 @@ class Unit extends Model
                 'assessment_period_id' => $assessmentPeriodId
             ];
 
-            DB::table('units')->upsert($upsertData, $identifier, ['name', 'is_custom', 'assessment_period_id']);
+            DB::table('v2_units')->upsert($upsertData, $identifier, ['name', 'is_custom', 'assessment_period_id']);
 
         }
 
@@ -82,7 +83,7 @@ class Unit extends Model
 
     public static function transferTeacherToSelectedUnit($unit, $userId): void{
 
-        DB::table('unit_user')->updateOrInsert(
+        DB::table('v2_unit_user')->updateOrInsert(
 
             ['user_id' => $userId],
             ['unit_identifier' => $unit]
@@ -91,7 +92,7 @@ class Unit extends Model
     }
     public static function getUnitInfo($unitIdentifier){
 
-        return self::where('units.identifier', $unitIdentifier)
+        return self::where('identifier', $unitIdentifier)
             ->with('users.teacherProfile')->get();
 
     }
@@ -103,13 +104,13 @@ class Unit extends Model
 
         $suitableTeachingLadders = $activeAssessmentPeriod->getSuitableTeachingLadders();
 
-         $teachers = DB::table('units')
+         $teachers = DB::table('v2_units')
             ->where('units.assessment_period_id','=', $activeAssessmentPeriod->id)
-            ->join('unit_user','unit_user.unit_identifier','=','units.identifier')
-            ->join('users','users.id','=','unit_user.user_id')
-            ->join('teacher_profiles','teacher_profiles.user_id','=','users.id')
-            ->where('teacher_profiles.employee_type','DTC',)
-            ->whereIn('teacher_profiles.teaching_ladder', $suitableTeachingLadders)->get();
+            ->join('v2_unit_user','v2_unit_user.unit_identifier','=','units.identifier')
+            ->join('users','users.id','=','v2_unit_user.user_id')
+            ->join('v2_teacher_profiles','v2_teacher_profiles.user_id','=','users.id')
+            ->where('v2_teacher_profiles.employee_type','DTC',)
+            ->whereIn('v2_teacher_profiles.teaching_ladder', $suitableTeachingLadders)->get();
 
     }
 
@@ -166,7 +167,7 @@ class Unit extends Model
 /*    Recuerda, solo puede haber un administrador por unidad,
             pero una persona puede administrar varias unidades    */
 
-        DB::table('unit_user')
+        DB::table('v2_unit_user')
             ->updateOrInsert(['unit_identifier' => $unitId, 'role_id' => $roleId] , ['user_id' => $userId]);
 
     }
@@ -176,10 +177,9 @@ class Unit extends Model
 
        $unitAdminRole = Role::getUnitAdminRoleId();
 
-       return DB::table('unit_user')->where('unit_identifier',$unitIdentifier)
+       return DB::table('v2_unit_user')->where('unit_identifier',$unitIdentifier)
            ->where('role_id',$unitAdminRole)
-           ->join('users','users.id','unit_user.user_id')->select('name', 'user_id')->get();
-
+           ->join('users','users.id','=','v2_unit_user.user_id')->select('name', 'user_id')->get();
 
 
     }
@@ -187,7 +187,7 @@ class Unit extends Model
 
     public function users(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
-        return $this->belongsToMany(User::class,'unit_user','unit_identifier','user_id', 'identifier', 'id')->withPivot(['role_id']);;
+        return $this->belongsToMany(User::class,'v2_unit_user','unit_identifier','user_id', 'identifier', 'id')->withPivot(['role_id']);;
     }
 
     public function forms(): \Illuminate\Database\Eloquent\Relations\HasMany

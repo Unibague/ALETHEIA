@@ -45,6 +45,7 @@ use Illuminate\Support\Facades\Hash;
  */
 class TeacherProfile extends Model
 {
+    protected $table = 'v2_teacher_profiles';
     protected $guarded = [];
     use HasFactory;
 
@@ -135,20 +136,18 @@ class TeacherProfile extends Model
 
         $roleId = Role::getTeacherRoleId();
 
-
-
             DB::table('role_user')->updateOrInsert(
                 ['user_id' => $userId,
                     'role_id' => $roleId]
             );
 
 
-            $user = DB::table('unit_user')->where('user_id',$userId)
-                ->where('role_id', $roleId)->get();
+            $user = DB::table('v2_unit_user')->where('user_id',$userId)
+                ->where('role_id', $roleId)->first();
 
             if (!$user){
 
-                DB::table('unit_user')->updateOrInsert(
+                DB::table('v2_unit_user')->updateOrInsert(
                     ['user_id' => $userId , 'role_id' => $roleId],
                     ['unit_identifier' => $unitIdentifier]
                 );
@@ -177,13 +176,13 @@ class TeacherProfile extends Model
 
         $suitableTeachingLadders = $activeAssessmentPeriod->getSuitableTeachingLadders();
 
-        $teachers = DB::table('units')
-            ->where('units.assessment_period_id','=', $activeAssessmentPeriod->id)
-            ->join('unit_user','unit_user.unit_identifier','=','units.identifier')
-            ->join('users','users.id','=','unit_user.user_id')
-            ->join('teacher_profiles','teacher_profiles.user_id','=','users.id')
-            ->whereIn('teacher_profiles.employee_type',['DTC','ESI'])
-            ->whereIn('teacher_profiles.teaching_ladder', $suitableTeachingLadders)->get();
+        $teachers = DB::table('v2_units')
+            ->where('v2_units.assessment_period_id','=', $activeAssessmentPeriod->id)
+            ->join('v2_unit_user','v2_unit_user.unit_identifier','=','v2_units.identifier')
+            ->join('users','users.id','=','v2_unit_user.user_id')
+            ->join('v2_teacher_profiles','v2_teacher_profiles.user_id','=','users.id')
+            ->whereIn('v2_teacher_profiles.employee_type',['DTC','ESI'])
+            ->whereIn('v2_teacher_profiles.teaching_ladder', $suitableTeachingLadders)->get();
 
     }
 
