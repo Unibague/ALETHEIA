@@ -130,6 +130,36 @@ class UnitController extends Controller
 
     }
 
+
+    public function deleteUnitAdmin(Request $request): JsonResponse
+
+    {
+        $unitId = $request->input('unitIdentifier');
+        $userId = $request->input('userId');
+        $adminRoleId = Role::getUnitAdminRoleId();
+
+        DB::table('v2_unit_user')->where('user_id', $userId)
+            ->where('unit_identifier', $unitId)->where('role_id', $adminRoleId)->delete();
+
+        $user = DB::table('v2_unit_user')
+            ->where('user_id',$userId)->where('role_id', $adminRoleId)->get();
+
+        if($user->count() == 0){
+
+            DB::table('role_user')->where('user_id',$userId)->where('role_id',$adminRoleId)->delete();
+
+        }
+/*
+        if ($unit->is_custom === 1) {
+            $unit->delete();
+            return response()->json(['message' => 'Unidad eliminada exitosamente']);
+        }*/
+        return response()->json(['message' => 'Adminstrador de unidad eliminado exitosamente']);
+    }
+
+
+
+
     public function getUnitAdmin(Request $request): JsonResponse{
 
         $unitId = $request->input('unitId');
@@ -273,6 +303,8 @@ class UnitController extends Controller
         }
         return response()->json(['message' => 'No se ha podido eliminar, la unidad no es personalizada'], 400);
     }
+
+
 
 
 

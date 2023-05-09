@@ -59,14 +59,12 @@ class Role extends Model
 
     }
 
-    public static function getUnitAdminRoleId(): int
+    public static function getRoleIdByName(string $roleName): int
     {
-        $unitAdminRole = DB::table('roles')->select('id')->where('name','administrador de unidad')->first();
 
-        return $unitAdminRole->id;
+        return DB::table('roles')->select('id')->where('name',$roleName)->first()->id;
 
     }
-
 
     public static function getRoleNumber(string $roleName): int
     {

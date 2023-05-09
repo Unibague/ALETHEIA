@@ -59,7 +59,25 @@
                     <template v-slot:item.actions="{ item }">
 
 
-                        <span v-if="item.pivot.role_id!==teacherRoleId"> No disponible </span>
+<!--                        <span v-if="item.pivot.role_id!==teacherRoleId"> No disponible </span>-->
+
+
+                        <v-tooltip top v-if="item.pivot.role_id!==teacherRoleId" >
+                            <template v-slot:activator="{on,attrs}">
+
+                                <v-icon
+                                    v-bind="attrs"
+                                    v-on="on"
+                                    class="primario--text align-center"
+                                    @click="confirmDeleteUnitAdmin(item.id)"
+                                >
+                                    mdi-delete
+                                </v-icon>
+
+                            </template>
+                            <span>Eliminar administrador de unidad</span>
+                        </v-tooltip>
+
 
 
                         <v-tooltip top v-if="item.pivot.role_id===teacherRoleId">
@@ -194,6 +212,23 @@
                 </v-card>
             </v-dialog>
 
+            <confirm-dialog
+                :show="deleteUnitAdminDialog"
+                @canceled-dialog="deleteUnitAdminDialog = false"
+                @confirmed-dialog="deleteUnitAdmin()"
+            >
+                <template v-slot:title>
+                    Estás a punto de eliminar al administrador seleccionado
+                </template>
+
+                <h4 class="mt-2"> Ten cuidado, esta acción es irreversible </h4>
+
+                <template v-slot:confirm-button-text>
+                    Borrar
+                </template>
+            </confirm-dialog>
+
+
 
 
         </v-container>
@@ -238,6 +273,8 @@ export default {
             selectedUnit: {title: '', value:''},
             unitAdmin: {name: '', id: ''},
             units:[],
+            deletedUnitAdminId: 0,
+            deleteUnitAdminDialog: false,
             listOfUnits:[],
             teachers: [],
             transferTeacherDialog: false,
@@ -249,7 +286,7 @@ export default {
                 {text: 'Nombre', value: 'name'},
                 {text: 'Dependencia', value: 'unitName'},
                 {text: 'Cargo', value: 'position'},
-                {text: 'Transferir a otra unidad', value: 'actions', sortable: false},
+                {text: 'Transferir Docente/Eliminar Administrador', value: 'actions', width: '10%', sortable: false},
             ],
 
 
@@ -401,7 +438,7 @@ export default {
 
             await this.getStaffMembersAndSortAlphabetically();
 
-            await this.retrieveUnitAdmin(this.currentUnit.identifier);
+/*            await this.retrieveUnitAdmin(this.currentUnit.identifier);*/
 
         },
 
@@ -468,6 +505,7 @@ export default {
             }
 
         },
+/*
 
         retrieveUnitAdmin: async function ($unitIdentifier){
 
@@ -495,6 +533,7 @@ export default {
 
             }
         },
+*/
 
         getTeacherRoleId: async function(){
 
@@ -513,7 +552,40 @@ export default {
 
                 console.log(this.teacherRoleId);
 
+        },
+
+
+        confirmDeleteUnitAdmin: function (userId) {
+            this.deletedUnitAdminId = userId;
+            console.log(this.deletedUnitAdminId);
+            this.deleteUnitAdminDialog = true;
+        },
+
+        deleteUnitAdmin: async function(){
+
+            console.log(this.deletedUnitAdminId);
+
+            let data = {
+                unitIdentifier: this.currentUnit.identifier,
+                userId: this.deletedUnitAdminId
+            }
+
+            let url = route('unit.deleteUnitAdmin');
+
+            let request = await axios.post(url, data);
+
+            await this.getTeachersFromCurrentUnit();
+
+            this.deleteUnitAdminDialog = false;
+
+            showSnackbar(this.snackbar, request.data.message, 'success');
+
+
         }
+
+
+
+
 
 }
 

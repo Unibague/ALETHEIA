@@ -71,6 +71,42 @@ class UnityAssessment extends Model
 
     }
 
+
+    public static function removeAssignment($beingAssignedUserId, $assignedToUserId, $role): void{
+
+        $record = DB::table('unity_assessments')->where('evaluated_id', $beingAssignedUserId)
+            ->where('evaluator_id', $assignedToUserId)->where('role', $role)->first();
+
+        if($record){
+
+            DB::table('unity_assessments')->where('evaluated_id', $beingAssignedUserId)
+                ->where('evaluator_id', $assignedToUserId)->where('role', $role)->delete();
+
+        }
+
+        if($role == "jefe"){
+
+            $role= "jefe de profesor";
+
+        }
+
+        $roleId = Role::getRoleIdByName($role);
+
+        $user = DB::table('v2_unit_user')
+            ->where('user_id',$assignedToUserId)->where('role_id', $roleId)->get();
+
+        if($user->count() == 0){
+
+            DB::table('role_user')
+                ->where('user_id',$assignedToUserId)->where('role_id',$roleId)->delete();
+
+        }
+
+
+    }
+
+
+
     public static function getAllAssignments(){
 
            return self::get();

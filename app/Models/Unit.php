@@ -168,7 +168,7 @@ class Unit extends Model
             pero una persona puede administrar varias unidades    */
 
         DB::table('v2_unit_user')
-            ->updateOrInsert(['unit_identifier' => $unitId, 'role_id' => $roleId] , ['user_id' => $userId]);
+            ->updateOrInsert(['unit_identifier' => $unitId, 'role_id' => $roleId, 'user_id' => $userId]);
 
     }
 
