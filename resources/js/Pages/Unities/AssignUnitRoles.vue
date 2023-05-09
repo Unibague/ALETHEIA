@@ -28,7 +28,7 @@
                             <template v-slot:activator="{on,attrs}">
 
                                 <v-autocomplete
-                                    label="Por favor selecciona un usuario"
+                                    label="Por favor, selecciona un usuario"
                                     :items="listOfTeachers"
                                     v-model="peerSelected[item.id]"
                                     item-text="name"
@@ -37,6 +37,28 @@
                                     single-line
                                     @change="assignRolesToTeacher('par',item.id, peerSelected[item.id].userId)"
                                 ></v-autocomplete>
+
+                                <v-tooltip top>
+
+
+
+
+                                    <template v-slot:activator="{on,attrs}" >
+
+                                        {{typeof peerSelected[item.id]}}
+
+                                        <v-icon
+                                            v-bind="attrs"
+                                            v-on="on"
+                                            class="primario--text mx-auto"
+
+                                            @click="removeAssignedRole('par',item.id, peerSelected[item.id].userId)"
+                                        >
+                                            mdi-delete
+                                        </v-icon>
+                                    </template>
+                                    <span>Eliminar Asignación</span>
+                                </v-tooltip>
 
                             </template>
 
@@ -61,7 +83,26 @@
                                     @change="assignRolesToTeacher('jefe',item.id, bossSelected[item.id].userId)"
                                 ></v-autocomplete>
 
+                                <v-tooltip top >
+
+                                    <template v-slot:activator="{on,attrs}" >
+                                    <v-icon
+                                    v-bind="attrs"
+                                    v-on="on"
+                                    class="primario--text mx-auto"
+
+                                    @click="removeAssignedRole('jefe',item.id, bossSelected[item.id].userId)"
+                                >
+                                    mdi-delete
+                                </v-icon>
+                                    </template>
+                                <span>Eliminar Asignación</span>
+                                </v-tooltip>
+
+
                             </template>
+
+
 
                         </v-tooltip>
 
@@ -98,8 +139,8 @@ export default {
         return {
             //Table info
             rolesRelationsArray: [],
-            peerSelected: [{name:'', userId:''}],
-            bossSelected: [{name:'', userId:''}],
+            peerSelected: [{name:'', userId:'', isFilled: false}],
+            bossSelected: [{name:'', userId:'', isFilled: false}],
             unitAdmin: false,
             unitAdminDialog:false,
             selectedTeacher: '',
@@ -137,18 +178,23 @@ export default {
 
         await this.getTeacherRoleId();
 
+        await this.getTeachersFromCurrentUnit();
+
+        await this.retrieveRolesFromTeachers();
+
     },
 
     async mounted(){
 
-        await this.getTeachersFromCurrentUnit();
 
-        await this.retrieveRolesFromTeachers();
     },
 
 
 
     methods:{
+
+
+
 
         async getTeachersFromCurrentUnit () {
 
@@ -210,8 +256,6 @@ export default {
 
             })
 
-            console.log(this.listOfTeachers);
-
         },
 
         async retrieveRolesFromTeachers (){
@@ -241,7 +285,7 @@ export default {
                                 evaluatorName = evaluatorName[0].name
 
                                 this.peerSelected[relation.evaluated_id] = {userId :relation.evaluator_id,
-                                    name: evaluatorName}
+                                    name: evaluatorName, isFilled:true}
 
                             }
 
@@ -256,7 +300,7 @@ export default {
                                 evaluatorName = evaluatorName[0].name
 
                                 this.bossSelected[relation.evaluated_id] = {userId :relation.evaluator_id,
-                                    name: evaluatorName}
+                                    name: evaluatorName, isFilled:true}
                             }
 
                         }
@@ -266,7 +310,6 @@ export default {
                 })
 
                 console.log(this.peerSelected, this.bossSelected)
-
 
                 showSnackbar(this.snackbar, "Asignaciones cargadas correctamente", 'success');
 
@@ -280,44 +323,65 @@ export default {
 
         async assignRolesToTeacher (which, beingAssignedUserId, assignedToUserId){
 
+            let role = "";
+
             console.log(this.peerSelected);
 
             if (which === 'par'){
 
-                let role = 'par'
+                role = 'par'
+            }
 
-                let data = {role, beingAssignedUserId, assignedToUserId}
+            if(which === 'jefe'){
 
-                let url = route('unity.roles.assignment')
+                role = 'jefe'
+            }
 
-                try {
-                    let request = await axios.post(url, data);
-                    showSnackbar(this.snackbar, request.data.message, 'success');
-                } catch (e) {
-                    showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
-                }
+            let data = {role, beingAssignedUserId, assignedToUserId}
 
+            let url = route('unity.roles.assignment')
+
+            try {
+                let request = await axios.post(url, data);
+                showSnackbar(this.snackbar, request.data.message, 'success');
+            } catch (e) {
+                showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
+            }
+
+
+        },
+
+
+        async removeAssignedRole (which, beingAssignedUserId, assignedToUserId){
+
+            let role = "";
+
+            if (which === 'par'){
+
+                role = 'par'
             }
 
             if (which === 'jefe'){
 
-                let role = 'jefe'
+                role = 'jefe'
+
+            }
 
                 let data = {role, beingAssignedUserId, assignedToUserId}
 
-                let url = route('unity.roles.assignment')
+                let url = route('unity.roles.removeAssignment')
 
                 try {
                     let request = await axios.post(url, data);
+                    location.reload();
+
                     showSnackbar(this.snackbar, request.data.message, 'success');
                 } catch (e) {
                     showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
                 }
 
-
-            }
-
         },
+
 
         capitalize($field){
 
@@ -326,8 +390,6 @@ export default {
         },
 
         getTeacherRoleId: async function(){
-
-
             let request = await axios.get(route('api.roles.index'))
 
             let roles = request.data
@@ -339,8 +401,6 @@ export default {
             })
 
             this.teacherRoleId = teacherRole[0].id;
-
-            console.log(this.teacherRoleId);
 
         }
 

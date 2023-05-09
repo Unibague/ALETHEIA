@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Js;
+use Psy\Util\Json;
 
 class UnityAssessmentController extends Controller
 {
@@ -128,4 +129,19 @@ class UnityAssessmentController extends Controller
     {
         //
     }
+
+    public function removeAssignment(Request $request): JsonResponse
+    {
+
+        $beingAssignedUserId = $request->input('beingAssignedUserId');
+        $assignedToUserId = $request->input('assignedToUserId');
+        $role = $request->input('role');
+
+        UnityAssessment::removeAssignment($beingAssignedUserId,$assignedToUserId, $role );
+
+        return response()->json(['message' => 'Asignación eliminada exitosamente']);
+
+
+    }
+
 }
