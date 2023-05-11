@@ -65,7 +65,7 @@
                     </template>
 
 
-                <template v-slot:item.type="{ item }"  >
+                <template v-slot:item.is_custom="{ item }"  >
                     {{ item.is_custom ? 'Personalizada' : 'Integración' }}
                 </template>
 
@@ -233,7 +233,7 @@ export default {
             search:'',
             headers: [
                 {text: 'Nombre', value: 'name', align: 'center'},
-                {text: 'Tipo de unidad', value: 'type'},
+                {text: 'Tipo de unidad', value: 'is_custom'},
                 {text: 'Cantidad de docentes', value: 'users'},
                 {text: 'Acciones', value: 'actions', sortable: false},
             ],
@@ -276,30 +276,14 @@ export default {
 
     },
 
-    async mounted(){
-
-
-    },
-
     async created() {
 
-        /*await this.assignTeachers();*/
         await this.getAllUnits();
         this.capitalize();
         this.isLoading = false;
     },
 
     methods: {
-
-        /*assignTeachers: async function () {
-            try {
-                let request = await axios.post(route('api.units.assign'));
-
-                showSnackbar(this.snackbar, request.data.message, 'success');
-            } catch (e) {
-                showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
-            }
-        },*/
 
         capitalize(){
 
@@ -315,8 +299,9 @@ export default {
             try {
                 let request = await axios.post(route('api.units.sync'));
                 console.log(request);
-                showSnackbar(this.snackbar, request.data.message, 'success');
                 await this.getAllUnits();
+                showSnackbar(this.snackbar, request.data.message, 'success');
+
             } catch (e) {
                 showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
             }
@@ -350,7 +335,7 @@ export default {
                 showSnackbar(this.snackbar, request.data.message, 'success');
                 this.getAllUnits();
             } catch (e) {
-                showSnackbar(this.snackbar, e.response.data.message, 'red', 3000);
+                showSnackbar(this.snackbar, e.response.data.message, 'red', 10000);
             }
 
         },
@@ -365,8 +350,8 @@ export default {
             }
             let data = this.editedUnit.toObjectRequest();
 
-                console.log(this.editedUnit);
-                let request = await axios.patch(route('api.units.update', {'unit': this.editedUnit.code}),data);
+                console.log(data);
+                let request = await axios.patch(route('api.units.update', {'unit': this.editedUnit.identifier}),data);
                 this.createOrEditDialog.dialogStatus = false;
                 showSnackbar(this.snackbar, request.data.message, 'success');
                 this.getAllUnits();
@@ -392,6 +377,7 @@ export default {
                 showSnackbar(this.snackbar, request.data.message, 'success', 2000);
                 this.getAllUnits();
                 this.newUnit = new Unit();
+
             } catch (e) {
                 showSnackbar(this.snackbar, e.response.data.message, 'alert', 3000);
             }
@@ -403,6 +389,8 @@ export default {
             let request = await axios.get(route('api.units.index'));
 
             this.units = request.data
+
+            await this.capitalize();
 
             console.log(this.units)
 

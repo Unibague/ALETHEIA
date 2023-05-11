@@ -138,22 +138,22 @@ class UnitController extends Controller
         $userId = $request->input('userId');
         $adminRoleId = Role::getUnitAdminRoleId();
 
+        //Aqui simplemente eliminamos al usuario de esa unidad con el role de admin de unidad.
         DB::table('v2_unit_user')->where('user_id', $userId)
             ->where('unit_identifier', $unitId)->where('role_id', $adminRoleId)->delete();
 
+
+        //Ya aquí estamos comprobando si ese usuario sigue siendo admin en otra unidad cualquiera...
         $user = DB::table('v2_unit_user')
             ->where('user_id',$userId)->where('role_id', $adminRoleId)->get();
 
+        //Si entra aquí es porque ya no es admin en niguna otra... entonces le quitamos ese role en la tabla de role_user
         if($user->count() == 0){
 
             DB::table('role_user')->where('user_id',$userId)->where('role_id',$adminRoleId)->delete();
 
         }
-/*
-        if ($unit->is_custom === 1) {
-            $unit->delete();
-            return response()->json(['message' => 'Unidad eliminada exitosamente']);
-        }*/
+
         return response()->json(['message' => 'Adminstrador de unidad eliminado exitosamente']);
     }
 
@@ -236,7 +236,7 @@ class UnitController extends Controller
     {
 
         $unit->update($request->all());
-        return response()->json(['message' => 'Unidad actualizadas correctamente']);
+        return response()->json(['message' => 'Unidad actualizada correctamente']);
     }
 
     public function edit($unit)
@@ -296,6 +296,13 @@ class UnitController extends Controller
     public function destroy(DestroyUnityRequest $request, Unit $unit): JsonResponse
 
     {
+
+
+        if($unit->users->count()>0){
+
+            return response()->json(['message' => 'No puedes eliminar una unidad con usuarios adentro'], 400);
+
+        }
 
         if ($unit->is_custom === 1) {
             $unit->delete();

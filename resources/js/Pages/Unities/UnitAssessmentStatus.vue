@@ -25,7 +25,7 @@
                 >
                     <template v-slot:item.pair="{ item }">
 
-                        {{item.pair ? item.pair : "No asignado aún"}}
+                        {{item.pair ? item.pair : ""}}
 
                         <v-icon
                             color="red"
@@ -53,7 +53,7 @@
                     <template v-slot:item.boss="{ item }">
 
 
-                        {{item.boss ? item.boss : 'No asignado aún'}}
+                        {{item.boss ? item.boss : "" }}
 
                         <v-icon
                             color="red"
@@ -292,14 +292,6 @@ export default {
                 showSnackbar(this.snackbar, "Estado de evaluación cargado correctamente", 'success');
 
         },
-
-
-     /*   getTeacherNameById($id){
-
-
-
-
-        }*/
 
 
         capitalize($field){

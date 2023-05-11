@@ -10,6 +10,7 @@ use App\Http\Requests\StoreGroupRequest;
 use App\Http\Requests\UpdateGroupRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class GroupController extends Controller
 {
@@ -45,6 +46,18 @@ class GroupController extends Controller
             $groups = AtlanteProvider::get('groups', [
                 'periods' => $namesSeparatedByCommas,
             ], true);
+
+
+        foreach ($groups as $key=>$group){
+
+
+            if($groups[$key]['teacher_email'] == ""){
+
+                $groups[$key]['teacher_email'] = null;
+
+            }
+
+            }
 
             Group::createOrUpdateFromArray($groups, explode(',', $namesSeparatedByCommas));
         } catch (\JsonException $e) {

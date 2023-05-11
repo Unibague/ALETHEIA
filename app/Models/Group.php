@@ -92,12 +92,16 @@ class Group extends Model
         }, []);
 
         $possibleTeachers = array_unique(array_column($groups, 'teacher_email'));
+
         $teachers = User::whereIn('email', $possibleTeachers)->get()->toArray();
+
         $teacherAreaNameAndId = array_reduce($teachers, static function ($result, $teacher) {
             $result[$teacher['email']] = $teacher['id'];
             return $result;
         }, []);
+
         $upsertData = [];
+
         foreach ($groups as $group) {
             $upsertData[] = [
                 'group_id' => (int)$group['group_id'],
@@ -111,9 +115,11 @@ class Group extends Model
                 'hour_type' => $group['hour_type'] === '' ? 'normal' : $group['hour_type'],
             ];
         }
+
         /*$justGroupsIds = array_column($upsertData,'group_id');
         dd(array_diff_assoc($justGroupsIds, array_unique($justGroupsIds)));*/
-        self::upsert($upsertData, ['group_id'], ['academic_period_id', 'name', 'class_code', 'degree', 'service_area_code', 'teacher_id', 'hour_type']);
+        self::upsert($upsertData, ['group_id'],
+            ['academic_period_id', 'name', 'class_code', 'degree', 'service_area_code', 'teacher_id', 'hour_type']);
     }
 
     /**

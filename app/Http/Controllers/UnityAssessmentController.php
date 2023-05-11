@@ -80,7 +80,7 @@ class UnityAssessmentController extends Controller
             return response()->json(['message' => $e->getMessage()], 500);
         }
 
-        return response()->json(['message' => 'Asignación correcta']);
+        return response()->json(['message' => 'Asignación guardada correctamente']);
 
 
     }

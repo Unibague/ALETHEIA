@@ -6,7 +6,7 @@
         <v-container>
 
 
-            <h3 class="align-self-start mb-5" > Asignar Pares y Jefes </h3>
+            <h3 class="align-self-start mb-5" > Asignar Pares y Jefes de {{this.currentUnitTitle}}</h3>
 
             <!--Inicia tabla-->
             <v-card>
@@ -26,39 +26,33 @@
 
                         <v-tooltip top>
                             <template v-slot:activator="{on,attrs}">
-
                                 <v-autocomplete
                                     label="Por favor, selecciona un usuario"
                                     :items="listOfTeachers"
                                     v-model="peerSelected[item.id]"
                                     item-text="name"
                                     item-value="id"
+                                    :hint="peerSelected[item.id] ? 'Click al ícono de la derecha para borrar asignación' : ''"
+                                    persistent-hint
                                     return-object
                                     single-line
                                     @change="assignRolesToTeacher('par',item.id, peerSelected[item.id].userId)"
-                                ></v-autocomplete>
+                                >
 
-                                <v-tooltip top>
+                                    <template v-slot:append-outer>
 
+                                            <v-icon
+                                                :color="'info'"
+                                                v-text="'mdi-delete'"
+                                                v-show="peerSelected[item.id]"
+                                                @click="removeAssignedRole('par',item.id, peerSelected[item.id].userId)"
+                                            ></v-icon>
 
-
-
-                                    <template v-slot:activator="{on,attrs}" >
-
-                                        {{typeof peerSelected[item.id]}}
-
-                                        <v-icon
-                                            v-bind="attrs"
-                                            v-on="on"
-                                            class="primario--text mx-auto"
-
-                                            @click="removeAssignedRole('par',item.id, peerSelected[item.id].userId)"
-                                        >
-                                            mdi-delete
-                                        </v-icon>
                                     </template>
-                                    <span>Eliminar Asignación</span>
-                                </v-tooltip>
+
+
+                                </v-autocomplete>
+
 
                             </template>
 
@@ -78,26 +72,25 @@
                                     v-model="bossSelected[item.id]"
                                     item-text="name"
                                     item-value="id"
+                                    :hint="bossSelected[item.id] ? 'Click al ícono de la derecha para borrar asignación' : ''"
+                                    persistent-hint
                                     return-object
                                     single-line
                                     @change="assignRolesToTeacher('jefe',item.id, bossSelected[item.id].userId)"
-                                ></v-autocomplete>
-
-                                <v-tooltip top >
-
-                                    <template v-slot:activator="{on,attrs}" >
-                                    <v-icon
-                                    v-bind="attrs"
-                                    v-on="on"
-                                    class="primario--text mx-auto"
-
-                                    @click="removeAssignedRole('jefe',item.id, bossSelected[item.id].userId)"
                                 >
-                                    mdi-delete
-                                </v-icon>
+
+                                    <template v-slot:append-outer>
+
+                                        <v-icon
+                                            :color="'info'"
+                                            v-text="'mdi-delete'"
+                                            v-show="bossSelected[item.id]"
+                                            @click="removeAssignedRole('jefe',item.id, bossSelected[item.id].userId)"
+                                        ></v-icon>
+
                                     </template>
-                                <span>Eliminar Asignación</span>
-                                </v-tooltip>
+
+                                </v-autocomplete>
 
 
                             </template>
@@ -139,12 +132,13 @@ export default {
         return {
             //Table info
             rolesRelationsArray: [],
-            peerSelected: [{name:'', userId:'', isFilled: false}],
+            peerSelected: {name:'', userId:'', isFilled: false},
             bossSelected: [{name:'', userId:'', isFilled: false}],
             unitAdmin: false,
             unitAdminDialog:false,
             selectedTeacher: '',
             selectedTeacherName: '',
+            currentUnitTitle:'',
             listOfTeachers:[],
             teachers: [],
             currentUnit: '',
@@ -182,19 +176,11 @@ export default {
 
         await this.retrieveRolesFromTeachers();
 
-    },
-
-    async mounted(){
-
 
     },
-
 
 
     methods:{
-
-
-
 
         async getTeachersFromCurrentUnit () {
 
@@ -311,7 +297,7 @@ export default {
 
                 console.log(this.peerSelected, this.bossSelected)
 
-                showSnackbar(this.snackbar, "Asignaciones cargadas correctamente", 'success');
+                showSnackbar(this.snackbar, "Asignaciones cargadas correctamente", 'success', 5000);
 
             } catch (e) {
                 showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
@@ -344,7 +330,8 @@ export default {
             try {
                 let request = await axios.post(url, data);
                 showSnackbar(this.snackbar, request.data.message, 'success');
-            } catch (e) {
+            }
+            catch (e) {
                 showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
             }
 
@@ -402,8 +389,7 @@ export default {
 
             this.teacherRoleId = teacherRole[0].id;
 
-        }
-
+        },
 
 
     }
