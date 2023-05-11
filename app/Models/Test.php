@@ -52,9 +52,18 @@ class Test extends Model
     {
         $user = auth()->user();
         $userGroups = $user->groups;
+
+
+        $userGroups = $userGroups->filter(function($userGroup){
+
+            return $userGroup->teacher_id !== null;
+
+        });
+
         foreach ($userGroups as $group) {
             $group->test = self::getTestFromGroup($group);
         }
+
         return $userGroups;
     }
 

@@ -136,6 +136,7 @@ export default {
         },
         getAllGroups: async function () {
             let request = await axios.get(route('api.tests.index'));
+            console.log(request.data);
             this.tests = request.data;
         },
 

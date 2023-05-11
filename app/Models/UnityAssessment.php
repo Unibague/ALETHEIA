@@ -43,7 +43,12 @@ class UnityAssessment extends Model
 
     public static function assignRolesToTeacher($beingAssignedUserId, $assignedToUserId, $role): void{
 
-        /*Si ya está asignado al par/jefe que desea asignar, se sale de la funcion*/
+        //Si el usuario que desea asignarle es el mismo, pues lo saca de una vez
+        if($beingAssignedUserId == $assignedToUserId){
+            throw new \RuntimeException('El docente no puede ser su propio par/jefe');
+        }
+
+        /*Si ya hay un par o jefe asignado, se encarga de que no se pueda colocar a esa misma persona como jefe o par*/
         $record = DB::table('unity_assessments')->where('evaluated_id', $beingAssignedUserId)
             ->where('evaluator_id', $assignedToUserId)->exists();
 
@@ -52,13 +57,26 @@ class UnityAssessment extends Model
             throw new \RuntimeException('Ese docente ya es par/jefe del respectivo docente');
         }
 
+        if($role == "jefe"){
+
+            $roleId = Role::getRoleIdByName('jefe de profesor');;
+
+        }
+
+        else{
+
+            $roleId = Role::getRoleIdByName($role);
+        }
+
         if(!$record){
 
-            /*Si ya hay un par o jefe asignado, se encarga de que no se pueda colocar a esa misma persona como jefe o par*/
-            $record = DB::table('unity_assessments')->where('evaluated_id', $beingAssignedUserId)
-                ->where('evaluator_id',$assignedToUserId);
+                $teacherWithRole = DB::table('role_user')->where('user_id', $assignedToUserId)->where('role_id', $roleId)->first();
 
-            if($record){
+                if(!$teacherWithRole){
+
+                    DB::table('role_user')->updateOrInsert(['user_id'=> $assignedToUserId, 'role_id' => $roleId]);
+
+                }
 
                 UnityAssessment::updateOrCreate(
                     ['evaluated_id' => $beingAssignedUserId,
@@ -66,7 +84,7 @@ class UnityAssessment extends Model
                     [ 'evaluator_id' => $assignedToUserId,
                         'pending' => true]);
 
-            }
+
         }
 
     }
@@ -77,12 +95,21 @@ class UnityAssessment extends Model
         $record = DB::table('unity_assessments')->where('evaluated_id', $beingAssignedUserId)
             ->where('evaluator_id', $assignedToUserId)->where('role', $role)->first();
 
+
+        //Aqui simplemente buscamos el registro asociado a esa asignación y lo borramos
         if($record){
 
             DB::table('unity_assessments')->where('evaluated_id', $beingAssignedUserId)
                 ->where('evaluator_id', $assignedToUserId)->where('role', $role)->delete();
 
         }
+
+
+        //Aqui verificamos si el usuario al que fue asignado, tiene otras asignaciones adicionales...
+
+        $user = DB::table('unity_assessments')->where('evaluator_id', $assignedToUserId)
+            ->where('role', $role)->get();
+
 
         if($role == "jefe"){
 
@@ -92,13 +119,12 @@ class UnityAssessment extends Model
 
         $roleId = Role::getRoleIdByName($role);
 
-        $user = DB::table('v2_unit_user')
-            ->where('user_id',$assignedToUserId)->where('role_id', $roleId)->get();
-
+    //Si se llega a dar que esa asignación que borramos era la última para el correspondiente rol, entonces procedemos a
+        //borrarle ese rol en la tabla role_user
         if($user->count() == 0){
 
-            DB::table('role_user')
-                ->where('user_id',$assignedToUserId)->where('role_id',$roleId)->delete();
+            DB::table('role_user')->where('user_id', $assignedToUserId)
+                ->where('role_id', $roleId)->delete();
 
         }
 

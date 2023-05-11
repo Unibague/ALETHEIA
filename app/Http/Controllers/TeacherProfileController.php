@@ -62,11 +62,12 @@ class TeacherProfileController extends Controller
                 'periods' => $academicPeriodsSeparatedByComas,
             ], true);
 
+
             $finalTeachers = [];
             foreach ($teachers as $teacher){
 
                 if(in_array($teacher['teaching_ladder'],$suitableTeachingLadders, false)
-                    && $teacher['employee_type'] == 'DTC'){
+                    && $teacher['employee_type'] == 'DTC'&& $teacher['email'] != ""){
 
                     $finalTeachers [] = $teacher;
 

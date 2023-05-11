@@ -122,14 +122,14 @@
                         <v-container>
                             <v-row>
                                 <v-col cols="12">
-                                    <v-select
+                                    <v-autocomplete
                                         label="Nombre de la unidad"
                                         v-model="selectedUnit"
                                         :items="units"
                                         item-text="title"
                                         return-object
                                         single-line
-                                    ></v-select>
+                                    ></v-autocomplete>
                                 </v-col>
                             </v-row>
                         </v-container>
@@ -194,7 +194,7 @@
                         <v-btn
                             color="primario"
                             text
-                            @click="unitAdminDialog = false"
+                            @click="cancelUnitAdminDialog()"
                         >
                             Cancelar
                         </v-btn>
@@ -405,7 +405,7 @@ export default {
             this.listOfUnits.forEach(unit => {
 
                  this.units.push({
-                    title: unit.name,
+                    title: this.capitalize(unit.name),
                     value: unit.identifier
                 })
             })
@@ -473,7 +473,6 @@ export default {
             }
             catch (e) {
                 showSnackbar(this.snackbar, e.response.data.message, 'red', 5000);
-
             }
 
         },
@@ -490,7 +489,9 @@ export default {
 
                 let request = await axios.post(route('api.units.assignUnitAdmin'), data);
 
+                this.unitAdmin= {name: '', id:''};
                 this.unitAdminDialog= false;
+
 
                 await this.getTeachersFromCurrentUnit();
 
@@ -534,6 +535,14 @@ export default {
             }
         },
 */
+
+
+        cancelUnitAdminDialog(){
+
+            this.unitAdmin= {name: '', id:''};
+            this.unitAdminDialog = false;
+
+        },
 
         getTeacherRoleId: async function(){
 
@@ -582,10 +591,6 @@ export default {
 
 
         }
-
-
-
-
 
 }
 
