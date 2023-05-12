@@ -10,13 +10,14 @@ export default class Unit {
     }
 
     static fromModel(model) {
-        return new Unit(model.id, model.name, model.code, model.is_custom, model.assessment_period_id);
+        return new Unit(model.id, model.name, model.code, model.is_custom, model.identifier, model.assessment_period_id);
     }
 
-    constructor(id = null, name = '', code = '', isCustom = '', assessmentPeriodId = 0) {
+    constructor(id = null, name = '', code = '', isCustom = '', identifier = '', assessmentPeriodId = 0) {
         this.id = id;
         this.name = name;
-        this.code = code+"-"+assessmentPeriodId;
+        this.code = code;
+        this.identifier = code+"-"+assessmentPeriodId
         this.isCustom = isCustom;
         this.assessmentPeriodId = assessmentPeriodId;
 
@@ -24,6 +25,7 @@ export default class Unit {
             id: null,
             name: 'required',
             code: null,
+            identifier: null,
             isCustom: null,
             assessmentPeriodId: null,
         }

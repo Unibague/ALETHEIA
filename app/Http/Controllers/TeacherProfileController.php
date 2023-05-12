@@ -69,7 +69,7 @@ class TeacherProfileController extends Controller
 
                //Traerse profesores que tengan escalafon activo para evaluacion y los que sean DTC
                 if(in_array($teacher['teaching_ladder'],$suitableTeachingLadders, false)
-                    && $teacher['employee_type'] == 'DTC'){
+                    && $teacher['employee_type'] == 'DTC'&& $teacher['email'] != ""){
 
                     $finalTeachers [] = $teacher;
 
