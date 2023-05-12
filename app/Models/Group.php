@@ -92,6 +92,7 @@ class Group extends Model
         }, []);
 
         $possibleTeachers = array_unique(array_column($groups, 'teacher_email'));
+
         $teachers = User::whereIn('email', $possibleTeachers)->get()->toArray();
         $teacherAreaNameAndId = array_reduce($teachers, static function ($result, $teacher) {
             $result[$teacher['email']] = $teacher['id'];

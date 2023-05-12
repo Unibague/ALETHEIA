@@ -62,9 +62,12 @@ class TeacherProfileController extends Controller
                 'periods' => $academicPeriodsSeparatedByComas,
             ], true);
 
+
             $finalTeachers = [];
             foreach ($teachers as $teacher){
 
+
+               //Traerse profesores que tengan escalafon activo para evaluacion y los que sean DTC
                 if(in_array($teacher['teaching_ladder'],$suitableTeachingLadders, false)
                     && $teacher['employee_type'] == 'DTC'){
 
