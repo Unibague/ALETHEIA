@@ -36,6 +36,12 @@ class AuthController extends Controller
         if ($user->isAdmin()) {
             return redirect()->route('forms.index.view');
         }
+
+        if($user->isUnitAdmin()){
+            return redirect()->route('unities.index.view');
+        }
+
+
         if ($user->isStudent()) {
             return redirect()->route('tests.index.view');
         }

@@ -14,7 +14,14 @@ class StoreUnityRequest extends FormRequest
     public function authorize()
     {
         $user = auth()->user();
-        return $user->hasRole('administrador');
+
+        if($user->hasRole('administrador') || $user->hasRole('administrador de unidad')){
+
+            return true;
+        }
+
+        return false;
+
     }
 
     /**

@@ -18,7 +18,7 @@ class isAdmin
      */
     public function handle(Request $request, Closure $next)
     {
-        if (!$request->user() || $request->user()->hasRole('administrador')) {
+        if (!$request->user() || $request->user()->hasRole('administrador') || $request->user()->hasRole('administrador de unidad') ) {
             return $next($request);
         }
         return response('No tienes permisos suficientes para realizar esta acción', 403);

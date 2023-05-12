@@ -191,6 +191,13 @@ class User extends Authenticatable
 
     }
 
+    public function isUnitAdmin(): bool
+    {
+        return $this->hasRole('administrador de unidad');
+
+    }
+
+
     public function isStudent(): bool
     {
         return $this->hasRole('estudiante');
