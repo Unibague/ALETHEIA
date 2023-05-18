@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -135,6 +136,7 @@ class TeacherProfile extends Model
     public static function assignTeacherToUnit($userId, $unitIdentifier): void{
 
         $roleId = Role::getTeacherRoleId();
+        $activeAssessmentPeriod = AssessmentPeriod::getActiveAssessmentPeriod()->id;
 
             DB::table('role_user')->updateOrInsert(
                 ['user_id' => $userId,
@@ -154,15 +156,17 @@ class TeacherProfile extends Model
 
             }
 
-
-
             $user = DB::table('unity_assessments')->where('evaluated_id', $userId)
                 ->where('evaluator_id', $userId)->first();
 
             if(!$user){
 
                 DB::table('unity_assessments')->updateOrInsert(
-                    ['evaluated_id' => $userId, 'evaluator_id'=> $userId, 'role' => 'autoevaluación', 'pending' => 1]);
+                    ['evaluated_id' => $userId, 'evaluator_id'=> $userId, 'role' => 'autoevaluación'],
+                    ['pending' => 1, 'unit_identifier' => $unitIdentifier,
+                        'assessment_period_id'=> $activeAssessmentPeriod,
+                        'created_at' => Carbon::now()->toDateTimeString(),
+                        'updated_at' => Carbon::now()->toDateTimeString()]);
 
             }
 

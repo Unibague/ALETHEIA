@@ -21,10 +21,7 @@ class UnityAssessmentController extends Controller
      */
     public function index(): JsonResponse
     {
-
         return response()->json(UnityAssessment::getAllAssignments());
-
-
     }
 
 
@@ -68,11 +65,12 @@ class UnityAssessmentController extends Controller
         $beingAssignedUserId = $request->input('beingAssignedUserId');
         $assignedToUserId = $request->input('assignedToUserId');
         $role = $request->input('role');
+        $unitIdentifier = $request->input('unitIdentifier');
 
 
         try {
 
-            UnityAssessment::assignRolesToTeacher($beingAssignedUserId, $assignedToUserId, $role);
+            UnityAssessment::assignRolesToTeacher($beingAssignedUserId, $assignedToUserId, $role, $unitIdentifier);
 
         }
 
@@ -136,8 +134,9 @@ class UnityAssessmentController extends Controller
         $beingAssignedUserId = $request->input('beingAssignedUserId');
         $assignedToUserId = $request->input('assignedToUserId');
         $role = $request->input('role');
+        $unitIdentifier = $request->input('unitIdentifier');
 
-        UnityAssessment::removeAssignment($beingAssignedUserId,$assignedToUserId, $role );
+        UnityAssessment::removeAssignment($beingAssignedUserId,$assignedToUserId, $role, $unitIdentifier );
 
         return response()->json(['message' => 'Asignación eliminada exitosamente']);
 

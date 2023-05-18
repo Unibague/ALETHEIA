@@ -36,7 +36,7 @@
                                     persistent-hint
                                     return-object
                                     single-line
-                                    @change="assignRolesToTeacher('par',item.id, peerSelected[item.id].userId)"
+                                    @change="assignRolesToTeacher('par',item.id, peerSelected[item.id].userId, unitIdentifier)"
                                 >
 
                                     <template v-slot:append-outer>
@@ -45,7 +45,7 @@
                                                 :color="'info'"
                                                 v-text="'mdi-delete'"
                                                 v-show="peerSelected[item.id]"
-                                                @click="removeAssignedRole('par',item.id, peerSelected[item.id].userId)"
+                                                @click="removeAssignedRole('par',item.id, peerSelected[item.id].userId, unitIdentifier)"
                                             ></v-icon>
 
                                     </template>
@@ -68,15 +68,15 @@
 
                                 <v-autocomplete
                                     label="Por favor selecciona un usuario"
-                                    :items="listOfTeachers"
+                                    :items="bosses"
                                     v-model="bossSelected[item.id]"
                                     item-text="name"
-                                    item-value="id"
+                                    item-value="userId"
                                     :hint="bossSelected[item.id] ? 'Click al ícono de la derecha para borrar asignación' : ''"
                                     persistent-hint
                                     return-object
                                     single-line
-                                    @change="assignRolesToTeacher('jefe',item.id, bossSelected[item.id].userId)"
+                                    @change="assignRolesToTeacher('jefe',item.id, bossSelected[item.id].userId, unitIdentifier)"
                                 >
 
                                     <template v-slot:append-outer>
@@ -85,7 +85,7 @@
                                             :color="'info'"
                                             v-text="'mdi-delete'"
                                             v-show="bossSelected[item.id]"
-                                            @click="removeAssignedRole('jefe',item.id, bossSelected[item.id].userId)"
+                                            @click="removeAssignedRole('jefe',item.id, bossSelected[item.id].userId, unitIdentifier)"
                                         ></v-icon>
 
                                     </template>
@@ -131,16 +131,21 @@ export default {
     data: () => {
         return {
             //Table info
+            assignments:[],
+            peerAssignments: [],
+            bossAssignments:[],
             rolesRelationsArray: [],
             peerSelected: {name:'', userId:'', isFilled: false},
-            bossSelected: [{name:'', userId:'', isFilled: false}],
+            bossSelected: {name:'', userId:'', isFilled: false},
             unitAdmin: false,
             unitAdminDialog:false,
+            unitIdentifier:'',
             selectedTeacher: '',
             selectedTeacherName: '',
             currentUnitTitle:'',
             listOfTeachers:[],
             teachers: [],
+            bosses: [],
             currentUnit: '',
             teacherRoleId: '',
             headers: [
@@ -168,13 +173,13 @@ export default {
         //Tomamos toda la info de los props y la colocamos en la variable currentUnit
         this.currentUnit= this.unitId[0];
 
+        this.unitIdentifier = this.currentUnit.identifier
+
         this.currentUnitTitle  = this.capitalize(this.currentUnit.name);
 
-        await this.getTeacherRoleId();
-
         await this.getTeachersFromCurrentUnit();
-
-        await this.retrieveRolesFromTeachers();
+        await this.getAllUnitBosses();
+        await this.getAllAssignments();
 
 
     },
@@ -184,48 +189,25 @@ export default {
 
         async getTeachersFromCurrentUnit () {
 
-            let url = route('api.units.teachers', {unitId:this.currentUnit.identifier})
+            let url = route('unit.teachers', {unitId:this.currentUnit.identifier})
 
             let request = await axios.get(url);
 
-            let users = request.data[0].users;
+            this.teachers = request.data.teachers_from_unit;
 
-            let teachers = users.filter(user => {
-
-                return user.pivot.role_id==this.teacherRoleId;
-
+            this.teachers.forEach(teacher => {
+                teacher.name= this.capitalize(teacher.name);
             })
-
-            this.teachers = teachers;
-
-            this.includeTeachersCodeOnArrayAndCapitalize();
 
             await this.getAllTeachersAndSortAlphabetically();
 
         },
 
 
-        includeTeachersCodeOnArrayAndCapitalize (){
-
-            /*This is the list of the teachers that belong to the current unit, these are the ones that are gonna be assigned with roles*/
-
-            this.teachers.forEach(teacher => {
-
-                teacher.code = teacher.email.substring(0,teacher.email.indexOf("@"));
-
-                teacher.unitName = this.currentUnitTitle
-
-                teacher.name= this.capitalize(teacher.name);
-
-                teacher.position = this.capitalize(teacher.teacher_profile.position);
-
-            })
-
-        },
-
         async getAllTeachersAndSortAlphabetically () {
 
-            /*This is the list of the "DTC" and "ESI" employee_type teachers that are going to be available for the user to select on the v-autocomplete*/
+            /*This is the list of the "DTC" and "ESI" employee_type teachers that are going to
+            be available for the user to select on the v-autocomplete for peers column*/
 
             let url = route('teachers.getSuitableList')
 
@@ -239,53 +221,79 @@ export default {
                     name: this.capitalize(teacher.user.name),
                     userId: teacher.user.id
                 })
-
             })
+
+            console.log(this.listOfTeachers);
 
         },
 
-        async retrieveRolesFromTeachers (){
 
-            let url = route('api.unity.roles.assignment')
+        async getAllUnitBosses(){
+
+            /*This is the list of unit bosses */
+
+            let url = route('unit.bosses', {unitId:this.currentUnit.identifier})
+
+            let request = await axios.get(url);
+
+            this.bosses = request.data.bosses;
+
+            this.bosses.forEach(boss =>{
+
+                boss.name = this.capitalize(boss.name)
+                boss.userId = boss.id
+
+            })
+
+           /* console.log(this.bosses);*/
+
+        },
+
+        async getAllAssignments (){
+
+            let url = route('api.unity.roles.unitAssignments')
+
+            let data = this.teachers;
 
             try {
 
-                let request = await axios.get(url);
+                let request = await axios.post(url, data);
 
-                this.rolesRelationsArray = request.data
+                this.assignments = request.data
 
                 this.teachers.forEach(teacher =>{
 
-                    this.rolesRelationsArray.forEach( relation =>{
+                    this.assignments.forEach(assignment=>{
 
-                        if(teacher.id === relation.evaluated_id){
+                        if(teacher.id === assignment.evaluated_id){
 
-                            if(relation.role == "par"){
+                            if(assignment.role == "par"){
 
                                  let evaluatorName= this.listOfTeachers.filter(listedTeacher=>
 
-                                    listedTeacher.userId == relation.evaluator_id
+                                    listedTeacher.userId == assignment.evaluator_id
 
                                 )
 
                                 evaluatorName = evaluatorName[0].name
 
-                                this.peerSelected[relation.evaluated_id] = {userId :relation.evaluator_id,
+                                this.peerSelected[assignment.evaluated_id] = {userId :assignment.evaluator_id,
                                     name: evaluatorName, isFilled:true}
 
                             }
 
-                            if(relation.role == "jefe"){
 
-                                let evaluatorName= this.listOfTeachers.filter(listedTeacher=>
+                            if(assignment.role == "jefe"){
 
-                                    listedTeacher.userId == relation.evaluator_id
+                                let evaluatorName= this.bosses.filter(boss=>
+
+                                    boss.userId == assignment.evaluator_id
 
                                 )
 
                                 evaluatorName = evaluatorName[0].name
 
-                                this.bossSelected[relation.evaluated_id] = {userId :relation.evaluator_id,
+                                this.bossSelected[assignment.evaluated_id] = {userId :assignment.evaluator_id,
                                     name: evaluatorName, isFilled:true}
                             }
 
@@ -295,7 +303,50 @@ export default {
 
                 })
 
-                console.log(this.peerSelected, this.bossSelected)
+                showSnackbar(this.snackbar, "Asignaciones cargadas correctamente", 'success', 5000);
+
+            } catch  {
+                showSnackbar(this.snackbar, "Si transferiste a un docente desde otra unidad y ya tenía" +
+                    " un jefe asignado, recuerda que debes asignarlo" +
+                    " como jefe primero en esta unidad", 'alert', 10000);
+            }
+
+
+        },
+
+
+/*
+        async getBossAssignments (){
+
+            let url = route('api.unity.roles.unitAssignments')
+
+            let data = this.teachers;
+
+            try {
+
+                let request = await axios.post(url, data);
+
+                console.log(request.data);
+
+                this.bossAssignments = request.data
+
+                this.teachers.forEach(teacher =>{
+
+                    this.bossAssignments.forEach(bossAssignment =>{
+
+                        if(teacher.id === bossAssignment.evaluated_id){
+
+                            if(bossAssignment.role == "jefe"){
+
+
+
+                        }
+
+                    })
+
+                })
+
+                /!*     console.log(this.peerSelected, this.bossSelected)*!/
 
                 showSnackbar(this.snackbar, "Asignaciones cargadas correctamente", 'success', 5000);
 
@@ -303,15 +354,14 @@ export default {
                 showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
             }
 
+        },*/
 
-        },
 
 
-        async assignRolesToTeacher (which, beingAssignedUserId, assignedToUserId){
+        async assignRolesToTeacher (which, beingAssignedUserId, assignedToUserId, unitIdentifier){
 
             let role = "";
 
-            console.log(this.peerSelected);
 
             if (which === 'par'){
 
@@ -323,7 +373,7 @@ export default {
                 role = 'jefe'
             }
 
-            let data = {role, beingAssignedUserId, assignedToUserId}
+            let data = {role, beingAssignedUserId, assignedToUserId, unitIdentifier}
 
             let url = route('unity.roles.assignment')
 
@@ -339,7 +389,7 @@ export default {
         },
 
 
-        async removeAssignedRole (which, beingAssignedUserId, assignedToUserId){
+        async removeAssignedRole (which, beingAssignedUserId, assignedToUserId, unitIdentifier){
 
             let role = "";
 
@@ -354,15 +404,29 @@ export default {
 
             }
 
-                let data = {role, beingAssignedUserId, assignedToUserId}
+                let data = {role, beingAssignedUserId, assignedToUserId, unitIdentifier}
 
                 let url = route('unity.roles.removeAssignment')
 
                 try {
+
                     let request = await axios.post(url, data);
-                    location.reload();
+
+                    if (which === 'par'){
+
+                        this.peerSelected[beingAssignedUserId] = {userId :'',
+                            name: '', isFilled:false}
+
+                    }
+
+                    else{
+
+                        this.bossSelected[beingAssignedUserId] = {userId :'',
+                            name: '', isFilled:false}
+                    }
 
                     showSnackbar(this.snackbar, request.data.message, 'success');
+
                 } catch (e) {
                     showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
                 }
@@ -374,23 +438,7 @@ export default {
 
            return $field.toLowerCase().split(' ').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 
-        },
-
-        getTeacherRoleId: async function(){
-            let request = await axios.get(route('api.roles.index'))
-
-            let roles = request.data
-
-            let teacherRole= roles.filter(role => {
-
-                return role.name == "docente"
-
-            })
-
-            this.teacherRoleId = teacherRole[0].id;
-
-        },
-
+        }
 
     }
 

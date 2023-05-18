@@ -42,7 +42,9 @@ class TestsController extends Controller
     public function store(Request $request): JsonResponse
     {
         $form = Form::findOrFail($request->input('form_id'));
+
         if ($form->type === 'estudiantes') {
+
             FormAnswers::createStudentFormFromRequest($request, $form);
         }
         return response()->json(['messages' => 'Formlario diligenciado exitosamente. Seras redirigido a la página de inicio']);

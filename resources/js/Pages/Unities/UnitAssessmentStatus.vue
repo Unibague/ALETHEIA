@@ -175,8 +175,6 @@ export default {
 
         this.currentUnitTitle  = this.capitalize(this.currentUnit.name);
 
-        await this.getTeacherRoleId();
-
     },
 
     async mounted(){
@@ -192,19 +190,11 @@ export default {
 
         async getTeachersFromCurrentUnit () {
 
-            let url = route('api.units.teachers', {unitId:this.currentUnit.identifier})
+            let url = route('unit.teachers', {unitId:this.currentUnit.identifier})
 
             let request = await axios.get(url);
 
-            let users = request.data[0].users;
-
-            let teachers = users.filter(user => {
-
-                return user.pivot.role_id==this.teacherRoleId;
-
-            })
-
-            this.teachers = teachers;
+            this.teachers = request.data.teachers_from_unit;
 
             this.includeTeachersCodeOnArrayAndCapitalize();
 
@@ -242,6 +232,8 @@ export default {
 
                 let request = await axios.post(url, data);
 
+                console.log(request.data);
+
                 this.assignments = request.data
 
                 console.log('Docentes de la unidad', this.teachers)
@@ -256,7 +248,6 @@ export default {
                     this.teachers.forEach(teacher =>{
 
                         if(assignment.evaluated_id == teacher.id){
-
 
                             if(assignment.role == "autoevaluación"){
 
@@ -298,24 +289,9 @@ export default {
 
             return $field.toLowerCase().split(' ').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 
-        },
-
-        getTeacherRoleId: async function(){
-
-
-            let request = await axios.get(route('api.roles.index'))
-
-            let roles = request.data
-
-            let teacherRole= roles.filter(role => {
-
-                return role.name == "docente"
-
-            })
-
-            this.teacherRoleId = teacherRole[0].id;
-
         }
+
+
 
     }
 

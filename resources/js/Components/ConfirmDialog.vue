@@ -2,7 +2,7 @@
     <v-dialog
         v-model="showDialog"
         persistent
-        max-width="350px"
+        max-width="60%"
     >
         <v-card>
             <v-card-title class="text-h5 text-center">
