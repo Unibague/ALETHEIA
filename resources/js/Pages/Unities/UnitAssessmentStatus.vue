@@ -149,8 +149,8 @@ export default {
             teacherRoleId: '',
             headers: [
                 {text: 'Nombre', value: 'name', align: 'center'},
-                {text: 'Jefe', value: 'pair'},
-                {text: 'Par', value: 'boss'},
+                {text: 'Par', value: 'pair'},
+                {text: 'Jefe', value: 'boss'},
                 {text: 'Autoevaluación', value: 'autoEvaluation'}
             ],
 
