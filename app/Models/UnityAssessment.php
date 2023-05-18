@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -41,10 +42,12 @@ class UnityAssessment extends Model
     protected $guarded = [];
 
 
-    public static function assignRolesToTeacher($beingAssignedUserId, $assignedToUserId, $role): void{
+    public static function assignRolesToTeacher($beingAssignedUserId, $assignedToUserId, $role,$unitIdentifier): void{
+
+        $activeAssessmentPeriod = AssessmentPeriod::getActiveAssessmentPeriod()->id;
 
         //Si el usuario que desea asignarle es el mismo, pues lo saca de una vez
-        if($beingAssignedUserId == $assignedToUserId){
+        if ($beingAssignedUserId == $assignedToUserId) {
             throw new \RuntimeException('El docente no puede ser su propio par/jefe');
         }
 
@@ -52,81 +55,126 @@ class UnityAssessment extends Model
         $record = DB::table('unity_assessments')->where('evaluated_id', $beingAssignedUserId)
             ->where('evaluator_id', $assignedToUserId)->exists();
 
-        if($record){
+        if ($record) {
 
             throw new \RuntimeException('Ese docente ya es par/jefe del respectivo docente');
         }
 
-        if($role == "jefe"){
+        self::updateOrCreate(
+            ['evaluated_id' => $beingAssignedUserId,
+                'role' => $role],
+            ['evaluator_id' => $assignedToUserId,
+                'pending' => true,
+                'unit_identifier' => $unitIdentifier,
+                'assessment_period_id' => $activeAssessmentPeriod,
+                'created_at' => Carbon::now()->toDateTimeString(),
+                'updated_at' => Carbon::now()->toDateTimeString()]);
+/*
 
-            $roleId = Role::getRoleIdByName('jefe de profesor');;
+        //Si ya hay una persona asignada a este rol de jefe para este docente, entonces vamos a validar al profesor que se cambiará
+        //para saber si lo quitamos de la tabla de v2_unit_user y de la tabla role_user
+
+        $roleId = Role::getRoleIdByName('jefe de profesor');
+
+        $existingBoss = self::where('evaluated_id', $beingAssignedUserId)
+            ->where('role', $role)->where('unit_identifier', $unitIdentifier)
+            ->where('assessment_period_id', $activeAssessmentPeriod)->first();
+
+        if($existingBoss){
+
+            $existingBoss = $existingBoss->evaluator_id;
+
+            $remainingAssignments = self::where('evaluator_id', $existingBoss)
+                ->where('unit_identifier', $unitIdentifier)->get();
+
+
+            if ($remainingAssignments->count() <= 1){
+
+                DB::table('v2_unit_user')->where('user_id', $existingBoss)
+                    ->where('unit_identifier', $unitIdentifier)->where('role_id', $roleId)->delete();
+
+            }
+
+
+            //Aqui verificamos si el usuario al que fue asignado, tiene otras asignaciones adicionales...
+            $user = DB::table('unity_assessments')->where('evaluator_id', $existingBoss)
+                ->where('role', $role)->get();
+
+
+            //Si se llega a dar que esa asignación que borramos era la última para el correspondiente rol, entonces procedemos a
+            //borrarle ese rol en la tabla role_user
+            if($user->count() <= 1){
+
+                DB::table('role_user')->where('user_id', $existingBoss)
+                    ->where('role_id', $roleId)->delete();
+
+            }
 
         }
 
-        else{
 
-            $roleId = Role::getRoleIdByName($role);
-        }
+        $teacherWithRole = DB::table('role_user')
+            ->where('user_id', $assignedToUserId)->where('role_id', $roleId)->first();
 
-        if(!$record){
+        if (!$teacherWithRole) {
 
-                $teacherWithRole = DB::table('role_user')->where('user_id', $assignedToUserId)->where('role_id', $roleId)->first();
-
-                if(!$teacherWithRole){
-
-                    DB::table('role_user')->updateOrInsert(['user_id'=> $assignedToUserId, 'role_id' => $roleId]);
-
-                }
-
-                UnityAssessment::updateOrCreate(
-                    ['evaluated_id' => $beingAssignedUserId,
-                        'role' => $role],
-                    [ 'evaluator_id' => $assignedToUserId,
-                        'pending' => true]);
-
+            DB::table('role_user')->updateOrInsert(['user_id' => $assignedToUserId, 'role_id' => $roleId]);
 
         }
+
+
+        //Le damos el role de jefe a la persona en la unidad
+        DB::table('v2_unit_user')->updateOrInsert(['user_id' => $assignedToUserId,
+                    'unit_identifier' => $unitIdentifier, 'role_id' => $roleId]);
+
+
+        self::updateOrCreate(
+            ['evaluated_id' => $beingAssignedUserId,
+                'role' => $role],
+            [ 'evaluator_id' => $assignedToUserId,
+                'pending' => true,
+                'unit_identifier' => $unitIdentifier,
+                'assessment_period_id' => $activeAssessmentPeriod]);
+*/
 
     }
 
 
-    public static function removeAssignment($beingAssignedUserId, $assignedToUserId, $role): void{
-
-        $record = DB::table('unity_assessments')->where('evaluated_id', $beingAssignedUserId)
-            ->where('evaluator_id', $assignedToUserId)->where('role', $role)->first();
-
+    public static function removeAssignment($beingAssignedUserId, $assignedToUserId, $role, $unitIdentifier): void{
 
         //Aqui simplemente buscamos el registro asociado a esa asignación y lo borramos
-        if($record){
+         DB::table('unity_assessments')->where('evaluated_id', $beingAssignedUserId)
+            ->where('evaluator_id', $assignedToUserId)->where('role', $role)->delete();
 
-            DB::table('unity_assessments')->where('evaluated_id', $beingAssignedUserId)
-                ->where('evaluator_id', $assignedToUserId)->where('role', $role)->delete();
+/*
+        $roleId = Role::getRoleIdByName("jefe de profesor");
+
+        //Aqui verificamos si el jefe tiene otras asignaciones restantes dentro de esa unidad
+        $remainingAssignments = self::where('evaluator_id', $assignedToUserId)
+            ->where('unit_identifier', $unitIdentifier)->get();
+
+
+        if ($remainingAssignments->count() == 0){
+
+            DB::table('v2_unit_user')->where('user_id', $assignedToUserId)
+                ->where('unit_identifier', $unitIdentifier)->where('role_id', $roleId)->delete();
 
         }
 
 
         //Aqui verificamos si el usuario al que fue asignado, tiene otras asignaciones adicionales...
-
-        $user = DB::table('unity_assessments')->where('evaluator_id', $assignedToUserId)
+        $user = self::where('evaluator_id', $assignedToUserId)
             ->where('role', $role)->get();
 
 
-        if($role == "jefe"){
-
-            $role= "jefe de profesor";
-
-        }
-
-        $roleId = Role::getRoleIdByName($role);
-
-    //Si se llega a dar que esa asignación que borramos era la última para el correspondiente rol, entonces procedemos a
+         //Si se llega a dar que esa asignación que borramos era la última para el correspondiente rol, entonces procedemos a
         //borrarle ese rol en la tabla role_user
         if($user->count() == 0){
 
             DB::table('role_user')->where('user_id', $assignedToUserId)
                 ->where('role_id', $roleId)->delete();
 
-        }
+        }*/
 
 
     }

@@ -234,7 +234,7 @@ export default {
             headers: [
                 {text: 'Nombre', value: 'name', align: 'center'},
                 {text: 'Tipo de unidad', value: 'is_custom'},
-                {text: 'Cantidad de docentes', value: 'users'},
+                {text: 'Usuarios', value: 'users'},
                 {text: 'Acciones', value: 'actions', sortable: false},
             ],
             assessmentPeriods: [],
@@ -311,7 +311,7 @@ export default {
 
             try {
                 let request = await axios.post(route('api.staffMembers.sync'));
-                console.log(request);
+                /*console.log(request);*/
                 showSnackbar(this.snackbar, request.data.message, 'success');
 
             } catch (e) {

@@ -83,17 +83,51 @@ class Unit extends Model
 
     public static function transferTeacherToSelectedUnit($unit, $userId): void{
 
+
+        $activeAssessmentPeriod = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        $teacherRole = Role::getTeacherRoleId();
+
+
         DB::table('v2_unit_user')->updateOrInsert(
 
-            ['user_id' => $userId],
+            ['user_id' => $userId, 'role_id' => $teacherRole],
             ['unit_identifier' => $unit]
 
         );
+
+        UnityAssessment::updateOrInsert(['evaluated_id' => $userId, 'evaluator_id'=> $userId,
+            'role' => 'autoevaluación', 'assessment_period_id'=> $activeAssessmentPeriod],
+            ['unit_identifier' => $unit ]);
     }
+
+
     public static function getUnitInfo($unitIdentifier){
 
-        return self::where('identifier', $unitIdentifier)
-            ->with('users.teacherProfile')->get();
+        return self::where('identifier', $unitIdentifier)->with('users.teacherProfile')->first();
+
+    }
+
+    public static function getUnitTeachers($unitIdentifier){
+
+        return self::where('identifier', $unitIdentifier)->with('teachersFromUnit.teacherProfile')->first();
+
+    }
+
+    public static function getUnitAdminsAndBosses($unitIdentifier){
+
+        return self::where('identifier', $unitIdentifier)->with('adminsAndBosses')->first();
+
+    }
+
+    public static function getUnitAdmins($unitIdentifier){
+
+        return self::where('identifier', $unitIdentifier)->with('admins')->first();
+
+    }
+
+    public static function getUnitBosses($unitIdentifier){
+
+        return self::where('identifier', $unitIdentifier)->with('bosses')->first();
 
     }
 
@@ -163,15 +197,18 @@ class Unit extends Model
 
     public static function assignStaffMemberAsUnitAdmin($unitId, $userId, $roleId){
 
-
-/*    Recuerda, solo puede haber un administrador por unidad,
-            pero una persona puede administrar varias unidades    */
-
         DB::table('v2_unit_user')
             ->updateOrInsert(['unit_identifier' => $unitId, 'role_id' => $roleId, 'user_id' => $userId]);
 
     }
 
+
+    public static function assignTeacherAsUnitBoss($unitId, $userId, $roleId)
+    {
+
+        DB::table('v2_unit_user')
+            ->updateOrInsert(['unit_identifier' => $unitId, 'role_id' => $roleId, 'user_id' => $userId]);
+    }
 
     public static function getUnitAdmin ($unitIdentifier){
 
@@ -187,7 +224,43 @@ class Unit extends Model
 
     public function users(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
-        return $this->belongsToMany(User::class,'v2_unit_user','unit_identifier','user_id', 'identifier', 'id')->withPivot(['role_id']);;
+        return $this->belongsToMany(User::class,'v2_unit_user','unit_identifier','user_id', 'identifier', 'id')->withPivot(['role_id']);
+    }
+
+    public function teachersFromUnit(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        $roleId= Role::getRoleIdByName('docente');
+
+        return $this->belongsToMany(User::class,'v2_unit_user','unit_identifier','user_id', 'identifier', 'id')->
+            wherePivot('role_id', $roleId);
+    }
+
+    public function adminsAndBosses(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+
+        $unitAdminRole = Role::getRoleIdByName('administrador de unidad');
+        $unitBossRole= Role::getRoleIdByName('jefe de profesor');
+
+        $rolesIds = [$unitAdminRole, $unitBossRole];
+
+        return $this->belongsToMany(User::class,'v2_unit_user','unit_identifier','user_id', 'identifier', 'id')->
+        wherePivotIn('role_id', $rolesIds)->withPivot('role_id');
+    }
+
+    public function bosses(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        $roleId= Role::getRoleIdByName('jefe de profesor');
+
+        return $this->belongsToMany(User::class,'v2_unit_user','unit_identifier','user_id', 'identifier', 'id')->
+        wherePivot('role_id', $roleId)->withPivot('role_id');
+    }
+
+    public function admins(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        $roleId= Role::getRoleIdByName('administrador de unidad');
+
+        return $this->belongsToMany(User::class,'v2_unit_user','unit_identifier','user_id', 'identifier', 'id')->
+        wherePivot('role_id', $roleId)->withPivot('role_id');
     }
 
     public function forms(): \Illuminate\Database\Eloquent\Relations\HasMany

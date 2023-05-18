@@ -7,6 +7,7 @@ use App\Http\Requests\DestroyUnityRequest;
 use App\Http\Requests\StoreUnityRequest;
 use App\Http\Requests\UpdateUnityRequest;
 use App\Models\TeacherProfile;
+use App\Models\UnityAssessment;
 use Database\Seeders\UnitSeeder;
 use App\Models\AssessmentPeriod;
 use App\Models\Unit;
@@ -49,10 +50,10 @@ class UnitController extends Controller
     }
 
 
+    public function syncStaffMembers(): JsonResponse
+    {
 
-    public function syncStaffMembers(): JsonResponse{
-
-        try{
+        try {
 
             $staffMembers = $this->getStaffMembersFromEndpoint();
 
@@ -64,9 +65,7 @@ class UnitController extends Controller
 
             Unit::createOrUpdateStaffMembersUsers($staffMembers);
 
-        }
-
-        catch (\JsonException $e) {
+        } catch (\JsonException $e) {
             return response()->json(['message' => 'Ha ocurrido un error con la fuente de datos']);
         }
 
@@ -74,7 +73,8 @@ class UnitController extends Controller
 
     }
 
-    public function getStaffMembersFromEndpoint() {
+    public function getStaffMembersFromEndpoint()
+    {
 
         $url = 'https://directorio.unibague.edu.co/modules/mod_directorio/get_Funcionaries.php';
 
@@ -84,7 +84,8 @@ class UnitController extends Controller
 
     }
 
-    public function getStaffMembersFromDB() {
+    public function getStaffMembersFromDB()
+    {
 
 
         return response()->json(Unit::getStaffMembers());
@@ -92,10 +93,9 @@ class UnitController extends Controller
     }
 
 
-
     public function assign(): JsonResponse
     {
-        try{
+        try {
             Unit::assignTeachersToUnits();
 
         } catch (\Exception $e) {
@@ -113,18 +113,18 @@ class UnitController extends Controller
         $userId = $request->input('userId');
         $roleName = $request->input('role');
 
-        $roleId = DB::table('roles')->where('name',$roleName)->pluck('id')[0];
+        $roleId = DB::table('roles')->where('name', $roleName)->pluck('id')[0];
 
-        $userIsAlreadyAdmin = DB::table('role_user')->where('user_id',$userId)->where('role_id',$roleId)->exists();
+        $userIsAlreadyAdmin = DB::table('role_user')->where('user_id', $userId)->where('role_id', $roleId)->exists();
 
 
-        if(!$userIsAlreadyAdmin){
+        if (!$userIsAlreadyAdmin) {
 
             DB::table('role_user')->updateOrInsert(['user_id' => $userId, 'role_id' => $roleId]);
 
         }
 
-            Unit::assignStaffMemberAsUnitAdmin($unitId, $userId, $roleId);
+        Unit::assignStaffMemberAsUnitAdmin($unitId, $userId, $roleId);
 
         return response()->json(['message' => 'Adminstrador de unidad actualizado exitosamente']);
 
@@ -145,12 +145,12 @@ class UnitController extends Controller
 
         //Ya aquí estamos comprobando si ese usuario sigue siendo admin en otra unidad cualquiera...
         $user = DB::table('v2_unit_user')
-            ->where('user_id',$userId)->where('role_id', $adminRoleId)->get();
+            ->where('user_id', $userId)->where('role_id', $adminRoleId)->get();
 
         //Si entra aquí es porque ya no es admin en niguna otra... entonces le quitamos ese role en la tabla de role_user
-        if($user->count() == 0){
+        if ($user->count() == 0) {
 
-            DB::table('role_user')->where('user_id',$userId)->where('role_id',$adminRoleId)->delete();
+            DB::table('role_user')->where('user_id', $userId)->where('role_id', $adminRoleId)->delete();
 
         }
 
@@ -158,9 +158,107 @@ class UnitController extends Controller
     }
 
 
+    public function deleteUnitBoss(Request $request): JsonResponse
+
+    {
+        $unitId = $request->input('unitIdentifier');
+        $userId = $request->input('userId');
+        $unitBossRole= Role::getRoleIdByName('jefe de profesor');
 
 
-    public function getUnitAdmin(Request $request): JsonResponse{
+        $alreadyDoneAssessments = UnityAssessment::where('evaluator_id',$userId)
+            ->where('role', 'jefe')->where('unit_identifier', $unitId)
+            ->where('pending', 0)->first();
+
+        if ($alreadyDoneAssessments){
+
+            return response()->json(['message' => 'Ese jefe ya tiene asignaciones realizadas en esta unidad, confirmas que deseas eliminarlo?'], 500);
+
+        }
+
+        //Aqui simplemente eliminamos al usuario de esa unidad con el role de jefe de docente
+        DB::table('v2_unit_user')->where('user_id', $userId)
+            ->where('unit_identifier', $unitId)->where('role_id', $unitBossRole)->delete();
+
+
+        UnityAssessment::where('evaluator_id',$userId)
+            ->where('role', 'jefe')->where('unit_identifier', $unitId)->delete();
+
+
+        //Ya aquí estamos comprobando si ese usuario sigue siendo jefe de docente en otra unidad cualquiera...
+        $user = DB::table('v2_unit_user')
+            ->where('user_id', $userId)->where('role_id', $unitBossRole)->get();
+
+        //Si entra aquí es porque ya no es jefe de docente en niguna otra... entonces le quitamos ese role en la tabla de role_user
+        if ($user->count() == 0) {
+
+            DB::table('role_user')->where('user_id', $userId)->where('role_id', $unitBossRole)->delete();
+
+        }
+
+        return response()->json(['message' => 'Jefe de docente eliminado exitosamente']);
+    }
+
+
+    public function confirmDeleteUnitBoss(Request $request): JsonResponse
+
+    {
+        $unitId = $request->input('unitIdentifier');
+        $userId = $request->input('userId');
+        $unitBossRole= Role::getRoleIdByName('jefe de profesor');
+
+        //Aqui simplemente eliminamos al usuario de esa unidad con el role de jefe de docente
+        DB::table('v2_unit_user')->where('user_id', $userId)
+            ->where('unit_identifier', $unitId)->where('role_id', $unitBossRole)->delete();
+
+
+        UnityAssessment::where('evaluator_id',$userId)
+            ->where('role', 'jefe')->where('unit_identifier', $unitId)->delete();
+
+
+        //Ya aquí estamos comprobando si ese usuario sigue siendo jefe de docente en otra unidad cualquiera...
+        $user = DB::table('v2_unit_user')
+            ->where('user_id', $userId)->where('role_id', $unitBossRole)->get();
+
+        //Si entra aquí es porque ya no es jefe de docente en niguna otra... entonces le quitamos ese role en la tabla de role_user
+        if ($user->count() == 0) {
+
+            DB::table('role_user')->where('user_id', $userId)->where('role_id', $unitBossRole)->delete();
+
+        }
+
+        return response()->json(['message' => 'Jefe de docente eliminado exitosamente']);
+    }
+
+
+
+
+    public function assignUnitBoss(Request $request): JsonResponse
+    {
+        $unitId = $request->input('unitIdentifier');
+        $userId = $request->input('userId');
+        $roleName = $request->input('role');
+
+        $roleId = DB::table('roles')->where('name', $roleName)->first()->id;
+
+        $userIsAlreadyBoss = DB::table('role_user')->where('user_id', $userId)->where('role_id', $roleId)->exists();
+
+
+        if (!$userIsAlreadyBoss) {
+
+            DB::table('role_user')->updateOrInsert(['user_id' => $userId, 'role_id' => $roleId]);
+
+        }
+
+        Unit::assignTeacherAsUnitBoss($unitId, $userId, $roleId);
+
+        return response()->json(['message' => 'Adminstrador de unidad actualizado exitosamente']);
+
+    }
+
+
+    public function getUnitAdmin(Request $request): JsonResponse
+    {
 
         $unitId = $request->input('unitId');
 
@@ -173,6 +271,8 @@ class UnitController extends Controller
     {
         $unit = $request->input('unitIdentifier');
         $userId = $request->input('userId');
+        $teacherRole = Role::getTeacherRoleId();
+
 
         $user = DB::table('v2_unit_user')->where([['user_id', $userId], ['unit_identifier', $unit]])->first();
 
@@ -180,9 +280,21 @@ class UnitController extends Controller
             return response()->json(['message' => 'El docente ya se encuentra en la unidad a la que desea transferir'], 500);
         }
 
-/*        $user = DB::table('unity_assessments')
-            ->where('evaluated_id',$userId)->where('evaluator_id', $userId)->first();*/
+        /*//Aqui verificamos si a ese docente ya se le asignó un jefe de docente, si ya se le asignó entonces borramos
+        esa asignación y después de eso sí procedemos a transferirlo*/
 
+        $actualUnit = DB::table('v2_unit_user')->where('user_id', $userId)
+            ->where('role_id',$teacherRole)->select('unit_identifier')->first()->unit_identifier;
+
+        $teacherAlreadyHasAssignments= UnityAssessment::where('evaluated_id', $userId)
+            ->where('role', 'jefe')->where('unit_identifier', $actualUnit)->first();
+
+        if($teacherAlreadyHasAssignments){
+
+            UnityAssessment::where('evaluated_id', $userId)
+                ->where('role', 'jefe')->where('unit_identifier', $actualUnit)->delete();
+
+        }
 
         Unit::transferTeacherToSelectedUnit($unit, $userId);
 
@@ -206,7 +318,7 @@ class UnitController extends Controller
             'name' => $request->input('name'),
             'code' => $code,
             'is_custom' => 1,
-            'identifier' => $code. '-' . $assessmentPeriodAsString,
+            'identifier' => $code . '-' . $assessmentPeriodAsString,
             'assessment_period_id' => AssessmentPeriod::getActiveAssessmentPeriod()->id
         ]);
 
@@ -221,8 +333,27 @@ class UnitController extends Controller
      */
     public function show($unitIdentifier): JsonResponse
     {
-
         return response()->json(Unit::getUnitInfo($unitIdentifier));
+    }
+
+    public function getUnitTeachers($unitIdentifier): JsonResponse
+    {
+        return response()->json(Unit::getUnitTeachers($unitIdentifier));
+    }
+
+    public function getUnitAdminsAndBosses($unitIdentifier): JsonResponse
+    {
+        return response()->json(Unit::getUnitAdminsAndBosses($unitIdentifier));
+    }
+
+    public function getUnitBosses($unitIdentifier): JsonResponse
+    {
+        return response()->json(Unit::getUnitBosses($unitIdentifier));
+    }
+
+    public function getUnitAdmins($unitIdentifier): JsonResponse
+    {
+        return response()->json(Unit::getUnitAdmins($unitIdentifier));
     }
 
     /**

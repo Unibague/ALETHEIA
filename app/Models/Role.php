@@ -68,6 +68,14 @@ class Role extends Model
 
     }
 
+    public static function getUnitBossRoleId(): int{
+
+        $unitBossRole = DB::table('roles')->select('id')->where('name','jefe de profesor')->first();
+
+        return $unitBossRole->id;
+
+    }
+
     public static function getRoleIdByName(string $roleName): int
     {
 
