@@ -150,8 +150,6 @@ class Enroll extends Model
 
         foreach ($enrolls as $enroll) {
 
-            $groupsId = [];
-
             if ($enroll['pago'] === 'SI' && $enroll['estado'] === "Matriculada") {
                 $upsertData[] = [
                     'user_id' => $userEmailAndId[$enroll["email"]],
@@ -159,8 +157,6 @@ class Enroll extends Model
                     'has_answer' => 0,
                     'academic_period_id' => $academicPeriodId
                 ];
-
-                   $groupsId [] = (int)$enroll['group_id'];
 
 
             } else {
@@ -170,28 +166,6 @@ class Enroll extends Model
                     'academic_period_id' => $academicPeriodId
                 ];
             }
-
-             $userId = $userEmailAndId[$enroll["email"]];
-
-              $existingGroups = DB::table('group_user')
-                  ->where('user_id', $userId)->where('academic_period_id', $academicPeriodId)
-                  ->select('group_id', 'academic_period_id')->get()->toArray();
-
-              if (count($existingGroups)>0){
-
-                  foreach ($existingGroups as $existingGroup){
-
-                      if(!in_array($existingGroup->group_id, $groupsId, false)){
-                          DB::table('group_user')
-                              ->where('group_id', '=', $existingGroup->group_id)
-                              ->where('user_id', '=', $userId)
-                              ->where('academic_period_id', '=', $existingGroup->academic_period_id)
-                              ->delete();
-
-                      }
-
-                  }
-              }
 
         }
        /*     foreach ($upsertData as $item) {
