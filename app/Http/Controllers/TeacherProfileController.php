@@ -13,6 +13,8 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Response;
+use Inertia\Inertia;
 use Ospina\CurlCobain\CurlCobain;
 use SebastianBergmann\LinesOfCode\RuntimeException;
 
@@ -31,6 +33,17 @@ class TeacherProfileController extends Controller
         $actualAssessmentPeriod = AssessmentPeriod::getActiveAssessmentPeriod();
         return response()->json(TeacherProfile::where('assessment_period_id', '=', $actualAssessmentPeriod->id)
             ->with('user')->get()->sortBy('user.name')->values()->all());
+    }
+
+
+    public function viewTeacherAssessments(): \Inertia\Response
+    {
+
+        $user = auth()->user();
+
+        return Inertia::render('Teachers/Assessments',
+            ['user' => $user]);
+
     }
 
 
@@ -66,15 +79,25 @@ class TeacherProfileController extends Controller
             $finalTeachers = [];
             foreach ($teachers as $teacher){
 
-
                //Traerse profesores que tengan escalafon activo para evaluacion y los que sean DTC
+                if(in_array($teacher['teaching_ladder'],$suitableTeachingLadders, false)
+                   && $teacher['email'] != ""){
+
+                    $finalTeachers [] = $teacher;
+
+                }
+            }
+
+    /*        foreach ($teachers as $teacher){
+
+                //Traerse profesores que tengan escalafon activo para evaluacion y los que sean DTC
                 if(in_array($teacher['teaching_ladder'],$suitableTeachingLadders, false)
                     && $teacher['employee_type'] == 'DTC'&& $teacher['email'] != ""){
 
                     $finalTeachers [] = $teacher;
 
                 }
-            }
+            }*/
 
         } catch (\JsonException $e) {
             return response()->json(['message' => 'Ha ocurrido un error con la fuente de datos: ' . $e->getMessage()], 400);

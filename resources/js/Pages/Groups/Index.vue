@@ -47,6 +47,23 @@
                                 <v-list-item-title>Ver todos los grupos</v-list-item-title>
                             </v-list-item>
 
+                            <v-list-item
+                                @click="deleteThoseGroups"
+                            >
+                                <v-list-item-avatar>
+                                    <v-avatar
+                                        size="32px"
+                                        tile
+                                    >
+                                        <v-icon>
+                                            mdi-delete
+                                        </v-icon>
+                                    </v-avatar>
+                                </v-list-item-avatar>
+                                <v-list-item-title>Borrar esos grupos</v-list-item-title>
+                            </v-list-item>
+
+
                         </v-list>
                     </v-bottom-sheet>
                     <v-btn
@@ -199,6 +216,16 @@ export default {
                 showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
             }
         },
+
+        deleteThoseGroups: async function () {
+            try {
+                let request = await axios.post(route('api.enrolls.deleteThoseGroups'));
+                showSnackbar(this.snackbar, 'Borrados correctamente', 'success');
+            } catch (e) {
+                showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
+            }
+        },
+
         getGroupsWithoutTeacher: async function () {
             try {
                 let request = await axios.get(route('api.groups.withoutTeacher'));

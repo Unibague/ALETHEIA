@@ -55,13 +55,13 @@ class UnityAssessment extends Model
         $peerRole = Role::getRoleIdByName('par');
 
         /*Si ya hay un par o jefe asignado, se encarga de que no se pueda colocar a esa misma persona como jefe o par*/
-        $record = DB::table('unity_assessments')->where('evaluated_id', $beingAssignedUserId)
+/*        $record = DB::table('unity_assessments')->where('evaluated_id', $beingAssignedUserId)
             ->where('evaluator_id', $assignedToUserId)->exists();
 
         if ($record) {
 
             throw new \RuntimeException('Ese docente ya es par/jefe del respectivo docente');
-        }
+        }*/
 
         //Si ya hay una persona asignada a este rol de par para este docente, entonces vamos a validar al profesor que se cambiará
         //para saber si lo quitamos de la tabla de v2_unit_user
@@ -216,6 +216,13 @@ class UnityAssessment extends Model
            return self::get();
     }
 
+
+    public static function getAutoAssessmentFromTeacher($userId){
+
+        return self::where('evaluated_id', $userId)->where('role', 'autoevaluación')
+                ->where('assessment')->first();
+
+    }
 
     public static function getUnitAssignments($unitTeachersId){
 

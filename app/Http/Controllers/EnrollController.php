@@ -5,12 +5,14 @@ namespace App\Http\Controllers;
 use App\Helpers\AtlanteProvider;
 use App\Http\Requests\GetGroupsRequest;
 use App\Models\AcademicPeriod;
+use App\Models\AssessmentPeriod;
 use App\Models\Enroll;
 use App\Models\Group;
 use App\Http\Requests\StoreGroupRequest;
 use App\Http\Requests\UpdateGroupRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class EnrollController extends Controller
 {
@@ -28,12 +30,12 @@ class EnrollController extends Controller
     public function sync(): JsonResponse
     {
         $academicPeriods = AcademicPeriod::getCurrentAcademicPeriods();
+
         foreach ($academicPeriods as $academicPeriod) {
             try {
                 $enrolls = AtlanteProvider::get('enrolls', [
                     'periods' => $academicPeriod->name,
                 ], true);
-
 
                 Enroll::createOrUpdateFromArray($enrolls, $academicPeriod->id);
             } catch (\JsonException $e) {
@@ -54,6 +56,21 @@ class EnrollController extends Controller
     public function create()
     {
         //
+    }
+
+
+    public function deleteThoseExistingDuplicatedGroups(){
+
+        $academicPeriods = AcademicPeriod::getCurrentAcademicPeriods();
+
+        foreach ($academicPeriods as $academicPeriod) {
+
+            $enrolls = AtlanteProvider::get('enrolls', [
+                'periods' => $academicPeriod->name,
+            ], true);
+
+            Enroll::deleteThoseDuplicatedGroups($enrolls, $academicPeriod->id);
+        }
     }
 
     /**

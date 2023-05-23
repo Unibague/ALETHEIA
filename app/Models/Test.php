@@ -60,6 +60,7 @@ class Test extends Model
 
         });
 
+
         foreach ($userGroups as $group) {
             $group->test = self::getTestFromGroup($group);
         }
