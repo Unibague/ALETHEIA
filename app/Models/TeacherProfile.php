@@ -81,6 +81,7 @@ class TeacherProfile extends Model
 
 
         $errorMessage = '';
+
         foreach ($finalTeachers as $teacher) {
             $user = User::firstOrCreate(['email' => $teacher['email']], ['name' => $teacher['name'],
                 'password' => Hash::make($teacher['identification_number'] . $teacher['email'])]);
@@ -112,6 +113,12 @@ class TeacherProfile extends Model
                 $errorMessage .= nl2br("Ha ocurrido el siguiente error mirando al docente $teacher[name] : {$e->getMessage()}");
             }
 
+
+            if($teacher['employee_type'] != 'DTC'){
+
+                continue;
+
+            }
 
             self::assignTeacherToUnit($user->id, $unitIdentifier);
 

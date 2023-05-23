@@ -143,4 +143,13 @@ class UnityAssessmentController extends Controller
 
     }
 
+
+    public function getAutoAssessment(Request $request): JsonResponse{
+
+        $userId = $request->input('userId');
+
+        return response()->json(UnityAssessment::getAutoAssessmentFromTeacher($userId));
+
+    }
+
 }
