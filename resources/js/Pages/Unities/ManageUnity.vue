@@ -278,7 +278,7 @@
 
                         <v-autocomplete
                             label="Por favor selecciona un usuario"
-                            :items="listOfTeachers"
+                            :items="listOfStaffMembers"
                             v-model="unitBoss"
                             item-text="name"
                             item-value="id"
@@ -476,7 +476,6 @@ export default {
 
         await this.getTeachersFromCurrentUnit();
 
-
     },
 
 
@@ -631,7 +630,7 @@ export default {
 
         async setDialogToAddUnitBoss(){
 
-            await this.getAllTeachersAndSortAlphabetically();
+            await this.getStaffMembersAndSortAlphabetically();
 
             this.unitBossDialog = true
 
