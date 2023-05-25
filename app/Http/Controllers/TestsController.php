@@ -6,6 +6,7 @@ use App\Http\Requests\TestPreviewRequest;
 use App\Models\Form;
 use App\Models\FormAnswers;
 use App\Models\Test;
+use App\Models\UnityAssessment;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\Routing\ResponseFactory;
 use Illuminate\Http\JsonResponse;
@@ -25,6 +26,42 @@ class TestsController extends Controller
     {
         return response()->json(Test::getUserTests());
     }
+
+
+    public function indexTeacherAutoTest(Request $request)
+    {
+
+        $userId = $request->input('userId');
+
+        $teacher = json_decode(UnityAssessment::getAutoAssessmentFromTeacher($userId));
+
+        return response()->json(Test::getUserTests($teacher, 'autoevaluación'));
+    }
+
+
+
+    public function indexTeacherPeerTests(Request $request)
+    {
+
+        $userId = $request->input('userId');
+
+        $peers = json_decode(UnityAssessment::getPeerAssessmentsFromTeacher($userId));
+
+        return response()->json(Test::getUserTests($peers, 'par'));
+    }
+
+
+    public function indexTeacherBossTests(Request $request)
+    {
+
+        $userId = $request->input('userId');
+
+        $subordinates = json_decode(UnityAssessment::getBossAssessmentsFromTeacher($userId));
+
+        return response()->json(Test::getUserTests($subordinates, 'jefe'));
+    }
+
+
 
     public function indexView(): Response
     {
@@ -47,6 +84,13 @@ class TestsController extends Controller
 
             FormAnswers::createStudentFormFromRequest($request, $form);
         }
+
+        if ($form->type === 'otros'){
+
+            FormAnswers::createTeacherFormFromRequest($request, $form);
+
+        }
+
         return response()->json(['messages' => 'Formlario diligenciado exitosamente. Seras redirigido a la página de inicio']);
     }
 
@@ -60,12 +104,33 @@ class TestsController extends Controller
     public function startTest(Request $request, int $testId)
     {
         $data = json_decode($request->input('data')); //parse data
-        if ($data->pivot->has_answer === 1) {
-            return response('Ya has contestado esta evaluación', 401);
-        }
+
         $test = Form::findOrFail($testId);
-        return Inertia::render('Tests/Show', ['test' => $test, 'group' => ['id' => $data->group_id, 'name' => $data->name], 'teacher' => $data->teacher, 'canSend' => true]);
+
+        if ($data->test->type == "estudiantes") {
+
+            if ($data->pivot->has_answer === 1) {
+                return response('Ya has contestado esta evaluación', 401);
+            }
+
+            return Inertia::render('Tests/Show', ['test' => $test, 'group' => ['id' => $data->group_id, 'name' => $data->name], 'teacher' => $data->teacher, 'canSend' => true]);
+
+        }
+
+        if ($data->test->type == "otros") {
+
+            if ($data->pending === 0) {
+                return response('Ya has contestado esta evaluación', 401);
+            }
+
+            return Inertia::render('Tests/ShowTeacherTest', ['test' => $test, 'teacher' => $data, 'canSend' => true]);
+
+        }
+
+
+
     }
+
 
     public function preview(TestPreviewRequest $request, int $testId): Response
     {

@@ -14,6 +14,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Js;
 use Inertia\Inertia;
 use Ospina\CurlCobain\CurlCobain;
 use SebastianBergmann\LinesOfCode\RuntimeException;
@@ -38,11 +39,14 @@ class TeacherProfileController extends Controller
 
     public function viewTeacherAssessments(): \Inertia\Response
     {
+        return Inertia::render('Teachers/Assessments');
 
-        $user = auth()->user();
+    }
 
-        return Inertia::render('Teachers/Assessments',
-            ['user' => $user]);
+
+    public function getTeacherUserId(): JsonResponse{
+
+        return response()->json(auth()->user());
 
     }
 

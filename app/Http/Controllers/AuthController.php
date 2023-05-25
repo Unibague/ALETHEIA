@@ -46,6 +46,10 @@ class AuthController extends Controller
             return redirect()->route('tests.index.view');
         }
 
+        if ($user->is()) {
+            return redirect()->route('tests.index.view');
+        }
+
 
     }
 

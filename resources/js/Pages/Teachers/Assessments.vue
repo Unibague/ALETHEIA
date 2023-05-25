@@ -5,7 +5,7 @@
 
         <v-container>
             <div class="d-flex flex-column align-end mb-5">
-                <h3 class="align-self-start">Autoevaluación para el docente {{user.name}}</h3>
+                <h3 class="align-self-start">Autoevaluación</h3>
             </div>
 
             <!--Tabla autoevaluacion-->
@@ -13,7 +13,7 @@
                 loading-text="Cargando, por favor espere..."
                 :loading="isLoading"
                 :headers="headersAuto"
-                :items="tests"
+                :items="autoAssessment"
                 :items-per-page="20"
                     :footer-props="{
                         'items-per-page-options': [20,50,100,-1]
@@ -33,12 +33,12 @@
                                 mdi-close-circle-outline
                             </v-icon>
                         </template>
-                        <span>No hay una evaluación disponible para este grupo</span>
+                        <span>No hay una autoevaluación disponible para este profesor</span>
                     </v-tooltip>
 
 
                     <form :action="route('tests.startTest',{testId: item.test.id})" method="POST"
-                          v-else-if="item.pivot.has_answer === 0">
+                          v-else-if="item.pending === 1">
                         <input type="hidden" name="_token" :value="token">
                         <input type="hidden" name="data" :value="JSON.stringify(item)">
                         <v-tooltip bottom>
@@ -80,7 +80,7 @@
             <!--Acaba tabla-->
 
             <div class="d-flex flex-column align-end mt-8 mb-5">
-                <h3 class="align-self-start">Pares a evaluar por el docente {{user.name}}</h3>
+                <h3 class="align-self-start">Pares a evaluar por el docente</h3>
             </div>
 
 
@@ -89,7 +89,7 @@
                 loading-text="Cargando, por favor espere..."
                 :loading="isLoading"
                 :headers="headersPeers"
-                :items="tests"
+                :items="peerAssessments"
                 :items-per-page="20"
                 :footer-props="{
                         'items-per-page-options': [20,50,100,-1]
@@ -113,8 +113,8 @@
                     </v-tooltip>
 
 
-                    <form :action="route('tests.startTest',{testId: item.test.id})" method="POST"
-                          v-else-if="item.pivot.has_answer === 0">
+                   <form :action="route('tests.startTest',{testId: item.test.id})" method="POST"
+                          v-else-if="item.test != null">
                         <input type="hidden" name="_token" :value="token">
                         <input type="hidden" name="data" :value="JSON.stringify(item)">
                         <v-tooltip bottom>
@@ -125,7 +125,7 @@
                                     v-on="on"
                                     v-bind="attrs"
                                     icon
-                                    class="mr-2 primario--text"
+                                    class="mr-2 primario&#45;&#45;text"
                                 >
                                     <v-icon>
                                         mdi-send
@@ -157,7 +157,7 @@
 
 
             <div class="d-flex flex-column align-end mt-8 mb-5">
-                <h3 class="align-self-start">Subordinados a evaluar por el docente {{user.name}}</h3>
+                <h3 class="align-self-start">Subordinados a evaluar por el docente</h3>
             </div>
 
 
@@ -167,7 +167,7 @@
                 loading-text="Cargando, por favor espere..."
                 :loading="isLoading"
                 :headers="headersBoss"
-                :items="tests"
+                :items="bossAssessments"
                 :items-per-page="20"
                 :footer-props="{
                         'items-per-page-options': [20,50,100,-1]
@@ -192,7 +192,7 @@
 
 
                     <form :action="route('tests.startTest',{testId: item.test.id})" method="POST"
-                          v-else-if="item.pivot.has_answer === 0">
+                          v-else-if="item.test != null">
                         <input type="hidden" name="_token" :value="token">
                         <input type="hidden" name="data" :value="JSON.stringify(item)">
                         <v-tooltip bottom>
@@ -203,7 +203,7 @@
                                     v-on="on"
                                     v-bind="attrs"
                                     icon
-                                    class="mr-2 primario--text"
+                                    class="mr-2 primario&#45;&#45;text"
                                 >
                                     <v-icon>
                                         mdi-send
@@ -240,13 +240,6 @@
 </template>
 
 <script>
-import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import {InertiaLink} from "@inertiajs/inertia-vue";
-import {getCSRFToken, prepareErrorText, showSnackbar} from "@/HelperFunctions"
-import ConfirmDialog from "@/Components/ConfirmDialog";
-import Group from "@/models/Group";
-import Snackbar from "@/Components/Snackbar";
-
 export default {
     components: {
         ConfirmDialog,
@@ -258,25 +251,22 @@ export default {
         return {
             //Table info
             headersAuto: [
-                {text: 'Periodo académico', value: 'academic_period.name'},
+
                 {text: 'Nombre', value: 'name'},
                 {text: 'Acciones', value: 'actions', sortable: false},
             ],
             headersPeers: [
-                {text: 'Periodo académico', value: 'academic_period.name'},
+
                 {text: 'Nombre', value: 'name'},
-                {text: 'Asignatura', value: 'class_code'},
                 {text: 'Acciones', value: 'actions', sortable: false},
             ],
             headersBoss: [
-                {text: 'Periodo académico', value: 'academic_period.name'},
+
                 {text: 'Nombre', value: 'name'},
-                {text: 'Asignatura', value: 'class_code'},
-                {text: 'Nombre Unidad', value: 'class_code'},
                 {text: 'Acciones', value: 'actions', sortable: false},
             ],
             tests: [],
-            //token: '',
+            /*token: '',*/
             //Snackbars
             snackbar: {
                 text: "",
@@ -285,42 +275,121 @@ export default {
                 timeout: 2000,
             },
             isLoading: true,
+            user:{},
+            autoAssessment: [],
+            peerAssessments: [],
+            bossAssessments: [],
         }
     },
+
     props: {
-        user: Object
+        token: String
     },
+
     async created() {
-        await this.getInfoFromTeacher();
+
+        await this.getUserInfo();
         await this.getAutoAssessment();
+        await this.getPeerAssessments();
+        await this.getBossAssessments();
         this.isLoading = false;
     },
 
 
     methods: {
-        applyForTestStarting: async function () {
+
+   /*     applyForTestStarting: async function () {
             let request = await axios.post(route('api.tests.index'));
             this.tests = request.data;
+        },*/
+
+        getUserInfo: async function() {
+
+            let request = await axios.get(route('teachers.assessments.list'));
+
+            this.user = request.data
+
         },
 
-        getInfoFromTeacher() {
-            console.log(this.user);
-        },
 
+        getAutoAssessment: async function() {
 
-        getAutoAssessment: async function(){
-
-            let url = route('api.unity.getAutoAssessment')
+            let url = route('tests.index.teacherAutoTest')
 
             let data={userId: this.user.id}
 
             let request = await axios.post(url, data);
 
+/*            let assessmentPeriodName = request.data.assessmentPeriodName
+            let pending = request.data.pending*/
+
             console.log(request.data);
 
+            this.autoAssessment = request.data;
+
+            this.autoAssessment.forEach(item =>{
+
+                item.name = this.capitalize(item.name)
+
+            })
+
+        },
+
+
+        getPeerAssessments: async function(){
+
+            let url = route('tests.index.teacherPeerTests')
+
+            let data={userId: this.user.id}
+
+            let request = await axios.post(url, data);
+
+            this.peerAssessments = request.data;
+
+            this.peerAssessments.forEach(peerAssessment =>{
+
+                peerAssessment.name = this.capitalize(peerAssessment.name)
+
+            })
+
+        },
+
+
+
+        getBossAssessments: async function(){
+
+            let url = route('tests.index.teacherBossTests')
+
+            let data={userId: this.user.id}
+
+            let request = await axios.post(url, data);
+
+            this.bossAssessments = request.data;
+
+            this.bossAssessments.forEach(bossAssessment =>{
+
+                bossAssessment.name = this.capitalize(bossAssessment.name)
+
+            })
+
+        },
+
+
+        capitalize($field){
+
+            return $field.toLowerCase().split(' ').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+
         }
+
     },
 
 
 }
+import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
+import {InertiaLink} from "@inertiajs/inertia-vue";
+import {getCSRFToken, prepareErrorText, showSnackbar} from "@/HelperFunctions"
+import ConfirmDialog from "@/Components/ConfirmDialog";
+import Group from "@/models/Group";
+
+import Snackbar from "@/Components/Snackbar";
 </script>

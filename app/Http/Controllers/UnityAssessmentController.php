@@ -152,4 +152,22 @@ class UnityAssessmentController extends Controller
 
     }
 
+    public function getPeerAssessments(Request $request): JsonResponse{
+
+        $userId = $request->input('userId');
+
+        return response()->json(UnityAssessment::getPeerAssessmentsFromTeacher($userId));
+
+    }
+
+    public function getBossAssessments(Request $request): JsonResponse{
+
+        $userId = $request->input('userId');
+
+        return response()->json(UnityAssessment::getPeerAssessmentsFromTeacher($userId));
+
+    }
+
+
+
 }

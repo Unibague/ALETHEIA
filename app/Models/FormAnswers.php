@@ -109,6 +109,34 @@ class FormAnswers extends Model
         self::updateResponseStatusToAnswered($request->input('groupId'), auth()->user()->id);
     }
 
+
+
+    public static function createTeacherFormFromRequest(Request $request, Form $form): void
+    {
+
+        dd($form);
+
+        $competencesAverage = self::getCompetencesAverage(json_decode(json_encode($request->input('answers'), JSON_THROW_ON_ERROR), false, 512, JSON_THROW_ON_ERROR));
+
+        self::create([
+            'user_id' => auth()->user()->id,
+            'form_id' => $form->id,
+            'answers' => json_encode($request->input('answers')),
+            'submitted_at' => Carbon::now()->toDateTimeString(),
+            'group_id' => $request->input('groupId'),
+            'teacher_id' => $request->input('teacherId'),
+            'first_competence_average' => $competencesAverage['C1'] ?? null,
+            'second_competence_average' => $competencesAverage['C2'] ?? null,
+            'third_competence_average' => $competencesAverage['C3'] ?? null,
+            'fourth_competence_average' => $competencesAverage['C4'] ?? null,
+            'fifth_competence_average' => $competencesAverage['C5'] ?? null,
+            'sixth_competence_average' => $competencesAverage['C6'] ?? null,
+        ]);
+
+        self::updateTeacherResponseStatusToAnswered($request->input('groupId'), auth()->user()->id);
+    }
+
+
     public static function getCompetencesAverage($answers): array
     {
         $competences = self::getCompetencesFromFormAnswer($answers);
@@ -181,6 +209,25 @@ class FormAnswers extends Model
             );
 
     }
+
+
+    public static function updateTeacherResponseStatusToAnswered($userId, $role): void
+    {
+
+        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+
+        if($role == 'autoevaluación'){
+
+            UnityAssessment::where('evaluated_id', $userId)->where('role', $role)
+                ->where('assessment_period_id', $activeAssessmentPeriodId)->update([
+                    'pending' => 0
+                ]);
+        }
+
+        dd("hola");
+
+    }
+
 
     public function group(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
