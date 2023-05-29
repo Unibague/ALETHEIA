@@ -4,8 +4,9 @@
                   :show="snackbar.status" @closeSnackbar="snackbar.status = false"></Snackbar>
 
         <v-container>
-            <div class="d-flex flex-column align-end mb-5">
-                <h3 class="align-self-start">Autoevaluación para el docente {{user.name}}</h3>
+            <div class="d-flex flex-column align-end mb-5" v-if="this.autoAssessment.length>0">
+                <h3 class="align-self-start">Autoevaluación </h3>
+                <span class="light-blue--text"> Desde: {{user.autoAssessmentStartDate}} hasta: {{user.autoAssessmentEndDate}}</span>
             </div>
 
             <!--Tabla autoevaluacion-->
@@ -13,12 +14,13 @@
                 loading-text="Cargando, por favor espere..."
                 :loading="isLoading"
                 :headers="headersAuto"
-                :items="tests"
+                :items="autoAssessment"
                 :items-per-page="20"
                     :footer-props="{
                         'items-per-page-options': [20,50,100,-1]
                     }"
                 class="elevation-1"
+                v-show="this.autoAssessment.length>0"
             >
                 <template v-slot:item.actions="{ item }">
 
@@ -33,12 +35,12 @@
                                 mdi-close-circle-outline
                             </v-icon>
                         </template>
-                        <span>No hay una evaluación disponible para este grupo</span>
+                        <span>No hay una autoevaluación disponible para este profesor</span>
                     </v-tooltip>
 
 
                     <form :action="route('tests.startTest',{testId: item.test.id})" method="POST"
-                          v-else-if="item.pivot.has_answer === 0">
+                          v-else-if="item.pending === 1">
                         <input type="hidden" name="_token" :value="token">
                         <input type="hidden" name="data" :value="JSON.stringify(item)">
                         <v-tooltip bottom>
@@ -79,8 +81,9 @@
 
             <!--Acaba tabla-->
 
-            <div class="d-flex flex-column align-end mt-8 mb-5">
-                <h3 class="align-self-start">Pares a evaluar por el docente {{user.name}}</h3>
+            <div class="d-flex flex-column align-end mt-8 mb-5" v-if="this.peerAssessments.length>0">
+                <h3 class="align-self-start">Profesores a evaluar como par </h3>
+                <span class="light-blue--text"> Desde: {{user.peerAssessmentStartDate}} hasta: {{user.peerAssessmentEndDate}}</span>
             </div>
 
 
@@ -89,12 +92,13 @@
                 loading-text="Cargando, por favor espere..."
                 :loading="isLoading"
                 :headers="headersPeers"
-                :items="tests"
+                :items="peerAssessments"
                 :items-per-page="20"
                 :footer-props="{
                         'items-per-page-options': [20,50,100,-1]
                     }"
                 class="elevation-1"
+                v-show="peerAssessments.length>0"
             >
                 <template v-slot:item.actions="{ item }">
 
@@ -113,8 +117,8 @@
                     </v-tooltip>
 
 
-                    <form :action="route('tests.startTest',{testId: item.test.id})" method="POST"
-                          v-else-if="item.pivot.has_answer === 0">
+                   <form :action="route('tests.startTest',{testId: item.test.id})" method="POST"
+                          v-else-if="item.pending === 1">
                         <input type="hidden" name="_token" :value="token">
                         <input type="hidden" name="data" :value="JSON.stringify(item)">
                         <v-tooltip bottom>
@@ -156,8 +160,9 @@
             <!--Acaba tabla-->
 
 
-            <div class="d-flex flex-column align-end mt-8 mb-5">
-                <h3 class="align-self-start">Subordinados a evaluar por el docente {{user.name}}</h3>
+            <div class="d-flex flex-column align-end mt-8 mb-5" v-if="this.bossAssessments.length>0">
+                <h3 class="align-self-start">Profesores a evaluar como jefe</h3>
+                <span class="light-blue--text"> Desde: {{user.bossAssessmentStartDate}} hasta: {{user.bossAssessmentEndDate}}</span>
             </div>
 
 
@@ -167,12 +172,13 @@
                 loading-text="Cargando, por favor espere..."
                 :loading="isLoading"
                 :headers="headersBoss"
-                :items="tests"
+                :items="bossAssessments"
                 :items-per-page="20"
                 :footer-props="{
                         'items-per-page-options': [20,50,100,-1]
                     }"
                 class="elevation-1"
+                v-show="bossAssessments.length>0"
             >
                 <template v-slot:item.actions="{ item }">
 
@@ -192,7 +198,7 @@
 
 
                     <form :action="route('tests.startTest',{testId: item.test.id})" method="POST"
-                          v-else-if="item.pivot.has_answer === 0">
+                          v-else-if="item.pending === 1">
                         <input type="hidden" name="_token" :value="token">
                         <input type="hidden" name="data" :value="JSON.stringify(item)">
                         <v-tooltip bottom>
@@ -240,13 +246,6 @@
 </template>
 
 <script>
-import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import {InertiaLink} from "@inertiajs/inertia-vue";
-import {getCSRFToken, prepareErrorText, showSnackbar} from "@/HelperFunctions"
-import ConfirmDialog from "@/Components/ConfirmDialog";
-import Group from "@/models/Group";
-import Snackbar from "@/Components/Snackbar";
-
 export default {
     components: {
         ConfirmDialog,
@@ -258,25 +257,22 @@ export default {
         return {
             //Table info
             headersAuto: [
-                {text: 'Periodo académico', value: 'academic_period.name'},
-                {text: 'Nombre', value: 'name'},
+                {align: 'center'},
+                {text: 'Nombre', value: 'name', width:'90%'},
                 {text: 'Acciones', value: 'actions', sortable: false},
             ],
             headersPeers: [
-                {text: 'Periodo académico', value: 'academic_period.name'},
-                {text: 'Nombre', value: 'name'},
-                {text: 'Asignatura', value: 'class_code'},
+                {align: 'center'},
+                {text: 'Nombre', value: 'name', width:'90%'},
                 {text: 'Acciones', value: 'actions', sortable: false},
             ],
             headersBoss: [
-                {text: 'Periodo académico', value: 'academic_period.name'},
-                {text: 'Nombre', value: 'name'},
-                {text: 'Asignatura', value: 'class_code'},
-                {text: 'Nombre Unidad', value: 'class_code'},
+                {align: 'center'},
+                {text: 'Nombre', value: 'name', width:'90%'},
                 {text: 'Acciones', value: 'actions', sortable: false},
             ],
             tests: [],
-            //token: '',
+            /*token: '',*/
             //Snackbars
             snackbar: {
                 text: "",
@@ -285,42 +281,135 @@ export default {
                 timeout: 2000,
             },
             isLoading: true,
+            autoAssessment: [],
+            peerAssessments: [],
+            bossAssessments: [],
+            user: {}
         }
+
     },
+
     props: {
-        user: Object
+        token: String
     },
+
     async created() {
-        await this.getInfoFromTeacher();
+
         await this.getAutoAssessment();
+        await this.getPeerAssessments();
+        await this.getBossAssessments();
         this.isLoading = false;
     },
 
 
     methods: {
-        applyForTestStarting: async function () {
+
+   /*     applyForTestStarting: async function () {
             let request = await axios.post(route('api.tests.index'));
             this.tests = request.data;
+        },*/
+
+
+        getAutoAssessment: async function() {
+
+            let url = route('tests.index.teacherAutoTest')
+
+            let request = await axios.get(url);
+
+            this.autoAssessment = request.data;
+
+            if(this.autoAssessment.length>0) {
+
+                this.user = {
+
+                    autoAssessmentStartDate: this.autoAssessment[0].self_start_date,
+                    autoAssessmentEndDate: this.autoAssessment[0].self_end_date
+                }
+
+                console.log(this.user);
+
+                console.log(this.autoAssessment);
+
+                this.autoAssessment.forEach(item =>{
+
+                    item.name = this.capitalize(item.name)
+
+                })
+
+            }
+
+
         },
 
-        getInfoFromTeacher() {
-            console.log(this.user);
+
+        getPeerAssessments: async function(){
+
+            let url = route('tests.index.teacherPeerTests')
+
+            let request = await axios.get(url);
+
+            this.peerAssessments = request.data;
+
+            if(this.peerAssessments.length>0) {
+
+                this.user.peerAssessmentStartDate = this.peerAssessments[0].colleague_start_date
+                this.user.peerAssessmentEndDate = this.peerAssessments[0].colleague_end_date
+
+                /*            console.log(this.peerAssessments);*/
+
+                this.peerAssessments.forEach(peerAssessment => {
+
+                    peerAssessment.name = this.capitalize(peerAssessment.name)
+
+                })
+            }
         },
 
 
-        getAutoAssessment: async function(){
 
-            let url = route('api.unity.getAutoAssessment')
+        getBossAssessments: async function(){
 
-            let data={userId: this.user.id}
+            let url = route('tests.index.teacherBossTests')
 
-            let request = await axios.post(url, data);
+            let request = await axios.get(url);
 
-            console.log(request.data);
+            this.bossAssessments = request.data;
+
+            if(this.bossAssessments.length>0){
+
+                this.user.bossAssessmentStartDate= this.bossAssessments[0].boss_start_date
+                this.user.bossAssessmentEndDate= this.bossAssessments[0].boss_end_date
+
+
+                this.bossAssessments.forEach(bossAssessment =>{
+
+                    bossAssessment.name = this.capitalize(bossAssessment.name)
+
+                })
+
+            }
+
+
+
+
+        },
+
+
+        capitalize($field){
+
+            return $field.toLowerCase().split(' ').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 
         }
+
     },
 
 
 }
+import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
+import {InertiaLink} from "@inertiajs/inertia-vue";
+import {getCSRFToken, prepareErrorText, showSnackbar} from "@/HelperFunctions"
+import ConfirmDialog from "@/Components/ConfirmDialog";
+import Group from "@/models/Group";
+
+import Snackbar from "@/Components/Snackbar";
 </script>

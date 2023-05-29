@@ -20,6 +20,6 @@ class isUnitAdmin
         if (!$request->user() || $request->user()->hasRole('administrador de unidad') ) {
             return $next($request);
         }
-        return response('sdfdfdfn', 403);
+        return response('No tienes permisos suficientes para realizar esta acción', 403);
     }
 }

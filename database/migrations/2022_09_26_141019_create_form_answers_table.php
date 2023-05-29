@@ -22,7 +22,6 @@ class CreateFormAnswersTable extends Migration
 
             $table->unsignedBigInteger('group_id');
             $table->foreign('group_id')->references('group_id')->on('groups');
-
             $table->foreignId('teacher_id')->nullable()->references('id')->on('users');
             $table->foreignId('unity_assessment_id')->nullable()->constrained();
             $table->double('first_competence_average')->nullable();

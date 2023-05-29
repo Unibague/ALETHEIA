@@ -48,24 +48,40 @@ class Test extends Model
         return FormQuestion::where('form_id', $formId)->first();
     }
 
-    public static function getUserTests()
+
+    public static function getUserTests($peersOrSubordinates = null, $role = null)
     {
         $user = auth()->user();
-        $userGroups = $user->groups;
 
+        if($user->role()->name == "estudiante"){
+            $userGroups = $user->groups;
 
-        $userGroups = $userGroups->filter(function($userGroup){
+            $userGroups = $userGroups->filter(function($userGroup){
+                return $userGroup->teacher_id !== null;
+            });
 
-            return $userGroup->teacher_id !== null;
+            foreach ($userGroups as $group) {
+                $group->test = self::getTestFromGroup($group);
+            }
 
-        });
+            return $userGroups;
 
-
-        foreach ($userGroups as $group) {
-            $group->test = self::getTestFromGroup($group);
         }
 
-        return $userGroups;
+        if ($user->role()->name == "docente" || $user->role()->name == "jefe de profesor"){
+
+            foreach ($peersOrSubordinates as $teacher) {
+
+                $teacher->test = self::getTestFromTeacher($teacher, $role);
+
+            }
+
+            return $peersOrSubordinates;
+
+        }
+
+        return [];
+
     }
 
     public static function getTestFromGroup(Group $group)
@@ -109,4 +125,76 @@ class Test extends Model
 
         return $form ?? null;
     }
+
+    public static function getTestFromTeacher($teacher, $role)
+    {
+        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+
+        $teachingLadders = ['ninguno' => 'NIN', 'auxiliar' => 'AUX',
+            'asistente' => 'ASI', 'asociado' => 'ASO', 'titular' => 'TIT'];
+
+        foreach ($teachingLadders as $key => $teachingLadder) {
+
+            if ($teacher->teaching_ladder == $teachingLadder) {
+                $teacher->teaching_ladder = $key;
+            }
+        }
+
+        //All params
+        $form = DB::table('forms')
+            ->whereRaw("json_contains(units->'$[*]',JSON_ARRAY(?))", $teacher->unit_identifier)
+            ->where('teaching_ladder', '=', $teacher->teaching_ladder)
+            ->where('unit_role', '=', $role)
+            ->where('academic_period_id', '=', $activeAssessmentPeriodId)
+            ->latest()->first();
+
+        if ($form !== null) {
+            return $form;
+        }
+        //Only last two params
+        $form = DB::table('forms')
+                ->whereRaw("json_contains(units->'$[*]',JSON_ARRAY(?))", [null])
+                ->where('teaching_ladder', '=', $teacher->teaching_ladder)
+                ->where('unit_role', '=', $role)
+                ->where('assessment_period_id', '=', $activeAssessmentPeriodId)
+                ->latest()->first();
+
+        if ($form !== null) {
+            return $form;
+        }
+        //Only first param
+        $form = DB::table('forms')
+            ->whereRaw("json_contains(units->'$[*]',JSON_ARRAY(?))", [null])
+            ->where('teaching_ladder', '=', null)
+            ->where('unit_role', '=', $role)
+            ->where('assessment_period_id', '=', $activeAssessmentPeriodId)
+            ->latest()->first();
+
+        if ($form !== null) {
+            return $form;
+        }
+        //Any params
+        $form = DB::table('forms')
+            ->whereRaw("json_contains(units->'$[*]',JSON_ARRAY(?))", [null])
+            ->where('teaching_ladder', '=', null)
+            ->where('unit_role', '=', null)
+            ->where('assessment_period_id', '=', $activeAssessmentPeriodId)
+            ->latest()->first();
+
+        if ($form !== null) {
+            return $form;
+        }
+
+        $form = DB::table('forms')
+            ->whereRaw("json_contains(units->'$[*]',JSON_ARRAY(?))", [null])
+            ->where('teaching_ladder', '=', null)
+            ->where('unit_role', '=', null)
+            ->where('assessment_period_id', '=', null)
+            ->latest()->first();
+
+
+        return $form ?? null;
+    }
+
+
 }

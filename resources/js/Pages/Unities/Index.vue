@@ -69,8 +69,8 @@
                     {{ item.is_custom ? 'Personalizada' : 'Integración' }}
                 </template>
 
-                <template v-slot:item.users="{ item }">
-                    {{ item.users.length }}
+                <template v-slot:item.teachers_from_unit="{ item }">
+                    {{ item.teachers_from_unit.length }}
                 </template>
 
                 <template v-slot:item.actions="{ item }">
@@ -234,7 +234,7 @@ export default {
             headers: [
                 {text: 'Nombre', value: 'name', align: 'center'},
                 {text: 'Tipo de unidad', value: 'is_custom'},
-                {text: 'Usuarios', value: 'users'},
+                {text: 'Usuarios', value: 'teachers_from_unit'},
                 {text: 'Acciones', value: 'actions', sortable: false},
             ],
             assessmentPeriods: [],
@@ -268,7 +268,7 @@ export default {
 
           return this.units.filter(unit => {
 
-              return unit.users.length>0 || unit.is_custom == 1;
+              return unit.teachers_from_unit.length>0 || unit.is_custom == 1;
 
           })
 

@@ -197,10 +197,14 @@ class User extends Authenticatable
 
     }
 
-
     public function isStudent(): bool
     {
         return $this->hasRole('estudiante');
+    }
+
+    public function isTeacher(): bool
+    {
+        return $this->hasRole('docente');
     }
 
     public function teacherProfile(): \Illuminate\Database\Eloquent\Relations\HasOne
@@ -228,7 +232,9 @@ class User extends Authenticatable
     {
         $now = Carbon::now();
         $date = $now->toDateString();
-        return $this->belongsToMany(Group::class,'group_user','user_id','group_id','id','group_id')->with(['teacher', 'academicPeriod'])
+        return $this->belongsToMany(Group::class,'group_user',
+            'user_id','group_id','id','group_id')
+            ->with(['teacher', 'academicPeriod'])
             ->wherePivotIn('academic_period_id', AcademicPeriod::getCurrentAcademicPeriodIds())
             ->join('academic_periods as ap','ap.id','=','group_user.academic_period_id')
             ->where('ap.students_start_date','<=',$date)

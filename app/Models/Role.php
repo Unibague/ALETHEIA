@@ -92,6 +92,18 @@ class Role extends Model
         return $selectedRole->customId;
     }
 
+
+    public static function getRoleNameByCustomId(int $roleCustomId): string
+    {
+        $roleName = self::where('customId', '=', $roleCustomId)->first();
+        if ($roleName === null) {
+            throw new \RuntimeException('El rol buscado no existe');
+        }
+        return $roleName->name;
+    }
+
+
+
     public static function assignRoleToEmail(string $email, $roleName): void
     {
         $user = User::where('email', '=', $email)->first();

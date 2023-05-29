@@ -26,8 +26,8 @@
             <v-app-bar-nav-icon @click="drawer = true" class="white--text"></v-app-bar-nav-icon>
         </template>
         <template v-slot:app-bar-content>
-            <template v-for="menuItem in menu"
-                      v-if="$page.props.user.customRoleId >= menuItem.role">
+            <template v-for="menuItem in menu1"
+                      v-if="$page.props.user.customRoleId >= menuItem.role" >
 
                 <Link as="v-btn" text v-if="!menuItem.method" :key="menuItem.title"
                       class="d-none d-md-block"
@@ -50,6 +50,34 @@
                     {{ menuItem.name }}
                 </v-btn>
             </template>
+
+
+
+            <template v-for="menuItem in menu2"
+                      v-if="currentRoleName == 'estudiante'" >
+
+                <Link as="v-btn" text v-if="!menuItem.method" :key="menuItem.title"
+                      class="d-none d-md-block"
+                      :class="{
+                        'active-button':route().current(menuItem.routeName),
+                        'normal-button':!(route().current(menuItem.routeName))
+                        }"
+                      :href="menuItem.href">
+                    {{ menuItem.name }}
+                </Link>
+
+                <v-btn text v-else
+                       :key="menuItem.title"
+                       class="d-none d-md-block"
+                       :class="{
+                        'active-button':route().current(menuItem.routeName),
+                        'normal-button':!(route().current(menuItem.routeName))
+                        }"
+                       @click="triggerFunction(menuItem.method)">
+                    {{ menuItem.name }}
+                </v-btn>
+            </template>
+
 
             <template
                 v-for="dropdown in dropdowns"
@@ -130,12 +158,12 @@
                         v-model="group"
                         active-class="deep-purple--text text--accent-4"
                     >
-                        <template v-for="item in menu"
+                        <template v-for="item in menu1"
                                   v-if="$page.props.user.customRoleId >= item.role">
 
                             <!-- LINKS DE MENU INDIVIDUALES-->
 
-                            <Link as="v-list-item" :key="menu.name" :href="item.href"
+                            <Link as="v-list-item" :key="menu1.name" :href="item.href"
                                   v-if="!item.method">
                                 <v-list-item-icon>
                                     <v-icon>{{ item.icon }}</v-icon>
@@ -143,7 +171,7 @@
                                 <v-list-item-title>{{ item.name }}</v-list-item-title>
                             </Link>
 
-                            <v-list-item :key="menu.name" @click="triggerFunction(item.method)"
+                            <v-list-item :key="menu1.name" @click="triggerFunction(item.method)"
                                          v-else>
                                 <v-list-item-icon>
                                     <v-icon>{{ item.icon }}</v-icon>
@@ -236,14 +264,17 @@ export default {
             timeout: 3000
         },
         drawer: false,
-        menu:
+        menu1:
             [
                 {
                     name: 'Cambiar Rol',
                     href: route('pickRole'),
                     role: 1,
                     icon: 'mdi-calendar'
-                },
+                }
+            ],
+        menu2:
+            [
                 {
                     name: 'Evaluaciones',
                     href: route('tests.index.view'),
@@ -344,6 +375,7 @@ export default {
         ],
         group: null,
         initials: '',
+        currentRoleName: ''
     }),
     methods: {
         logout() {
@@ -352,14 +384,32 @@ export default {
         triggerFunction(functionName) {
             this[functionName]();
         },
+
+        async getRoleNameByCustomId (){
+
+            let url = route('role.name')
+
+            let request = await axios.post(url, {
+                customRoleId : this.$page.props.user.customRoleId
+            })
+
+            this.currentRoleName = request.data;
+
+        }
+
     },
 
     async created() {
         //Get the inicials
+        await this.getRoleNameByCustomId();
         let name = this.$page.props.user.name;
         let splitName = name.split(' ');
         this.initials = `${splitName[0].charAt(0)}${splitName[1].charAt(0)}`;
     }
+
+
+
+
 
 }
 </script>

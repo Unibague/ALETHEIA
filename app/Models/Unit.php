@@ -52,7 +52,7 @@ class Unit extends Model
     public static function getCurrentUnits(){
 
         return self::where('assessment_period_id','=', AssessmentPeriod::getActiveAssessmentPeriod()
-            ->id)->with('users.teacherProfile')->get();
+            ->id)->with('teachersFromUnit')->get();
 
 
     }
@@ -224,7 +224,8 @@ class Unit extends Model
 
     public function users(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
-        return $this->belongsToMany(User::class,'v2_unit_user','unit_identifier','user_id', 'identifier', 'id')->withPivot(['role_id']);
+        return $this->belongsToMany(User::class,'v2_unit_user','unit_identifier','user_id', 'identifier', 'id')->
+        withPivot(['role_id']);
     }
 
     public function teachersFromUnit(): \Illuminate\Database\Eloquent\Relations\BelongsToMany

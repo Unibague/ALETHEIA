@@ -111,6 +111,8 @@ Route::post('/unity/removeAssignment', [\App\Http\Controllers\UnityAssessmentCon
 
 
 Route::post('unity/autoAssessment', [\App\Http\Controllers\UnityAssessmentController::class, 'getAutoAssessment'])->middleware(['auth', 'isTeacher'])->name('api.unity.getAutoAssessment');
+Route::post('unity/peerAssessments', [\App\Http\Controllers\UnityAssessmentController::class, 'getPeerAssessments'])->middleware(['auth', 'isTeacher'])->name('api.unity.peerAssessments');
+Route::post('unity/BossAssessments', [\App\Http\Controllers\UnityAssessmentController::class, 'getBossAssessments'])->middleware(['auth', 'isTeacher'])->name('api.unity.bossAssessments');
 
 
 /* >>>>>>>>>>>>>>>>>>>>>>>>> Service Areas routes <<<<<<<<<<<<<<<<<<<<<<<<< */
@@ -168,6 +170,7 @@ Route::get('/teachers/assessments', [\App\Http\Controllers\TeacherProfileControl
 /* >>>>>>>>>>>>>>>>>>>>>>>>>>>> Test routes  (students) <<<<<<<<<<<<<<<<<<<<<<<<<<< */
 Route::get('/tests', [\App\Http\Controllers\TestsController::class, 'indexView'])->middleware(['auth'])->name('tests.index.view');
 Route::post('/tests/{testId}', [\App\Http\Controllers\TestsController::class, 'startTest'])->middleware(['auth'])->name('tests.startTest');
+
 Route::get('/tests/{testId}/preview', [\App\Http\Controllers\TestsController::class, 'preview'])->middleware(['auth'])->name('tests.preview');
 
 //Change teacher status
@@ -176,9 +179,17 @@ Route::resource('api/tests', \App\Http\Controllers\TestsController::class, [
 ])->middleware('auth');
 
 
+Route::get('/test/teacherAutoTest', [\App\Http\Controllers\TestsController::class, 'indexTeacherAutoTest'])->middleware(['auth'])->name('tests.index.teacherAutoTest');
+
+Route::get('/test/teacherPeerTests', [\App\Http\Controllers\TestsController::class, 'indexTeacherPeerTests'])->middleware(['auth'])->name('tests.index.teacherPeerTests');
+
+Route::get('/test/teacherBossTests', [\App\Http\Controllers\TestsController::class, 'indexTeacherBossTests'])->middleware(['auth'])->name('tests.index.teacherBossTests');
+
+
 /* >>>>>>>>>>>>>>>>>>>>>>>>Roles routes <<<<<<<<<<<<<<<<<<<<<<<<<<<< */
 //Get all roles
 Route::get('/roles', [\App\Http\Controllers\Roles\RoleController::class, 'index'])->middleware(['auth', 'isAdmin'])->name('roles.index');
+Route::post('/roleName', [\App\Http\Controllers\Roles\RoleController::class, 'getNameByCustomId'])->middleware(['auth'])->name('role.name');
 Route::resource('api/roles', \App\Http\Controllers\Roles\ApiRoleController::class, [
     'as' => 'api'
 ])->middleware('auth');

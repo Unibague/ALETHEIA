@@ -31,6 +31,8 @@ class EnrollController extends Controller
     {
         $academicPeriods = AcademicPeriod::getCurrentAcademicPeriods();
 
+        $user = auth()->user();
+
         foreach ($academicPeriods as $academicPeriod) {
             try {
                 $enrolls = AtlanteProvider::get('enrolls', [

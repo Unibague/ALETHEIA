@@ -66,28 +66,34 @@ class TeacherProfile extends Model
     public static function createOrUpdateFromArray(array $teachers): void
     {
         $finalTeachers = $teachers;
+        $teacherRoleId = Role::getTeacherRoleId();
         $failedToSyncTeachersCounter = 0;
         $failedToSyncTeachersArray = [];
         $failedToSyncTeachersNames = [];
-
 
         $serialized = array_map('serialize', $finalTeachers);
         $unique = array_unique($serialized);
         $finalTeachers = array_intersect_key($finalTeachers, $unique);
 
+
         //Iterate over received data and create the academic period
         $assessment_period_id = AssessmentPeriod::getActiveAssessmentPeriod()->id;
         $assessmentPeriodAsString = (string)$assessment_period_id;
-
 
         $errorMessage = '';
 
         foreach ($finalTeachers as $teacher) {
             $user = User::firstOrCreate(['email' => $teacher['email']], ['name' => $teacher['name'],
                 'password' => Hash::make($teacher['identification_number'] . $teacher['email'])]);
-            $unitIdentifier = $teacher['unit'].'-'.$assessmentPeriodAsString;
 
-            if ($teacher['unit'] == "" || $teacher['position'] == "" || $teacher['centro'] == ""){
+            if ($teacher['unit'] !== "") {
+
+                $unitIdentifier = $teacher['unit'] . '-' . $assessmentPeriodAsString;
+
+            }
+
+
+            if ($teacher['unit'] == "" && $teacher['employee_type'] == 'DTC'){
 
                 $failedToSyncTeachersArray[] = $teacher;
                 $failedToSyncTeachersCounter++;
@@ -109,28 +115,39 @@ class TeacherProfile extends Model
                         'status' => 'activo',
                         'assessment_period_id' => $assessment_period_id
                     ]);
+
+
+                DB::table('role_user')->updateOrInsert(
+                    ['user_id' => $user->id,
+                        'role_id' => $teacherRoleId]
+
+                );
+
+
+
+
+
             } catch (\Exception $e) {
                 $errorMessage .= nl2br("Ha ocurrido el siguiente error mirando al docente $teacher[name] : {$e->getMessage()}");
             }
 
 
-            if($teacher['employee_type'] != 'DTC'){
+            if($teacher['employee_type'] == 'DTC'){
 
-                continue;
+                self::assignTeacherToUnit($user->id, $unitIdentifier);
 
             }
-
-            self::assignTeacherToUnit($user->id, $unitIdentifier);
 
 
         }
 
         if($failedToSyncTeachersCounter) {
+
             foreach ($failedToSyncTeachersArray as $failedToSyncTeacher){
 
                 $failedToSyncTeachersNames[] = $failedToSyncTeacher['name'];
             }
-            throw new \RuntimeException("Docentes Cargados, pero ocurrió un problema sincronizando a los docentes: " . implode(",", $failedToSyncTeachersNames));
+            throw new \RuntimeException("Docentes cargados, pero ocurrió un problema sincronizando a los siguientes docentes TC: " . implode(",", $failedToSyncTeachersNames));
         }
 
         if ($errorMessage !== '') {
@@ -144,12 +161,6 @@ class TeacherProfile extends Model
 
         $roleId = Role::getTeacherRoleId();
         $activeAssessmentPeriod = AssessmentPeriod::getActiveAssessmentPeriod()->id;
-
-            DB::table('role_user')->updateOrInsert(
-                ['user_id' => $userId,
-                    'role_id' => $roleId]
-            );
-
 
             $user = DB::table('v2_unit_user')->where('user_id',$userId)
                 ->where('role_id', $roleId)->first();
@@ -180,22 +191,6 @@ class TeacherProfile extends Model
 
 
         }
-
-    public static function getTeachersListSuitableToBeAssignedAsPeerOrBossess (){
-
-        $activeAssessmentPeriod = AssessmentPeriod::getActiveAssessmentPeriod();
-
-        $suitableTeachingLadders = $activeAssessmentPeriod->getSuitableTeachingLadders();
-
-        $teachers = DB::table('v2_units')
-            ->where('v2_units.assessment_period_id','=', $activeAssessmentPeriod->id)
-            ->join('v2_unit_user','v2_unit_user.unit_identifier','=','v2_units.identifier')
-            ->join('users','users.id','=','v2_unit_user.user_id')
-            ->join('v2_teacher_profiles','v2_teacher_profiles.user_id','=','users.id')
-            ->whereIn('v2_teacher_profiles.employee_type',['DTC','ESI'])
-            ->whereIn('v2_teacher_profiles.teaching_ladder', $suitableTeachingLadders)->get();
-
-    }
 
 
     public function assessmentPeriod(): \Illuminate\Database\Eloquent\Relations\BelongsTo
