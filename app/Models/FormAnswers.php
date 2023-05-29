@@ -114,8 +114,6 @@ class FormAnswers extends Model
     public static function createTeacherFormFromRequest(Request $request, Form $form): void
     {
 
-        dd($form);
-
         $competencesAverage = self::getCompetencesAverage(json_decode(json_encode($request->input('answers'), JSON_THROW_ON_ERROR), false, 512, JSON_THROW_ON_ERROR));
 
         self::create([
@@ -123,7 +121,7 @@ class FormAnswers extends Model
             'form_id' => $form->id,
             'answers' => json_encode($request->input('answers')),
             'submitted_at' => Carbon::now()->toDateTimeString(),
-            'group_id' => $request->input('groupId'),
+            'group_id' => null,
             'teacher_id' => $request->input('teacherId'),
             'first_competence_average' => $competencesAverage['C1'] ?? null,
             'second_competence_average' => $competencesAverage['C2'] ?? null,
@@ -133,7 +131,7 @@ class FormAnswers extends Model
             'sixth_competence_average' => $competencesAverage['C6'] ?? null,
         ]);
 
-        self::updateTeacherResponseStatusToAnswered($request->input('groupId'), auth()->user()->id);
+        self::updateTeacherResponseStatusToAnswered(auth()->user()->id, $request->input('role'), $request->input('teacherId') );
     }
 
 
@@ -156,18 +154,6 @@ class FormAnswers extends Model
     private static function getCompetencesFromFormAnswer($formAnswers): array
     {
         $competences = [];
-/*
-        foreach ($formAnswers as $formAnswer){
-
-            if($formAnswer->answer == null){
-
-                dd("jfjfjefj");
-
-
-
-            }
-
-        }*/
 
         try{
 
@@ -211,20 +197,29 @@ class FormAnswers extends Model
     }
 
 
-    public static function updateTeacherResponseStatusToAnswered($userId, $role): void
+    public static function updateTeacherResponseStatusToAnswered($userId, $role, $evaluatedId): void
     {
-
         $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
 
         if($role == 'autoevaluación'){
 
             UnityAssessment::where('evaluated_id', $userId)->where('role', $role)
+                ->where('evaluator_id', $userId)
                 ->where('assessment_period_id', $activeAssessmentPeriodId)->update([
                     'pending' => 0
                 ]);
         }
 
-        dd("hola");
+
+        if($role == "jefe" || $role == "par"){
+
+            UnityAssessment::where('evaluated_id',$evaluatedId )->where('role', $role)
+                ->where('evaluator_id', $userId)
+                ->where('assessment_period_id', $activeAssessmentPeriodId)->update([
+                    'pending' => 0
+                ]);
+
+        }
 
     }
 

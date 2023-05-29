@@ -47,32 +47,6 @@ class GroupController extends Controller
             $groups = AtlanteProvider::get('groups', [
                 'periods' => $namesSeparatedByCommas,
             ], true);
-/*
-            $nonExistingGroupsFromEndpoint = [];
-            $existingGroupsFromEndpointIds = [];
-
-            foreach ($groups as $group){
-
-                $existingGroupsFromEndpointIds [] = $group['group_id'];
-
-            }
-            $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
-
-            $existingGroupsInDB = Group::where('academic_period_id',$activeAssessmentPeriodId)
-                ->select('group_id')->get()->toArray();
-
-            $existingGroupsInDB = array_column($existingGroupsInDB, 'group_id');
-
-            foreach ($existingGroupsInDB as $existingGroupInDB){
-
-               if(!in_array($existingGroupInDB, $existingGroupsFromEndpointIds, false)){
-
-                   $nonExistingGroupsFromEndpoint [] = $existingGroupInDB;
-               }
-            }
-
-            dd($nonExistingGroupsFromEndpoint);*/
-
 
 
         foreach ($groups as $key=>$group){

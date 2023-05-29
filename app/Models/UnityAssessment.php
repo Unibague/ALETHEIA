@@ -223,14 +223,19 @@ class UnityAssessment extends Model
 
         return self::where('unity_assessments.evaluated_id', $userId)->where('role', 'autoevaluación')
             ->where('unity_assessments.assessment_period_id', $activeAssessmentPeriodId)
+            ->join('assessment_periods', 'assessment_periods.id','unity_assessments.assessment_period_id')
             ->join('teacher_profiles','teacher_profiles.user_id','unity_assessments.evaluated_id')
             ->join('users','users.id','teacher_profiles.user_id')
             ->select(
                 ['unity_assessments.evaluated_id as id',
+                    'unity_assessments.role',
                     'unity_assessments.unit_identifier',
                     'unity_assessments.pending',
                     'teacher_profiles.teaching_ladder',
-                    'users.name'])->get();
+                    'users.name',
+                    'assessment_periods.self_start_date',
+                    'assessment_periods.self_end_date'
+                    ])->get();
 
     }
 
@@ -241,9 +246,13 @@ class UnityAssessment extends Model
 
         return self::where('unity_assessments.evaluator_id', $userId)->where('role', 'par')
             ->where('unity_assessments.assessment_period_id', $activeAssessmentPeriodId)
+            ->join('assessment_periods', 'assessment_periods.id','unity_assessments.assessment_period_id')
             ->join('users','users.id', 'unity_assessments.evaluated_id')
             ->join('teacher_profiles','teacher_profiles.user_id','users.id')
-            ->select(['users.name', 'users.id','unity_assessments.unit_identifier', 'teacher_profiles.teaching_ladder'])->get();
+            ->select(['users.name', 'users.id','unity_assessments.unit_identifier', 'teacher_profiles.teaching_ladder',
+                'unity_assessments.pending',
+                'assessment_periods.colleague_start_date',
+                'assessment_periods.colleague_end_date'])->get();
 
     }
 
@@ -254,9 +263,13 @@ class UnityAssessment extends Model
 
         return self::where('unity_assessments.evaluator_id', $userId)->where('role', 'jefe')
             ->where('unity_assessments.assessment_period_id', $activeAssessmentPeriodId)
+            ->join('assessment_periods', 'assessment_periods.id','unity_assessments.assessment_period_id')
             ->join('users','users.id', 'unity_assessments.evaluated_id')
             ->join('teacher_profiles','teacher_profiles.user_id','users.id')
-            ->select(['users.name', 'users.id','unity_assessments.unit_identifier', 'teacher_profiles.teaching_ladder'])->get();
+            ->select(['users.name', 'users.id','unity_assessments.unit_identifier', 'teacher_profiles.teaching_ladder',
+                'unity_assessments.pending',
+                'assessment_periods.boss_start_date',
+                'assessment_periods.boss_end_date'])->get();
 
     }
 

@@ -14,4 +14,15 @@ class RoleController extends Controller
     {
         return Inertia::render('Roles/Index');
     }
+
+
+    public function getNameByCustomId(Request $request)
+    {
+        $roleCustomId = $request->input('customRoleId');
+
+        return Role::getRoleNameByCustomId($roleCustomId);
+
+    }
+
+
 }

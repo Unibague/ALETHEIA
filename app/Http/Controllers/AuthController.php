@@ -41,14 +41,16 @@ class AuthController extends Controller
             return redirect()->route('unities.index.view');
         }
 
+        if ($user->role()->name == "estudiante") {
 
-        if ($user->isStudent()) {
             return redirect()->route('tests.index.view');
         }
 
-        if ($user->is()) {
-            return redirect()->route('tests.index.view');
+        if ($user->role()->name == "docente" || $user->role()->name == "jefe de profesor") {
+            return redirect()->route('teachers.assessments.view');
         }
+
+
 
 
     }

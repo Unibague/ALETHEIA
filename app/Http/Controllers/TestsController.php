@@ -28,10 +28,10 @@ class TestsController extends Controller
     }
 
 
-    public function indexTeacherAutoTest(Request $request)
+    public function indexTeacherAutoTest()
     {
 
-        $userId = $request->input('userId');
+        $userId = auth()->user()->id;
 
         $teacher = json_decode(UnityAssessment::getAutoAssessmentFromTeacher($userId));
 
@@ -40,10 +40,10 @@ class TestsController extends Controller
 
 
 
-    public function indexTeacherPeerTests(Request $request)
+    public function indexTeacherPeerTests()
     {
 
-        $userId = $request->input('userId');
+        $userId = auth()->user()->id;
 
         $peers = json_decode(UnityAssessment::getPeerAssessmentsFromTeacher($userId));
 
@@ -54,7 +54,7 @@ class TestsController extends Controller
     public function indexTeacherBossTests(Request $request)
     {
 
-        $userId = $request->input('userId');
+        $userId = auth()->user()->id;
 
         $subordinates = json_decode(UnityAssessment::getBossAssessmentsFromTeacher($userId));
 
@@ -66,6 +66,7 @@ class TestsController extends Controller
     public function indexView(): Response
     {
         $token = csrf_token();
+
         return Inertia::render('Tests/Index', ['token' => $token]);
     }
 
@@ -85,13 +86,16 @@ class TestsController extends Controller
             FormAnswers::createStudentFormFromRequest($request, $form);
         }
 
+
+
+
         if ($form->type === 'otros'){
 
             FormAnswers::createTeacherFormFromRequest($request, $form);
 
         }
 
-        return response()->json(['messages' => 'Formlario diligenciado exitosamente. Seras redirigido a la página de inicio']);
+        return response()->json(['messages' => 'Formulario diligenciado exitosamente. Serás redirigido a la página de inicio']);
     }
 
     /**
@@ -104,6 +108,9 @@ class TestsController extends Controller
     public function startTest(Request $request, int $testId)
     {
         $data = json_decode($request->input('data')); //parse data
+
+
+
 
         $test = Form::findOrFail($testId);
 

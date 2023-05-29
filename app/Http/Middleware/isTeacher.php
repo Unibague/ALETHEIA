@@ -17,9 +17,10 @@ class isTeacher
     public function handle(Request $request, Closure $next)
     {
 
-        if (!$request->user() || $request->user()->role()->name == "docente") {
+        if (!$request->user() || $request->user()->role()->name == "docente"
+            || $request->user()->role()->name == "jefe de profesor") {
             return $next($request);
         }
-        return response('No puedes profe', 403);
+        return response('No tienes permisos suficientes para realizar esta acción', 403);
     }
 }

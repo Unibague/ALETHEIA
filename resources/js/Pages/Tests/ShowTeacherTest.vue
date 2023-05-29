@@ -144,7 +144,7 @@ export default {
 
     methods: {
         redirect: function () {
-            window.location.href = route('tests.index.view');
+            window.location.href = route('teachers.assessments.view');
         },
         sendForm: async function () {
             try {
@@ -154,6 +154,7 @@ export default {
                         answers: this.test.questions,
                         form_id: this.test.id,
                         teacherId: this.teacher.id,
+                        role: this.teacher.test.unit_role
                     });
 
                 this.dialog = true;

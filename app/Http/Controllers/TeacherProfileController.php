@@ -39,14 +39,9 @@ class TeacherProfileController extends Controller
 
     public function viewTeacherAssessments(): \Inertia\Response
     {
-        return Inertia::render('Teachers/Assessments');
 
-    }
-
-
-    public function getTeacherUserId(): JsonResponse{
-
-        return response()->json(auth()->user());
+        $token = csrf_token();
+        return Inertia::render('Teachers/Assessments', ['token' => $token]);
 
     }
 
@@ -75,6 +70,7 @@ class TeacherProfileController extends Controller
             $academicPeriodsSeparatedByComas = AcademicPeriod::getCurrentAcademicPeriodsByCommas();
             $activeAssessmentPeriod = AssessmentPeriod::getActiveAssessmentPeriod();
             $suitableTeachingLadders = $activeAssessmentPeriod->getSuitableTeachingLadders();
+
             $teachers = AtlanteProvider::get('teachers', [
                 'periods' => $academicPeriodsSeparatedByComas,
             ], true);
@@ -83,7 +79,7 @@ class TeacherProfileController extends Controller
             $finalTeachers = [];
             foreach ($teachers as $teacher){
 
-               //Traerse profesores que tengan escalafon activo para evaluacion y los que sean DTC
+               //Traerse profesores que tengan escalafon activo para evaluacion y no tengan el correo vacío
                 if(in_array($teacher['teaching_ladder'],$suitableTeachingLadders, false)
                    && $teacher['email'] != ""){
 
@@ -92,16 +88,6 @@ class TeacherProfileController extends Controller
                 }
             }
 
-    /*        foreach ($teachers as $teacher){
-
-                //Traerse profesores que tengan escalafon activo para evaluacion y los que sean DTC
-                if(in_array($teacher['teaching_ladder'],$suitableTeachingLadders, false)
-                    && $teacher['employee_type'] == 'DTC'&& $teacher['email'] != ""){
-
-                    $finalTeachers [] = $teacher;
-
-                }
-            }*/
 
         } catch (\JsonException $e) {
             return response()->json(['message' => 'Ha ocurrido un error con la fuente de datos: ' . $e->getMessage()], 400);

@@ -68,7 +68,7 @@ class Test extends Model
 
         }
 
-        if ($user->role()->name == "docente"){
+        if ($user->role()->name == "docente" || $user->role()->name == "jefe de profesor"){
 
             foreach ($peersOrSubordinates as $teacher) {
 

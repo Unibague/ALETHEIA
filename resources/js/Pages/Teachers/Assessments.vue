@@ -4,8 +4,9 @@
                   :show="snackbar.status" @closeSnackbar="snackbar.status = false"></Snackbar>
 
         <v-container>
-            <div class="d-flex flex-column align-end mb-5">
-                <h3 class="align-self-start">Autoevaluación</h3>
+            <div class="d-flex flex-column align-end mb-5" v-if="this.autoAssessment.length>0">
+                <h3 class="align-self-start">Autoevaluación </h3>
+                <span class="light-blue--text"> Desde: {{user.autoAssessmentStartDate}} hasta: {{user.autoAssessmentEndDate}}</span>
             </div>
 
             <!--Tabla autoevaluacion-->
@@ -19,6 +20,7 @@
                         'items-per-page-options': [20,50,100,-1]
                     }"
                 class="elevation-1"
+                v-show="this.autoAssessment.length>0"
             >
                 <template v-slot:item.actions="{ item }">
 
@@ -79,8 +81,9 @@
 
             <!--Acaba tabla-->
 
-            <div class="d-flex flex-column align-end mt-8 mb-5">
-                <h3 class="align-self-start">Pares a evaluar por el docente</h3>
+            <div class="d-flex flex-column align-end mt-8 mb-5" v-if="this.peerAssessments.length>0">
+                <h3 class="align-self-start">Profesores a evaluar como par </h3>
+                <span class="light-blue--text"> Desde: {{user.peerAssessmentStartDate}} hasta: {{user.peerAssessmentEndDate}}</span>
             </div>
 
 
@@ -95,6 +98,7 @@
                         'items-per-page-options': [20,50,100,-1]
                     }"
                 class="elevation-1"
+                v-show="peerAssessments.length>0"
             >
                 <template v-slot:item.actions="{ item }">
 
@@ -114,7 +118,7 @@
 
 
                    <form :action="route('tests.startTest',{testId: item.test.id})" method="POST"
-                          v-else-if="item.test != null">
+                          v-else-if="item.pending === 1">
                         <input type="hidden" name="_token" :value="token">
                         <input type="hidden" name="data" :value="JSON.stringify(item)">
                         <v-tooltip bottom>
@@ -125,7 +129,7 @@
                                     v-on="on"
                                     v-bind="attrs"
                                     icon
-                                    class="mr-2 primario&#45;&#45;text"
+                                    class="mr-2 primario--text"
                                 >
                                     <v-icon>
                                         mdi-send
@@ -156,8 +160,9 @@
             <!--Acaba tabla-->
 
 
-            <div class="d-flex flex-column align-end mt-8 mb-5">
-                <h3 class="align-self-start">Subordinados a evaluar por el docente</h3>
+            <div class="d-flex flex-column align-end mt-8 mb-5" v-if="this.bossAssessments.length>0">
+                <h3 class="align-self-start">Profesores a evaluar como jefe</h3>
+                <span class="light-blue--text"> Desde: {{user.bossAssessmentStartDate}} hasta: {{user.bossAssessmentEndDate}}</span>
             </div>
 
 
@@ -173,6 +178,7 @@
                         'items-per-page-options': [20,50,100,-1]
                     }"
                 class="elevation-1"
+                v-show="bossAssessments.length>0"
             >
                 <template v-slot:item.actions="{ item }">
 
@@ -192,7 +198,7 @@
 
 
                     <form :action="route('tests.startTest',{testId: item.test.id})" method="POST"
-                          v-else-if="item.test != null">
+                          v-else-if="item.pending === 1">
                         <input type="hidden" name="_token" :value="token">
                         <input type="hidden" name="data" :value="JSON.stringify(item)">
                         <v-tooltip bottom>
@@ -203,7 +209,7 @@
                                     v-on="on"
                                     v-bind="attrs"
                                     icon
-                                    class="mr-2 primario&#45;&#45;text"
+                                    class="mr-2 primario--text"
                                 >
                                     <v-icon>
                                         mdi-send
@@ -251,18 +257,18 @@ export default {
         return {
             //Table info
             headersAuto: [
-
-                {text: 'Nombre', value: 'name'},
+                {align: 'center'},
+                {text: 'Nombre', value: 'name', width:'90%'},
                 {text: 'Acciones', value: 'actions', sortable: false},
             ],
             headersPeers: [
-
-                {text: 'Nombre', value: 'name'},
+                {align: 'center'},
+                {text: 'Nombre', value: 'name', width:'90%'},
                 {text: 'Acciones', value: 'actions', sortable: false},
             ],
             headersBoss: [
-
-                {text: 'Nombre', value: 'name'},
+                {align: 'center'},
+                {text: 'Nombre', value: 'name', width:'90%'},
                 {text: 'Acciones', value: 'actions', sortable: false},
             ],
             tests: [],
@@ -275,11 +281,12 @@ export default {
                 timeout: 2000,
             },
             isLoading: true,
-            user:{},
             autoAssessment: [],
             peerAssessments: [],
             bossAssessments: [],
+            user: {}
         }
+
     },
 
     props: {
@@ -288,7 +295,6 @@ export default {
 
     async created() {
 
-        await this.getUserInfo();
         await this.getAutoAssessment();
         await this.getPeerAssessments();
         await this.getBossAssessments();
@@ -303,35 +309,35 @@ export default {
             this.tests = request.data;
         },*/
 
-        getUserInfo: async function() {
-
-            let request = await axios.get(route('teachers.assessments.list'));
-
-            this.user = request.data
-
-        },
-
 
         getAutoAssessment: async function() {
 
             let url = route('tests.index.teacherAutoTest')
 
-            let data={userId: this.user.id}
-
-            let request = await axios.post(url, data);
-
-/*            let assessmentPeriodName = request.data.assessmentPeriodName
-            let pending = request.data.pending*/
-
-            console.log(request.data);
+            let request = await axios.get(url);
 
             this.autoAssessment = request.data;
 
-            this.autoAssessment.forEach(item =>{
+            if(this.autoAssessment.length>0) {
 
-                item.name = this.capitalize(item.name)
+                this.user = {
 
-            })
+                    autoAssessmentStartDate: this.autoAssessment[0].self_start_date,
+                    autoAssessmentEndDate: this.autoAssessment[0].self_end_date
+                }
+
+                console.log(this.user);
+
+                console.log(this.autoAssessment);
+
+                this.autoAssessment.forEach(item =>{
+
+                    item.name = this.capitalize(item.name)
+
+                })
+
+            }
+
 
         },
 
@@ -340,18 +346,23 @@ export default {
 
             let url = route('tests.index.teacherPeerTests')
 
-            let data={userId: this.user.id}
-
-            let request = await axios.post(url, data);
+            let request = await axios.get(url);
 
             this.peerAssessments = request.data;
 
-            this.peerAssessments.forEach(peerAssessment =>{
+            if(this.peerAssessments.length>0) {
 
-                peerAssessment.name = this.capitalize(peerAssessment.name)
+                this.user.peerAssessmentStartDate = this.peerAssessments[0].colleague_start_date
+                this.user.peerAssessmentEndDate = this.peerAssessments[0].colleague_end_date
 
-            })
+                /*            console.log(this.peerAssessments);*/
 
+                this.peerAssessments.forEach(peerAssessment => {
+
+                    peerAssessment.name = this.capitalize(peerAssessment.name)
+
+                })
+            }
         },
 
 
@@ -360,17 +371,26 @@ export default {
 
             let url = route('tests.index.teacherBossTests')
 
-            let data={userId: this.user.id}
-
-            let request = await axios.post(url, data);
+            let request = await axios.get(url);
 
             this.bossAssessments = request.data;
 
-            this.bossAssessments.forEach(bossAssessment =>{
+            if(this.bossAssessments.length>0){
 
-                bossAssessment.name = this.capitalize(bossAssessment.name)
+                this.user.bossAssessmentStartDate= this.bossAssessments[0].boss_start_date
+                this.user.bossAssessmentEndDate= this.bossAssessments[0].boss_end_date
 
-            })
+
+                this.bossAssessments.forEach(bossAssessment =>{
+
+                    bossAssessment.name = this.capitalize(bossAssessment.name)
+
+                })
+
+            }
+
+
+
 
         },
 
