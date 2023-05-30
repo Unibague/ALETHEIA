@@ -112,6 +112,11 @@ class Form extends Model
 
     public static function createStudentForm($request)
     {
+
+  /*      dd(json_encode($request->input('service_areas')));*/
+       /* dd($request->input('service_areas'));*/
+
+
         return self::UpdateOrCreate(
             ['id' => $request->input('id')],
             [
@@ -127,6 +132,10 @@ class Form extends Model
 
     public static function createOthersForm($request)
     {
+
+        /*   dd(json_encode($request->input('units')));*/
+        /* dd($request->input('units'));*/
+
         return self::UpdateOrCreate(
             ['id' => $request->input('id')],
             [
