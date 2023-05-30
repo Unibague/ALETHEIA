@@ -109,9 +109,6 @@ class TestsController extends Controller
     {
         $data = json_decode($request->input('data')); //parse data
 
-
-
-
         $test = Form::findOrFail($testId);
 
         if ($data->test->type == "estudiantes") {

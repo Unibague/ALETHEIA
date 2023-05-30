@@ -128,6 +128,7 @@ class Test extends Model
 
     public static function getTestFromTeacher($teacher, $role)
     {
+
         $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
 
         $teachingLadders = ['ninguno' => 'NIN', 'auxiliar' => 'AUX',
@@ -140,54 +141,56 @@ class Test extends Model
             }
         }
 
-        //All params
-        $form = DB::table('forms')
-            ->whereRaw("json_contains(units->'$[*]',JSON_ARRAY(?))", $teacher->unit_identifier)
-            ->where('teaching_ladder', '=', $teacher->teaching_ladder)
-            ->where('unit_role', '=', $role)
-            ->where('academic_period_id', '=', $activeAssessmentPeriodId)
-            ->latest()->first();
 
-        if ($form !== null) {
-            return $form;
-        }
-        //Only last two params
-        $form = DB::table('forms')
-                ->whereRaw("json_contains(units->'$[*]',JSON_ARRAY(?))", [null])
+        $form = Form::whereJsonContains('units', [$teacher->unit_identifier])
                 ->where('teaching_ladder', '=', $teacher->teaching_ladder)
                 ->where('unit_role', '=', $role)
                 ->where('assessment_period_id', '=', $activeAssessmentPeriodId)
                 ->latest()->first();
 
+
+        if ($form !== null) {
+            return $form;
+        }
+        //Only last two params
+        $form = Form::whereJsonContains('units', null)
+            ->where('teaching_ladder', '=', $teacher->teaching_ladder)
+            ->where('unit_role', '=', $role)
+            ->where('assessment_period_id', '=', $activeAssessmentPeriodId)
+            ->latest()->first();
+
+
+
+
         if ($form !== null) {
             return $form;
         }
         //Only first param
-        $form = DB::table('forms')
-            ->whereRaw("json_contains(units->'$[*]',JSON_ARRAY(?))", [null])
-            ->where('teaching_ladder', '=', null)
+        $form = Form::whereJsonContains('units', null)
+            ->where('teaching_ladder', '=',null)
             ->where('unit_role', '=', $role)
             ->where('assessment_period_id', '=', $activeAssessmentPeriodId)
             ->latest()->first();
+
+
 
         if ($form !== null) {
             return $form;
         }
         //Any params
-        $form = DB::table('forms')
-            ->whereRaw("json_contains(units->'$[*]',JSON_ARRAY(?))", [null])
-            ->where('teaching_ladder', '=', null)
+        $form = Form::whereJsonContains('units', null)
+            ->where('teaching_ladder', '=',null)
             ->where('unit_role', '=', null)
             ->where('assessment_period_id', '=', $activeAssessmentPeriodId)
             ->latest()->first();
+
 
         if ($form !== null) {
             return $form;
         }
 
-        $form = DB::table('forms')
-            ->whereRaw("json_contains(units->'$[*]',JSON_ARRAY(?))", [null])
-            ->where('teaching_ladder', '=', null)
+        $form = Form::whereJsonContains('units', null)
+            ->where('teaching_ladder', '=',null)
             ->where('unit_role', '=', null)
             ->where('assessment_period_id', '=', null)
             ->latest()->first();

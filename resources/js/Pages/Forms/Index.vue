@@ -422,7 +422,7 @@
                                         multiple
                                         label="Unidades"
                                         :item-text="(unit)=> unit.name"
-                                        :item-value="(unit)=>unit.code"
+                                        :item-value="(unit)=>unit.identifier"
                                         :disabled="othersForm.teachingLadder === null"
                                     >
                                         <template v-slot:selection="{ item, index }">
@@ -616,7 +616,7 @@ export default {
             const units = this.units;
 
             formUnits.forEach((unit) => {
-                const selectedUnit = units.find(pUnit => pUnit.code == unit);
+                const selectedUnit = units.find(pUnit => pUnit.identifier == unit);
                 if (!selectedUnit) {
                     return;
                 }
@@ -696,9 +696,10 @@ export default {
         },
         getUnits: async function () {
             let request = await axios.get(route('api.units.index'));
+            console.log(request.data);
             this.units = request.data;
             this.units.unshift({
-                code: null,
+                identifier: null,
                 name: "Todas"
             });
         },
@@ -758,6 +759,10 @@ export default {
             const endpoint = route('api.forms.store', {form: this[formModel].id});
             const axiosMethod = 'post';
             let data = this[formModel].toObjectRequest();
+
+
+            console.log(data);
+
 
             try {
                 let request = await axios[axiosMethod](endpoint, data);
