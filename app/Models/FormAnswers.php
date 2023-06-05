@@ -89,7 +89,19 @@ class FormAnswers extends Model
     public static function createStudentFormFromRequest(Request $request, Form $form): void
     {
 
-        dd(json_encode($request->input('answers')));
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         $competencesAverage = self::getCompetencesAverage(json_decode(json_encode($request->input('answers'), JSON_THROW_ON_ERROR), false, 512, JSON_THROW_ON_ERROR));
 
