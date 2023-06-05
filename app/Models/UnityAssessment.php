@@ -220,12 +220,17 @@ class UnityAssessment extends Model
     public static function getAutoAssessmentFromTeacher($userId){
 
         $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        $now = Carbon::now();
+        $date = $now->toDateString();
+
 
         return self::where('unity_assessments.evaluated_id', $userId)->where('role', 'autoevaluación')
             ->where('unity_assessments.assessment_period_id', $activeAssessmentPeriodId)
             ->join('assessment_periods', 'assessment_periods.id','unity_assessments.assessment_period_id')
             ->join('teacher_profiles','teacher_profiles.user_id','unity_assessments.evaluated_id')
             ->join('users','users.id','teacher_profiles.user_id')
+            ->where('assessment_periods.self_start_date', '<=', $date)
+            ->where('assessment_periods.self_end_date', '>=', $date)
             ->select(
                 ['unity_assessments.evaluated_id as id',
                     'unity_assessments.role',
@@ -239,6 +244,16 @@ class UnityAssessment extends Model
 
     }
 
+/*$now = Carbon::now();
+$date = $now->toDateString();
+return $this->belongsToMany(Group::class,'group_user',
+'user_id','group_id','id','group_id')
+->with(['teacher', 'academicPeriod'])
+->wherePivotIn('academic_period_id', AcademicPeriod::getCurrentAcademicPeriodIds())
+->join('academic_periods as ap','ap.id','=','group_user.academic_period_id')
+->where('ap.students_start_date','<=',$date)
+->where('ap.students_end_date','>=',$date)
+->withPivot('has_answer');*/
 
     public static function getPeerAssessmentsFromTeacher($userId){
 
