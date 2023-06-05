@@ -58,6 +58,7 @@ export default {
         AuthenticatedLayout,
         InertiaLink,
     },
+
     data: () => {
         return {
             //Table info

@@ -52,8 +52,9 @@ class ResponseIdeal extends Model
         ], ['assessment_period_id', 'teaching_ladder']);
 
 
-
     }
+
+
 
 
 }
