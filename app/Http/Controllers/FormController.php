@@ -9,6 +9,7 @@ use App\Http\Requests\StoreFormRequest;
 use App\Http\Requests\UpdateFormRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
+use Inertia\Inertia;
 
 class FormController extends Controller
 {
@@ -66,4 +67,11 @@ class FormController extends Controller
         $form->delete();
         return response()->json(['message' => 'Formulario borrado exitosamente']);
     }
+
+
+
+
+
+/*    return Inertia::render('Roles/Index');*/
+
 }

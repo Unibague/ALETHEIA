@@ -7,6 +7,7 @@ use App\Http\Requests\SetActiveAssessmentPeriodRequest;
 use App\Models\AssessmentPeriod;
 use App\Http\Requests\StoreAssessmentPeriodRequest;
 use App\Http\Requests\UpdateAssessmentPeriodRequest;
+use App\Models\Group;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
@@ -85,4 +86,22 @@ class  AssessmentPeriodController extends Controller
         return response()->json(['message' => 'Periodo de evaluación eliminado exitosamente']);
 
     }
+
+
+    public function show(AssessmentPeriod $assessmentPeriod)
+    {
+        //
+    }
+
+
+    public function getSuitableTeachingLadders (){
+
+        return response()->json(AssessmentPeriod::getActiveAssessmentPeriod()->getSuitableTeachingLaddersWithNames());
+
+
+    }
+
+
+
+
 }

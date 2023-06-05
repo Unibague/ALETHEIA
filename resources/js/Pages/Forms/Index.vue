@@ -154,6 +154,7 @@
                                     </InertiaLink>
                                 </template>
                                 <span>Editar preguntas</span>
+
                             </v-tooltip>
                             <v-tooltip top>
                                 <template v-slot:activator="{on,attrs}">
@@ -167,6 +168,7 @@
                                 </template>
                                 <span>Visualizar formulario</span>
                             </v-tooltip>
+
 
                             <v-tooltip top>
                                 <template v-slot:activator="{on,attrs}">

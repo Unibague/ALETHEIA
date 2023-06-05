@@ -123,6 +123,8 @@ export default {
     props: {
         token: String
     },
+
+
     async created() {
         await this.getAllGroups();
         this.isLoading = false;

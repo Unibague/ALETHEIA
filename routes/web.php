@@ -18,6 +18,10 @@ Route::resource('api/assessmentPeriods', \App\Http\Controllers\AssessmentPeriodC
     'as' => 'api'
 ])->middleware('auth');
 Route::post('/api/assessmentPeriods/{assessmentPeriod}/setActive', [\App\Http\Controllers\AssessmentPeriodController::class, 'setActive'])->middleware(['auth', 'isAdmin'])->name('api.assessmentPeriods.setActive');
+Route::get('/assessmentPeriods/suitableTeachingLadders', [\App\Http\Controllers\AssessmentPeriodController::class, 'getSuitableTeachingLadders'])->middleware(['auth', 'isAdmin'])->name('api.assessmentPeriods.teachingLadders');
+
+
+
 
 /* >>>>>>>>>>>>>>>>>>>>> Forms routes <<<<<<<<<<<<<<<<<<<< */
 Route::get('api/forms/withoutQuestions', [\App\Http\Controllers\FormController::class, 'getWithoutQuestions'])->name('api.forms.withoutQuestions')->middleware(['auth', 'isAdmin']);
@@ -29,6 +33,10 @@ Route::resource('api/forms', \App\Http\Controllers\FormController::class, [
 Route::post('api/forms/{form}/copy', [\App\Http\Controllers\FormController::class, 'copy'])->name('api.forms.copy')->middleware(['auth']);
 Route::patch('api/forms/{form}/formQuestions', [\App\Http\Controllers\FormQuestionController::class, 'storeOrUpdate'])->name('api.forms.questions.store')->middleware(['auth']);
 Route::get('api/forms/{form}/formQuestions', [\App\Http\Controllers\FormQuestionController::class, 'getByFormId'])->name('api.forms.questions.show')->middleware(['auth']);
+
+
+
+
 
 /* >>>>>>>>>>>>>>>>>>>>> Forms answers routes <<<<<<<<<<<<<<<<<<<< */
 Route::inertia('/answers', 'Answers/Index')->middleware(['auth', 'isAdmin'])->name('answers.index.view');
@@ -136,6 +144,8 @@ Route::get('/api/groups/{groupId}/enrolls', [\App\Http\Controllers\GroupControll
 Route::resource('api/groups', \App\Http\Controllers\GroupController::class, [
     'as' => 'api'
 ])->middleware('auth');
+Route::get('groups/purify', [\App\Http\Controllers\GroupController::class, 'purify'])->middleware(['auth'])->name('groups.purify');
+
 
 
 /* >>>>>>>>>>>>>>>>>>>>>>> Enrolls routes <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< */
@@ -186,14 +196,6 @@ Route::get('/test/teacherPeerTests', [\App\Http\Controllers\TestsController::cla
 Route::get('/test/teacherBossTests', [\App\Http\Controllers\TestsController::class, 'indexTeacherBossTests'])->middleware(['auth'])->name('tests.index.teacherBossTests');
 
 
-/* >>>>>>>>>>>>>>>>>>>>>>>>Roles routes <<<<<<<<<<<<<<<<<<<<<<<<<<<< */
-//Get all roles
-Route::get('/roles', [\App\Http\Controllers\Roles\RoleController::class, 'index'])->middleware(['auth', 'isAdmin'])->name('roles.index');
-Route::post('/roleName', [\App\Http\Controllers\Roles\RoleController::class, 'getNameByCustomId'])->middleware(['auth'])->name('role.name');
-Route::resource('api/roles', \App\Http\Controllers\Roles\ApiRoleController::class, [
-    'as' => 'api'
-])->middleware('auth');
-
 /* >>>>>>>>>>>>>>>>>>>>>>>>>>>>User routes <<<<<<<<<<<<<<<<<<<<<<<< */
 //Get all users
 Route::get('/users', [\App\Http\Controllers\Users\UserController::class, 'index'])->middleware(['auth', 'isAdmin'])->name('users.index');
@@ -208,6 +210,30 @@ Route::patch('/api/users/{user}/roles', [\App\Http\Controllers\Users\ApiUserCont
 Route::get('/api/users/{user}/roles', [\App\Http\Controllers\Users\ApiUserController::class, 'getUserRoles'])->middleware('auth')->name('api.users.roles.show');
 Route::post('/api/roles/select', [\App\Http\Controllers\Users\ApiUserController::class, 'selectRole'])->middleware('auth')->name('api.roles.selectRole');
 
+
+/* >>>>>>>>>>>>>>>>>>>>>>>>>>>> Reports routes <<<<<<<<<<<<<<<<<<<<<<<< */
+Route::get('/reports', [\App\Http\Controllers\ReportsController::class, 'index'])->middleware(['auth', 'isAdmin'])->name('reports.index');
+
+
+
+/* >>>>>>>>>>>>>>>>>>>>>>>>ResponseIdeals routes <<<<<<<<<<<<<<<<<<<<<<<<<<<< */
+Route::inertia('/responseIdeals', 'ResponseIdeals/Index')->middleware(['auth', 'isAdmin'])->name('responseIdeals.index.view');
+
+Route::inertia('/responseIdeals/edit', 'ResponseIdeals/Edit')->middleware(['auth', 'isAdmin'])->name('responseIdeals.edit.view');
+
+Route::post('/responseIdeals/get', [\App\Http\Controllers\ResponseIdealController::class, 'getResponseIdeals'])->middleware('auth')->name('responseIdeals.get');
+
+Route::post('/responseIdeals/update', [\App\Http\Controllers\ResponseIdealController::class, 'upsertData'])->middleware('auth')->name('responseIdeals.update');
+
+/* >>>>>>>>>>>>>>>>>>>>>>>>Roles routes <<<<<<<<<<<<<<<<<<<<<<<<<<<< */
+//Get all roles
+Route::get('/roles', [\App\Http\Controllers\Roles\RoleController::class, 'index'])->middleware(['auth', 'isAdmin'])->name('roles.index');
+Route::post('/roleName', [\App\Http\Controllers\Roles\RoleController::class, 'getNameByCustomId'])->middleware(['auth'])->name('role.name');
+Route::resource('api/roles', \App\Http\Controllers\Roles\ApiRoleController::class, [
+    'as' => 'api'
+])->middleware('auth');
+
+
 /* >>>>>>>>>>>>>>>>>>>>>>>>>>>> Auth routes <<<<<<<<<<<<<<<<<<<<<<<< */
 Route::get('/', [\App\Http\Controllers\AuthController::class, 'handleRoleRedirect'])->middleware(['auth'])->name('redirect');
 Route::get('/login', [\App\Http\Controllers\AuthController::class, 'redirectGoogleLogin'])->name('login');
@@ -216,6 +242,7 @@ Route::get('/google/callback', [\App\Http\Controllers\AuthController::class, 'ha
 Route::get('/pickRole', [\App\Http\Controllers\AuthController::class, 'pickRole'])->name('pickRole');
 
 
+/*
 Route::get('/migrateToV2', function () {
 
 
@@ -266,4 +293,4 @@ Route::get('/migrateToV2', function () {
         );
     }
 
-});
+});*/

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Group;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -43,6 +44,7 @@ class AuthController extends Controller
 
         if ($user->role()->name == "estudiante") {
 
+            Group::purifyGroups($user);
             return redirect()->route('tests.index.view');
         }
 

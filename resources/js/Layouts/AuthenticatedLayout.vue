@@ -338,6 +338,14 @@ export default {
                         role: 10,
                         icon: 'mdi-account-cog'
                     },
+
+                    {
+                        name: 'Ideales de respuesta',
+                        href: route('responseIdeals.index.view'),
+                        role: 10,
+                        icon: 'mdi-account-cog'
+                    },
+
                     {
                         name: 'Respuestas',
                         href: route('answers.index.view'),
@@ -365,7 +373,7 @@ export default {
                 items: [
                     {
                         name: 'Reportes',
-                        href: route('roles.index'),
+                        href: route('reports.index'),
                         role: 10,
                         icon: 'mdi-cog-box'
                     },

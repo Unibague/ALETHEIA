@@ -77,7 +77,7 @@ class Enroll extends Model
                 $nonExistingGroupsFromEndpoint [] = $existingGroupInDB;
             }
         }
-        dd(array_unique($nonExistingGroupsFromEndpoint));
+     /*   dd(array_unique($nonExistingGroupsFromEndpoint));*/
 
     }
 

@@ -12,6 +12,7 @@ use App\Http\Requests\UpdateGroupRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Exception;
 
 class GroupController extends Controller
 {
@@ -49,13 +50,13 @@ class GroupController extends Controller
             ], true);
 
 
-        foreach ($groups as $key=>$group){
+            foreach ($groups as $key => $group) {
 
-            if($groups[$key]['teacher_email'] == ""){
+                if ($groups[$key]['teacher_email'] == "") {
 
-                $groups[$key]['teacher_email'] = null;
+                    $groups[$key]['teacher_email'] = null;
 
-            }
+                }
 
             }
 
@@ -133,4 +134,7 @@ class GroupController extends Controller
     {
         //
     }
+
+
+
 }

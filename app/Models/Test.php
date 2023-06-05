@@ -56,9 +56,11 @@ class Test extends Model
         if($user->role()->name == "estudiante"){
             $userGroups = $user->groups;
 
+
             $userGroups = $userGroups->filter(function($userGroup){
                 return $userGroup->teacher_id !== null;
             });
+
 
             foreach ($userGroups as $group) {
                 $group->test = self::getTestFromGroup($group);
