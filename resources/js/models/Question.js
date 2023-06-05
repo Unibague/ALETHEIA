@@ -13,6 +13,47 @@ export default class Question {
         return ['C1', 'C2', 'C3', 'C4', 'C5', 'C6'];
     }
 
+    getPossibleCompetencesAsArrayOfObjects() {
+
+        let finalCompetences = []
+        let competences = ['C1', 'C2', 'C3', 'C4', 'C5', 'C6']
+
+        competences.forEach(competence =>{
+
+
+            if(competence == 'C1'){
+
+                finalCompetences.push({id: 0, competence, name: '', value:''})
+            }
+
+            if(competence == 'C2'){
+
+                finalCompetences.push({id: 1, competence, name: '', value:''})
+            }
+            if(competence == 'C3'){
+
+                finalCompetences.push({id: 2, competence, name: '', value:''})
+            }
+            if(competence == 'C4'){
+
+                finalCompetences.push({id: 3, competence, name: '', value:''})
+            }
+            if(competence == 'C5'){
+
+                finalCompetences.push({id: 4, competence, name: '', value:''})
+            }
+            if(competence == 'C6'){
+
+                finalCompetences.push({id: 5, competence, name: '', value:''})
+            }
+
+
+
+        })
+
+        return finalCompetences;
+    }
+
     getPossibleTypes() {
         return [
             {

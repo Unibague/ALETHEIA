@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
 use App\Models\ResponseIdeal;
 use App\Http\Requests\StoreResponseIdealRequest;
 use App\Http\Requests\UpdateResponseIdealRequest;
@@ -83,4 +84,12 @@ class ResponseIdealController extends Controller
     {
         //
     }
+
+    public function upsertData(Request $request){
+
+       ResponseIdeal::saveResponseIdeals(json_encode($request->input('competences')));
+
+
+    }
+
 }

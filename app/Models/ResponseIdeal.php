@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 /**
  * App\Models\ResponseIdeal
@@ -34,5 +36,24 @@ class ResponseIdeal extends Model
     {
         return $this->belongsTo(FormQuestion::class);
     }
+
+
+    public static function saveResponseIdeals($competences): void{
+
+
+        $activeAssessmentPeriodsId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+
+        DB::table('response_ideals')->upsert([
+            'assessment_period_id' =>   $activeAssessmentPeriodsId,
+            'teaching_ladder' => 'asociado',
+            'response' => $competences,
+            'created_at' => Carbon::now()->toDateTimeString(),
+            'updated_at' => Carbon::now()->toDateTimeString()
+        ], ['assessment_period_id', 'teaching_ladder']);
+
+
+
+    }
+
 
 }

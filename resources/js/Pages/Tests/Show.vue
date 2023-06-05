@@ -150,6 +150,9 @@ export default {
         sendForm: async function () {
             try {
 
+
+                console.log(this.test.questions);
+
                 await axios.post(route('api.tests.store'),
                     {
                         answers: this.test.questions,
@@ -168,9 +171,8 @@ export default {
             this.test.questions = JSON.parse(this.test.questions)
         },
         validate() {
+
             let isValid = this.$refs.form.validate()
-
-
 
             console.log(isValid);
 

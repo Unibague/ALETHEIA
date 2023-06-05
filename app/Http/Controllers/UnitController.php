@@ -274,7 +274,7 @@ class UnitController extends Controller
         $teacherRole = Role::getTeacherRoleId();
 
 
-        $user = DB::table('v2_unit_user')->where([['user_id', $userId], ['unit_identifier', $unit]])->first();
+        $user = DB::table('v2_unit_user')->where([['user_id', $userId], ['unit_identifier', $unit], ['role_id', $teacherRole]])->first();
 
         if ($user) {
             return response()->json(['message' => 'El docente ya se encuentra en la unidad a la que desea transferir'], 500);
