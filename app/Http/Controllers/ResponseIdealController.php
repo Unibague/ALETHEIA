@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Models\ResponseIdeal;
 use App\Http\Requests\StoreResponseIdealRequest;
 use App\Http\Requests\UpdateResponseIdealRequest;
+use Inertia\Inertia;
+use Symfony\Component\HttpFoundation\Exception\JsonException;
 
 class ResponseIdealController extends Controller
 {
@@ -85,9 +88,41 @@ class ResponseIdealController extends Controller
         //
     }
 
-    public function upsertData(Request $request){
 
-       ResponseIdeal::saveResponseIdeals(json_encode($request->input('competences')));
+    public function viewEditTeachingLadders($teachingLadder){
+
+
+        return Inertia::render('ResponseIdeals/Edit', ['teachingLadder' => $teachingLadder]);
+
+    }
+
+
+
+
+
+    public function upsertData(Request $request): JsonResponse{
+
+        try {
+
+            $teachingLadder = $request->input('teachingLadder');
+            $competences = json_encode($request->input('competences'));
+
+            ResponseIdeal::saveResponseIdeals($teachingLadder,$competences);
+
+        } catch (JsonException $e) {
+
+            return response()->json(['message' => 'Ha ocurrido un error guardando la información']);
+        }
+
+        return response()->json(['message' => 'Ideales de respuesta guardados exitosamente']);
+
+    }
+
+
+    public function getCompetences(Request $request){
+
+
+        return ResponseIdeal::getResponseIdeals($request->input('teachingLadder'));
 
 
     }

@@ -219,9 +219,9 @@ Route::get('/reports', [\App\Http\Controllers\ReportsController::class, 'index']
 /* >>>>>>>>>>>>>>>>>>>>>>>>ResponseIdeals routes <<<<<<<<<<<<<<<<<<<<<<<<<<<< */
 Route::inertia('/responseIdeals', 'ResponseIdeals/Index')->middleware(['auth', 'isAdmin'])->name('responseIdeals.index.view');
 
-Route::inertia('/responseIdeals/edit', 'ResponseIdeals/Edit')->middleware(['auth', 'isAdmin'])->name('responseIdeals.edit.view');
+Route::get('/responseIdeals/edit/{teachingLadder}',  [\App\Http\Controllers\ResponseIdealController::class, 'viewEditTeachingLadders'])->middleware(['auth', 'isAdmin'])->name('responseIdeals.edit.view');
 
-Route::post('/responseIdeals/get', [\App\Http\Controllers\ResponseIdealController::class, 'getResponseIdeals'])->middleware('auth')->name('responseIdeals.get');
+Route::post('/responseIdeals/get', [\App\Http\Controllers\ResponseIdealController::class, 'getCompetences'])->middleware('auth')->name('responseIdeals.get');
 
 Route::post('/responseIdeals/update', [\App\Http\Controllers\ResponseIdealController::class, 'upsertData'])->middleware('auth')->name('responseIdeals.update');
 

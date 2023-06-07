@@ -124,9 +124,6 @@ class TeacherProfile extends Model
                 );
 
 
-
-
-
             } catch (\Exception $e) {
                 $errorMessage .= nl2br("Ha ocurrido el siguiente error mirando al docente $teacher[name] : {$e->getMessage()}");
             }
