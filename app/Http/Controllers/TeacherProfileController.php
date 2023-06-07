@@ -76,6 +76,9 @@ class TeacherProfileController extends Controller
             ], true);
 
 
+
+
+
             $finalTeachers = [];
             foreach ($teachers as $teacher){
 

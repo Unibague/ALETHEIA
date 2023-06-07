@@ -1,12 +1,13 @@
 <template>
     <AuthenticatedLayout>
 
-
+        <Snackbar :timeout="snackbar.timeout" :text="snackbar.text" :type="snackbar.type"
+                  :show="snackbar.status" @closeSnackbar="snackbar.status = false"></Snackbar>
         <v-container>
         <v-row>
             <v-col cols="6">
 
-                <h3> Definir ideales de respuesta para el escalafón XXXXX </h3>
+                <h3> Definir ideales de respuesta para el escalafón de docente: {{teachingLadder}} </h3>
 
                 <v-card>
 
@@ -53,6 +54,9 @@
                                         type="number"
                                         min=1
                                         max="5"
+                                        :rules="numberRules"
+                                        step="0.1"
+
                                     >
 
 
@@ -111,33 +115,33 @@
 
 
 
-
-
-
-
-
     </AuthenticatedLayout>
 </template>
 
 <script>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import {InertiaLink} from "@inertiajs/inertia-vue";
-import {prepareErrorText} from "@/HelperFunctions"
+import {prepareErrorText, showSnackbar} from "@/HelperFunctions"
 import ConfirmDialog from "@/Components/ConfirmDialog";
 import Question from "@/models/Question";
+import Snackbar from "@/Components/Snackbar";
 
 export default {
     components: {
+
+        Snackbar,
         ConfirmDialog,
         AuthenticatedLayout,
         InertiaLink,
     },
+    props: ['teachingLadder'],
+
     data: () => {
         return {
             //Table info
             headers: [
                 {text: 'Competencia', value: 'competence'},
-                {text: 'Nombre', value: 'name'},
+                {text: 'Nombre', value: 'name', width:'60%'},
                 {text: 'Valor', value: 'value'},
 
             ],
@@ -145,11 +149,11 @@ export default {
 
             //Snackbars
             snackbar: {
-            text: "",
-            color: 'red',
-            status: false,
-            timeout: 2000,
-        },
+                text: "",
+                type: 'alert',
+                status: false,
+                timeout: 2000,
+            },
             //Dialogs
             createRoleDialog: false,
             deleteRoleDialog: false,
@@ -157,32 +161,45 @@ export default {
 
             //Overlays
             isLoading: true,
+
+            numberRules: [
+                v => !!v || 'El valor introducido debe ser un número',
+            ]
         }
+
+
     },
     async created() {
 
-        this.getPossibleCompetences();
         this.isLoading = false;
+        await this.getResponseIdeals();
     },
     methods: {
 
 
-        getPossibleCompetences() {
 
-            this.competences = new Question().getPossibleCompetencesAsArrayOfObjects();
+        getPossibleInitialCompetences() {
 
-            console.log(this.competences);
+            return new Question().getPossibleCompetencesAsArrayOfObjects();
 
         },
 
 
         async updateResponseIdeals(competences) {
 
-            let url = route('responseIdeals.update');
+            try{
 
-            let request = await axios.post(url, {competences: competences});
+                let url = route('responseIdeals.update');
 
-            console.log(request.data);
+                let request = await axios.post(url, {competences: competences,
+                    teachingLadder: this.teachingLadder});
+
+                showSnackbar(this.snackbar, request.data.message, 'success');
+
+            } catch (e) {
+                showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
+            }
+
 
         },
 
@@ -192,6 +209,25 @@ export default {
 
 
             let url = route('responseIdeals.get');
+
+
+            console.log(this.teachingLadder);
+
+            let request = await axios.post(url, {teachingLadder: this.teachingLadder})
+
+   /*         console.log(request.data);*/
+
+            if(request.data.length == 0){
+
+                this.competences = this.getPossibleInitialCompetences();
+
+            }
+
+            else{
+
+                this.competences = request.data;
+
+            }
 
 
         }

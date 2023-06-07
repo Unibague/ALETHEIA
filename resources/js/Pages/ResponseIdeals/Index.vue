@@ -8,7 +8,7 @@
             </div>
 
             <!--Inicia tabla-->
-            <v-card>
+            <v-card max-width="45%">
                 <v-data-table
                     loading-text="Cargando, por favor espere..."
                     :loading="isLoading"
@@ -19,15 +19,36 @@
                         'items-per-page-options': [20,50,100,-1]
                     }"
                     class="elevation-1"
+
+
                 >
-                    <template v-slot:item.actions="{ item }">
-                        <v-icon
-                            class="mr-2 primario--text"
-                            @click=""
-                        >
-                            mdi-pencil
-                        </v-icon>
-                    </template>
+
+                    <template v-slot:item.actions="{item}">
+
+
+                        <v-tooltip top>
+                        <template v-slot:activator="{on,attrs}">
+
+                            <InertiaLink :href="route('responseIdeals.edit.view', {teachingLadder:item.name})">
+
+                                <v-icon
+                                    v-bind="attrs"
+                                    v-on="on"
+                                    class="mr-2 primario--text"
+                                >
+                                    mdi-pencil
+                                </v-icon>
+
+                            </InertiaLink>
+
+                        </template>
+                        <span>Editar ideales de respuesta</span>
+                    </v-tooltip>
+
+
+                        </template>
+
+
                 </v-data-table>
             </v-card>
 
@@ -59,16 +80,19 @@ export default {
         InertiaLink,
     },
 
+
+
     data: () => {
         return {
             //Table info
             headers: [
                 {text: 'Escalafon', value: 'name'},
-                {text: 'C1', value: ''},
+               {text: 'C1', value: ''},
                 {text: 'C2', value: 'created_at'},
                 {text: 'C3', value: '', sortable: false},
                 {text: 'C4', value: '', sortable: false},
                 {text: 'C5', value: '', sortable: false},
+                {text: 'C6', value: '', sortable: false},
                 {text: 'Editar', value: 'actions', sortable: false},
             ],
 
@@ -110,43 +134,7 @@ export default {
             this.editedRole = {...role};
             this.editRoleDialog = true;
         },
-        editRole: async function () {
-            //Verify request
-            if (this.editedRole.name === '' || this.editedRole.id === '') {
-                this.snackbar.text = 'Debes proporcionar un nombre y Id para el nuevo rol';
-                this.snackbar.status = true;
-                return;
-            }
-            //Recollect information
-            let data = {
-                id: this.editedRole.id,
-                name: this.editedRole.name,
-                customId: this.editedRole.customId
-            }
 
-            try {
-                let request = await axios.patch(route('api.roles.update', {'role': this.editedRole.id}), data);
-                this.editRoleDialog = false;
-                this.snackbar.text = request.data.message;
-                this.snackbar.status = true;
-                this.getAllRoles();
-
-                //Clear role information
-                this.editedRole = {
-                    id: '',
-                    name: '',
-                    customId: '',
-                };
-            } catch (e) {
-                this.snackbar.text = prepareErrorText(e);
-                this.snackbar.status = true;
-            }
-        },
-
-        confirmDeleteRole: function (role) {
-            this.deletedRoleId = role.id;
-            this.deleteRoleDialog = true;
-        },
 
         getSuitableTeachingLadders: async function (){
 
@@ -192,55 +180,8 @@ export default {
 
         },
 
-        deleteRole: async function (roleId) {
-            try {
-                let request = await axios.delete(route('api.roles.destroy', {role: roleId}));
-                this.deleteRoleDialog = false;
-                this.snackbar.text = request.data.message;
-                this.snackbar.status = true;
-                this.getAllRoles();
 
-            } catch (e) {
-                this.snackbar.text = e.response.data.message;
-                this.snackbar.status = true;
-            }
 
-        },
-        getAllRoles: async function () {
-            let request = await axios.get(route('api.roles.index'));
-            this.roles = request.data;
-            console.log(this.roles);
-
-        },
-        createRole: async function () {
-            if (this.newRole.name === '' || this.newRole.id === '') {
-                this.snackbar.text = 'Debes proporcionar un nombre y Id para el nuevo rol';
-                this.snackbar.status = true;
-                return;
-            }
-
-            let data = {
-                name: this.newRole.name,
-                customId: this.newRole.id
-            }
-            //Clear role information
-            this.newRole = {
-                name: '',
-                id: ''
-            }
-            try {
-                let request = await axios.post(route('api.roles.index'), data);
-                this.createRoleDialog = false;
-                this.snackbar.text = request.data.message;
-                this.snackbar.status = true;
-                this.snackbar.color='success';
-                this.getAllRoles();
-            } catch (e) {
-                this.snackbar.text = e.response.data.message;
-                this.snackbar.status = true;
-            }
-
-        }
     },
 
 

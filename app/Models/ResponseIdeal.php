@@ -5,6 +5,7 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -38,22 +39,49 @@ class ResponseIdeal extends Model
     }
 
 
-    public static function saveResponseIdeals($competences): void{
+    public static function saveResponseIdeals($teachingLadder,$competences): void{
 
 
-        $activeAssessmentPeriodsId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
 
-        DB::table('response_ideals')->upsert([
-            'assessment_period_id' =>   $activeAssessmentPeriodsId,
-            'teaching_ladder' => 'asociado',
-            'response' => $competences,
+        DB::table('response_ideals')->updateOrInsert
+        (['assessment_period_id'  =>   $activeAssessmentPeriodId, 'teaching_ladder' => $teachingLadder],
+            ['response' => $competences,
             'created_at' => Carbon::now()->toDateTimeString(),
-            'updated_at' => Carbon::now()->toDateTimeString()
-        ], ['assessment_period_id', 'teaching_ladder']);
+            'updated_at' => Carbon::now()->toDateTimeString()]
+        );
 
 
     }
 
+
+
+
+    public function getResponseIdeals($teaching_ladder): JsonResponse{
+
+
+        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+
+        $competences = DB::table('response_ideals')->where('teaching_ladder', $teaching_ladder)
+            ->where('assessment_period_id', $activeAssessmentPeriodId)->select('response')->first();
+
+        if($competences == null){
+
+            $competences = DB::table('response_ideals')->where('teaching_ladder', $teaching_ladder)
+                ->where('assessment_period_id', $activeAssessmentPeriodId)->select('response')->get();
+
+            return response()->json($competences);
+
+
+        }
+
+        $competences = DB::table('response_ideals')->where('teaching_ladder', $teaching_ladder)
+            ->where('assessment_period_id', $activeAssessmentPeriodId)->select('response')->first()->response;
+
+        return response()->json(json_decode($competences));
+
+
+    }
 
 
 
