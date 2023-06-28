@@ -23,7 +23,6 @@ class CreateGroupsTable extends Migration
             $table->enum('degree', ['pregrado', 'posgrado','Cursos']);
             $table->string('service_area_code');
             $table->foreign('service_area_code')->references('code')->on('service_areas');
-
             $table->foreignId('teacher_id')->nullable();
             $table->foreign('teacher_id')->references('id')->on('users');
             $table->enum('hour_type', ['normal', 'cátedra', 'cátedra adicional', 'cátedra administrativa']);

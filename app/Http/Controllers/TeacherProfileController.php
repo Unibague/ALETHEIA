@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Js;
 use Inertia\Inertia;
@@ -112,6 +113,20 @@ class TeacherProfileController extends Controller
         $actualAssessmentPeriod = AssessmentPeriod::getActiveAssessmentPeriod();
         return response()->json(TeacherProfile::where('assessment_period_id', '=', $actualAssessmentPeriod->id)
             ->whereIn('employee_type', ['DTC', 'ESI'])->with('user')->get()->sortBy('user.name')->values()->all());
+    }
+
+
+    public function getTeachingLadderByUserId(Request $request): JsonResponse
+
+    {
+
+        $userId = $request->input('userId');
+
+        $actualAssessmentPeriod = AssessmentPeriod::getActiveAssessmentPeriod();
+
+        return response()->json(TeacherProfile::select(['teaching_ladder'])->where('assessment_period_id', '=', $actualAssessmentPeriod->id)
+            ->where('user_id','=', $userId)->first()->teaching_ladder);
+
     }
 
 

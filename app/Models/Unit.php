@@ -54,7 +54,6 @@ class Unit extends Model
         return self::where('assessment_period_id','=', AssessmentPeriod::getActiveAssessmentPeriod()
             ->id)->with('teachersFromUnit')->get();
 
-
     }
 
     public static function createOrUpdateFromArray(array $units): void
@@ -112,6 +111,7 @@ class Unit extends Model
         return self::where('identifier', $unitIdentifier)->with('teachersFromUnit.teacherProfile')->first();
 
     }
+
 
     public static function getUnitAdminsAndBosses($unitIdentifier){
 
@@ -191,6 +191,14 @@ class Unit extends Model
         return DB::table('role_user')->where('role_id', $staffMemberRole )
             ->join('users','users.id','=', 'role_user.user_id')
             ->select('users.email','users.name','users.id')->get();
+
+    }
+
+    public static function getTeachersThatBelongToAnUnit(){
+
+        $roleId= Role::getRoleIdByName('docente');
+
+        return DB::table('v2_unit_user as uu')->select(['users.id','users.name'])->where('role_id', $roleId)->join('users', 'uu.user_id', '=','users.id')->get();
 
     }
 

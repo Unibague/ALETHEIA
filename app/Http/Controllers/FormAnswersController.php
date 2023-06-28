@@ -40,4 +40,15 @@ class FormAnswersController extends Controller
     {
         //
     }
+
+    public function getTeacherAnswers(): JsonResponse
+    {
+        return response()->json(FormAnswers::getCurrentTeacherFormAnswers());
+    }
+
+
+    public function getStudentPerspectiveAnswers(): JsonResponse
+    {
+        return response()->json(FormAnswers::getCurrentTeacherFormAnswersFromStudents());
+    }
 }

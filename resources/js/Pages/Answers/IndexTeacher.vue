@@ -5,47 +5,62 @@
 
         <v-container fluid>
             <div class="d-flex flex-column align-end mb-5">
-                <h2 class="align-self-start">Gestionar respuestas de evaluación normal</h2>
+                <h2 class="align-self-start">Gestionar respuestas de evaluación 360</h2>
             </div>
 
             <v-toolbar
-                dark
-                color="purple accent-4"
-                class="mb-1"
-                height="auto"
-            >
-                <v-row class="py-3">
-                    <v-col cols="6" >
-                        <v-select
-                            v-model="unit"
-                            flat
-                            solo-inverted
-                            hide-details
-                            :items="units"
-                            :item-text="(pStatus)=> capitalize(pStatus.name)"
-                            item-value="identifier"
-                            prepend-inner-icon="mdi-home-search"
-                            label="Unidades"
-                        ></v-select>
-                    </v-col>
+                    dark
+                    color="blue accent-4"
+                    class="mb-1"
+                    height="auto"
+                >
+                    <v-row class="py-3">
+                        <v-col cols="4" >
+                            <v-select
+                                v-model="unit"
+                                flat
+                                solo-inverted
+                                hide-details
+                                :items="units"
+                                :item-text="(pStatus)=> capitalize(pStatus.name)"
+                                item-value="identifier"
+                                prepend-inner-icon="mdi-home-search"
+                                label="Unidades"
+                            ></v-select>
+                        </v-col>
 
-                    <v-col cols="5">
-                        <v-select
-                            v-model="teacher"
-                            flat
-                            solo-inverted
-                            hide-details
-                            :items="filteredTeachers"
-                            :item-text="(pStatus)=> capitalize(pStatus.name)"
-                            item-value="id"
-                            prepend-inner-icon="mdi-account-search"
-                            label="Docente"
-                        ></v-select>
-                    </v-col>
+                        <v-col cols="4">
+                            <v-select
+                                v-model="teacher"
+                                flat
+                                solo-inverted
+                                hide-details
+                                :items="filteredTeachers"
+                                :item-text="(pStatus)=> capitalize(pStatus.name)"
+                                item-value="id"
+                                prepend-inner-icon="mdi-account-search"
+                                label="Docente"
+                            ></v-select>
+                        </v-col>
 
 
-                    <v-col cols="1">
-                        <v-tooltip top>
+                        <v-col cols="3">
+                            <v-select
+                                v-model="role"
+                                flat
+                                solo-inverted
+                                hide-details
+                                :items="roles"
+                                :item-text="(pStatus)=> capitalize(pStatus.id)"
+                                item-value="name"
+                                prepend-inner-icon="mdi-eye-settings"
+                                label="Rol"
+                            ></v-select>
+                        </v-col>
+
+
+                        <v-col cols="1">
+                            <v-tooltip top>
                             <template v-slot:activator="{ on, attrs }">
 
                                 <v-btn
@@ -61,11 +76,11 @@
                                 </v-btn>
                             </template>
                             <span>Exportar resultados actuales a Excel</span>
-                        </v-tooltip>
-                    </v-col>
+                            </v-tooltip>
+                        </v-col>
 
 
-                </v-row>
+                    </v-row>
 
 
             </v-toolbar>
@@ -185,6 +200,7 @@ export default {
             search: '',
             headers: [
                 {text: 'Profesor', value: 'name'},
+                {text: 'Rol', value: 'unit_role'},
                 {text: 'Promedio C1', value: 'first_competence_average'},
                 {text: 'Promedio C2', value: 'second_competence_average'},
                 {text: 'Promedio C3', value: 'third_competence_average'},
@@ -229,6 +245,7 @@ export default {
     },
     async created() {
 
+        await this.getRoles();
         await this.getUnits();
         await this.getTeachers();
         await this.getAnswersFromTeachers();
@@ -295,6 +312,16 @@ export default {
         },
 
 
+        getRoles (){
+
+            this.roles = [{id:  'Todos los roles', name: ''},{id: 'jefe', name: 'jefe'},
+                {id: 'par', name: 'par'}, {id: 'autoevaluación', name: 'autoevaluación'}, {id: 'estudiante', name: 'estudiante'}]
+
+            console.log(this.roles);
+
+
+        },
+
         getAnswersFromTeachers: async function (){
 
             let url = route('formAnswers.teachers.show');
@@ -326,12 +353,14 @@ export default {
 
             console.log(answersFromStudents, 'answers from students');
 
-            answersFromStudents.forEach(answer =>{
+           answersFromStudents.forEach(answer =>{
 
                 answer.unit_role = 'estudiante'
                 this.assessments.push(answer)
 
             });
+
+           this.assessments.sort(this.orderData);
 
 
 
@@ -546,6 +575,17 @@ export default {
 
         },
 
+        orderData(a,b){
+
+            if ( a.name < b.name ){
+                return -1;
+            }
+            if ( a.name > b.name ){
+                return 1;
+            }
+            return 0;
+
+        },
 
 
         setDialogToCancelChart (){
@@ -562,80 +602,80 @@ export default {
 
         downloadResults (){
 
-            let csv = Papa.unparse(this.filteredItems, {delimiter:';'});
+                let csv = Papa.unparse(this.filteredItems, {delimiter:';'});
 
-            var csvData = new Blob(["\uFEFF"+csv], {type: 'text/csv;charset=utf-8;'});
-            var csvURL =  null;
-            if (navigator.msSaveBlob)
-            {
-                csvURL = navigator.msSaveBlob(csvData, 'ResultadosEvaluaciónDocente360.csv');
-            }
-            else
-            {
-                csvURL = window.URL.createObjectURL(csvData);
-            }
+                var csvData = new Blob(["\uFEFF"+csv], {type: 'text/csv;charset=utf-8;'});
+                var csvURL =  null;
+                if (navigator.msSaveBlob)
+                {
+                    csvURL = navigator.msSaveBlob(csvData, 'ResultadosEvaluaciónDocente360.csv');
+                }
+                else
+                {
+                    csvURL = window.URL.createObjectURL(csvData);
+                }
 
-            var tempLink = document.createElement('a');
-            tempLink.href = csvURL;
-            tempLink.setAttribute('download', 'ResultadosEvaluaciónDocente360.csv');
-            tempLink.click();
+                var tempLink = document.createElement('a');
+                tempLink.href = csvURL;
+                tempLink.setAttribute('download', 'ResultadosEvaluaciónDocente360.csv');
+                tempLink.click();
 
         },
 
         getGraph(){
 
-            let miCanvas = document.getElementById("MiGrafica").getContext("2d");
-            this.chart = new Chart(miCanvas, {
-                type:"line",
-                data:{
-                    labels: ["C1", "C2", "C3", "C4", "C5","C6"],
-                    datasets: this.datasets,
-                },
-                options: {
+                let miCanvas = document.getElementById("MiGrafica").getContext("2d");
+                this.chart = new Chart(miCanvas, {
+                    type:"line",
+                    data:{
+                        labels: ["C1", "C2", "C3", "C4", "C5","C6"],
+                        datasets: this.datasets,
+                    },
+                    options: {
 
 
-                    legend: {
-                        display: false
-                    },
-                    responsive: true,
-                    tooltips: {
-                        mode: "index",
-                        intersect: false
-                    },
-                    hover: {
-                        mode: "nearest",
-                        intersect: true
-                    },
-                    scales: {
-                        x:
-                            {
-                                title: {
-                                    display: true,
-                                    text: 'Competencias'
-                                },
-                                position:"top",
-                                ticks: {
-                                    padding: 8,
+                        legend: {
+                            display: false
+                        },
+                        responsive: true,
+                        tooltips: {
+                            mode: "index",
+                            intersect: false
+                        },
+                        hover: {
+                            mode: "nearest",
+                            intersect: true
+                        },
+                        scales: {
+                            x:
+                                {
+                                    title: {
+                                        display: true,
+                                        text: 'Competencias'
+                                    },
+                                    position:"top",
+                                    ticks: {
+                                        padding: 8,
+                                    }
                                 }
-                            }
-                        ,
-                        y:
-                            {
-                                max:5.5,
-                                title: {
-                                    display: true,
-                                    text: 'Valores obtenidos'
-                                },
+                            ,
+                            y:
+                                {
+                                    max:5.5,
+                                    title: {
+                                        display: true,
+                                        text: 'Valores obtenidos'
+                                    },
 
-                                ticks: {
-                                    beginAtZero: true,
-                                    padding: 8,
-                                    stepSize: 0.5,
+                                    ticks: {
+                                        beginAtZero: true,
+                                        padding: 8,
+                                        stepSize: 0.5,
+                                    }
                                 }
-                            }
+                        }
                     }
-                }
-            })
+                })
 
         },
 
@@ -691,7 +731,7 @@ export default {
 
             let finalAssessments = this.assessments;
 
-            if (this.unit !== '') {
+           if (this.unit !== '') {
                 finalAssessments = this.getFilteredAssessmentsByUnit();
 
                 finalTeachers = finalTeachers.filter((teacher) => {

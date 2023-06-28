@@ -85,4 +85,27 @@ class ResponseIdeal extends Model
 
 
 
+
+    public function getAllResponseIdeals(): JsonResponse{
+
+        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+
+        $competences = DB::table('response_ideals')
+            ->where('assessment_period_id', $activeAssessmentPeriodId)->select('teaching_ladder','response')->get()->all();
+
+
+        foreach ($competences as $key => $competence){
+
+            $competences[$key]->response = json_decode($competence->response);
+
+        }
+
+
+        return response()->json($competences);
+
+
+    }
+
+
+
 }
