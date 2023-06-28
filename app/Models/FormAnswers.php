@@ -83,12 +83,64 @@ class FormAnswers extends Model
             ->get();
     }
 
+    public static function getCurrentTeacherFormAnswers(): \Illuminate\Support\Collection
+    {
+        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+
+        $teacherRoleId = Role::getTeacherRoleId();
+
+
+  /*      'tsp.first_final_aggregate_competence_average',
+                'tsp.second_final_aggregate_competence_average', 'tsp.third_final_aggregate_competence_average', 'tsp.fourth_final_aggregate_competence_average',
+                'tsp.fifth_final_aggregate_competence_average', 'tsp.sixth_final_aggregate_competence_average'*/
+
+        return  DB::table('form_answers as fa')
+            ->select(['t.name', 'f.unit_role', 'fa.first_competence_average','fa.second_competence_average','fa.third_competence_average',
+                'fa.fourth_competence_average','fa.fifth_competence_average','fa.sixth_competence_average','t.id as teacherId', 'v2_unit_user.unit_identifier', 'fa.submitted_at'])
+            ->join('forms as f', 'fa.form_id', '=', 'f.id')
+            ->join('users as t', 'fa.teacher_id', '=', 't.id')
+            ->join('teachers_students_perspectives as tsp', 'tsp.teacher_id','=','t.id')
+            ->join('v2_unit_user','tsp.teacher_id', '=', 'v2_unit_user.user_id')
+            ->where('f.type','=','otros')
+            ->where('v2_unit_user.role_id', '=', $teacherRoleId)
+            ->where('tsp.assessment_period_id', '=', $activeAssessmentPeriodId)->orderBy('name', 'ASC')
+            ->get();
+
+
+    }
+    public static function getCurrentTeacherFormAnswersFromStudents(): \Illuminate\Support\Collection
+    {
+        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        $teacherRoleId = Role::getTeacherRoleId();
+
+        /*      'tsp.first_final_aggregate_competence_average',
+                      'tsp.second_final_aggregate_competence_average', 'tsp.third_final_aggregate_competence_average', 'tsp.fourth_final_aggregate_competence_average',
+                      'tsp.fifth_final_aggregate_competence_average', 'tsp.sixth_final_aggregate_competence_average'*/
+
+       return DB::table('teachers_students_perspectives as tsp')->select(['tsp.first_final_aggregate_competence_average as first_competence_average',
+            'tsp.second_final_aggregate_competence_average as second_competence_average',
+            'tsp.third_final_aggregate_competence_average as third_competence_average',
+            'tsp.fourth_final_aggregate_competence_average as fourth_competence_average',
+            'tsp.fifth_final_aggregate_competence_average as fifth_competence_average',
+            'tsp.sixth_final_aggregate_competence_average as sixth_competence_average', 't.name as name', 't.id as teacherId', 'v2_unit_user.unit_identifier',
+           'tsp.updated_at as submitted_at'])
+            ->join('users as t', 'tsp.teacher_id', '=', 't.id')
+            ->join('v2_unit_user','t.id', '=', 'v2_unit_user.user_id')
+            ->where('v2_unit_user.role_id', '=', $teacherRoleId)
+            ->where('tsp.assessment_period_id', '=', $activeAssessmentPeriodId)
+            ->get();
+
+
+    }
+
+
+
     /**
      * @throws \JsonException
      */
     public static function createStudentFormFromRequest(Request $request, Form $form): void
     {
-        
+
 
         $competencesAverage = self::getCompetencesAverage(json_decode(json_encode($request->input('answers'), JSON_THROW_ON_ERROR), false, 512, JSON_THROW_ON_ERROR));
 
@@ -109,7 +161,6 @@ class FormAnswers extends Model
 
         self::updateResponseStatusToAnswered($request->input('groupId'), auth()->user()->id);
     }
-
 
 
     public static function createTeacherFormFromRequest(Request $request, Form $form): void

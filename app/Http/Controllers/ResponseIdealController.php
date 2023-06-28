@@ -119,10 +119,18 @@ class ResponseIdealController extends Controller
     }
 
 
-    public function getCompetences(Request $request){
-
+    public function getCompetences(Request $request): JsonResponse
+    {
 
         return ResponseIdeal::getResponseIdeals($request->input('teachingLadder'));
+
+    }
+
+
+    public function getAllCompetences(): JsonResponse
+    {
+
+        return ResponseIdeal::getAllResponseIdeals();
 
 
     }

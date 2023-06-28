@@ -87,7 +87,6 @@ class UnitController extends Controller
     public function getStaffMembersFromDB()
     {
 
-
         return response()->json(Unit::getStaffMembers());
 
     }
@@ -355,6 +354,12 @@ class UnitController extends Controller
     {
         return response()->json(Unit::getUnitAdmins($unitIdentifier));
     }
+
+    public function getTeachersThatBelongToAnUnit(): JsonResponse
+    {
+        return response()->json(Unit::getTeachersThatBelongToAnUnit());
+    }
+
 
     /**
      * Update the specified resource in storage.

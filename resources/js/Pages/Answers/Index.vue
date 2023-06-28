@@ -44,26 +44,6 @@
                 </v-data-table>
             </v-card>
 
-            <!------------Seccion de dialogos ---------->
-
-            <!--Confirmar borrar rol-->
-            <confirm-dialog
-                :show="deleteFormDialog"
-                @canceled-dialog="deleteFormDialog = false"
-                @confirmed-dialog="deleteForm(deletedFormId)"
-            >
-                <template v-slot:title>
-                    Estas a punto de eliminar el rol seleccionado
-                </template>
-
-                ¡Cuidado! esta acción es irreversible
-
-                <template v-slot:confirm-button-text>
-                    Borrar
-                </template>
-            </confirm-dialog>
-
-
         </v-container>
 
     </AuthenticatedLayout>

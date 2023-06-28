@@ -52,6 +52,7 @@ use Illuminate\Support\Facades\DB;
  */
 class Group extends Model
 {
+
     use HasFactory;
 
     /**
