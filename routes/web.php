@@ -544,8 +544,9 @@ Route::get('/fulfillServiceAreasResultsTable', function () {
 
 Route::get('/mapAssessmentPeriodIdOnFormAnswers', function (){
 
-
        $records = DB::table('form_answers')->get();
+
+       dd($records);
 
        foreach ($records as $record){
 
@@ -554,8 +555,6 @@ Route::get('/mapAssessmentPeriodIdOnFormAnswers', function (){
        }
 
        dd("hecho");
-
-
 
 });
 
