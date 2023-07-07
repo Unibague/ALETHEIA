@@ -93,7 +93,6 @@ class Group extends Model
             $result[$academicPeriod['name']] = $academicPeriod['id'];
             return $result;
         }, []);
-        $assessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
 
         $possibleTeachers = array_unique(array_column($groups, 'teacher_email'));
 
@@ -104,24 +103,9 @@ class Group extends Model
             return $result;
         }, []);
 
-
         $upsertData = [];
 
         foreach ($groups as $group) {
-
-        /*    $serviceAreaIdentifier = $group['service_area_code'].'-'.$assessmentPeriodId;*/
-
-            if($group['hour_type'] === 'Normal'){
-
-                $group['hour_type'] = 'normal';
-            }
-
-            else{
-
-                $group['hour_type'] = 'cátedra';
-            }
-
-
             $upsertData[] = [
                 'group_id' => (int)$group['group_id'],
                 'academic_period_id' => $academicPeriodNameAndId[$group['academic_period_name']],
@@ -131,10 +115,9 @@ class Group extends Model
                 'degree' => strtolower($group['degree_code']),
                 'service_area_code' => $group['service_area_code'],
                 'teacher_id' => $teacherAreaNameAndId[$group['teacher_email']] ?? null,
-                'hour_type' => $group['hour_type'],
+                'hour_type' => $group['hour_type'] === '' ? 'normal' : $group['hour_type'],
             ];
         }
-
 
         /*$justGroupsIds = array_column($upsertData,'group_id');
         dd(array_diff_assoc($justGroupsIds, array_unique($justGroupsIds)));*/
