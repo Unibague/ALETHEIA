@@ -19,6 +19,7 @@ class CreateFormAnswersTable extends Migration
             $table->foreignId('form_id')->constrained();
             $table->json('answers');
             $table->dateTime('submitted_at');
+
             $table->unsignedBigInteger('group_id');
             $table->foreign('group_id')->references('group_id')->on('groups');
             $table->foreignId('teacher_id')->nullable()->references('id')->on('users');

@@ -5,41 +5,27 @@
 
         <v-container fluid>
             <div class="d-flex flex-column align-end mb-5">
-                <h2 class="align-self-start">Gestionar respuestas de evaluación por área de servicio</h2>
+                <h2 class="align-self-start">Gestionar respuestas de evaluación normal</h2>
             </div>
-
-            <v-container class="d-flex flex-column align-end mr-5">
-
-<!--
-                <v-btn
-                    color="primario"
-                    class="grey&#45;&#45;text text&#45;&#45;lighten-4"
-                    @click=""
-                >
-                    Actualizar resultados
-                </v-btn>
--->
-
-            </v-container>
 
             <v-toolbar
                 dark
-                color="primario"
+                color="purple accent-4"
                 class="mb-1"
                 height="auto"
             >
                 <v-row class="py-3">
                     <v-col cols="6" >
                         <v-select
-                            v-model="serviceArea"
+                            v-model="unit"
                             flat
                             solo-inverted
                             hide-details
-                            :items="serviceAreas"
+                            :items="units"
                             :item-text="(pStatus)=> capitalize(pStatus.name)"
-                            item-value="code"
+                            item-value="identifier"
                             prepend-inner-icon="mdi-home-search"
-                            label="Áreas de Servicio"
+                            label="Unidades"
                         ></v-select>
                     </v-col>
 
@@ -152,7 +138,7 @@
 
                         <v-btn
                             color="primario"
-                            class="grey--text text--lighten-4"
+                            text
                             @click="setDialogToCancelChart()"
                         >
                             Salir
@@ -199,27 +185,27 @@ export default {
             search: '',
             headers: [
                 {text: 'Profesor', value: 'name'},
-                {text: 'Área de Servicio', value: 'service_area_name'},
                 {text: 'Promedio C1', value: 'first_competence_average'},
                 {text: 'Promedio C2', value: 'second_competence_average'},
                 {text: 'Promedio C3', value: 'third_competence_average'},
                 {text: 'Promedio C4', value: 'fourth_competence_average'},
                 {text: 'Promedio C5', value: 'fifth_competence_average'},
                 {text: 'Promedio C6', value: 'sixth_competence_average'},
-                {text: 'Estudiantes que evaluaron', value: 'aggregate_students_amount_reviewers'},
-                {text: 'Estudiantes totales', value: 'aggregate_students_amount_on_service_area'},
                 {text: 'Fecha de envío', value: 'submitted_at'},
                 {text: 'Acciones', value: 'actions', sortable: false},
             ],
 
             //Display data
 
+            deletedFormId: 0,
             assessments: [],
-            serviceArea: '',
-            serviceAreas:[],
+            unit: '',
+            units:[],
             teacher: '',
             teachers:[],
             selectedTeacherToGraph: '',
+            role:'',
+            roles: [],
             dataToGraph: [],
             chart:'',
             datasets:[],
@@ -243,9 +229,10 @@ export default {
     },
     async created() {
 
-        await this.getServiceAreas();
+        await this.getUnits();
         await this.getTeachers();
-        await this.getServiceAreasTeacherResults();
+        await this.getAnswersFromTeachers();
+        await this.getAnswersFromStudents();
         this.isLoading = false;
 
     },
@@ -256,14 +243,6 @@ export default {
             model.unshift({id: '', name: text});
         },
 
-
-
-        updateResults: function (){
-
-
-
-
-        },
 
         matchProperty: function (array, propertyPath, reference) {
 
@@ -283,26 +262,25 @@ export default {
         },
 
 
-        getServiceAreas: async function (){
+        getUnits: async function (){
 
-            let request = await axios.get(route('api.serviceAreas.index'));
+            let request = await axios.get(route('api.units.index'));
+            this.units = this.sortArrayAlphabetically(request.data);
+            this.units = this.units.filter(unit => {
 
-            this.serviceAreas = this.sortArrayAlphabetically(request.data);
+                return unit.teachers_from_unit.length>0 || unit.is_custom == 1;
 
-            console.log(this.serviceAreas, 'service areas');
-
-            this.serviceAreas.unshift({name: 'Todas las áreas de servicio', code:''})
+            })
+            this.units.unshift({name: 'Todas las unidades', identifier:''})
 
         },
 
 
         getTeachers: async function (){
 
-            let request = await axios.get(route('serviceAreas.teachersWithResults'));
+            let request = await axios.get(route('unit.getTeachersThatBelongToAnUnit'));
 
             this.teachers = request.data
-
-            console.log(this.teachers, 'teacherssss');
 
             this.teachers.forEach(teacher =>{
 
@@ -312,20 +290,50 @@ export default {
 
             this.teachers = this.sortArrayAlphabetically(this.teachers);
 
-
+            console.log(this.teachers);
 
         },
 
 
-        getServiceAreasTeacherResults: async function (){
+        getAnswersFromTeachers: async function (){
 
-            let url = route('serviceAreas.getResults');
+            let url = route('formAnswers.teachers.show');
 
             let request = await axios.get(url);
 
             this.assessments = request.data
 
-            console.log(request.data, 'resultsss');
+            console.log(request.data);
+
+            this.assessments.forEach(assessment =>{
+                assessment.first_competence_average = assessment.first_competence_average.toFixed(1);
+            })
+
+
+            console.log(this.assessments, 'assessments totales')
+
+        },
+
+
+        getAnswersFromStudents: async function () {
+
+            let url = route('formAnswers.teachers.studentPerspective');
+
+            let request = await axios.get(url);
+
+            let answersFromStudents = request.data;
+
+
+            console.log(answersFromStudents, 'answers from students');
+
+            answersFromStudents.forEach(answer =>{
+
+                answer.unit_role = 'estudiante'
+                this.assessments.push(answer)
+
+            });
+
+
 
         },
 
@@ -336,6 +344,7 @@ export default {
 
         },
 
+
         sortArrayAlphabetically(array){
 
             return array.sort( (p1, p2) =>
@@ -343,7 +352,7 @@ export default {
 
         },
 
-        getFilteredAssessmentsByServiceArea(assessments = null) {
+        getFilteredAssessmentsByUnit(assessments = null) {
 
             if (assessments === null) {
                 assessments = this.assessments;
@@ -351,11 +360,11 @@ export default {
 
             return assessments.filter((assessment) => {
 
-                let doesAssessmentHaveServiceArea = false;
-                if (assessment.service_area_code === this.serviceArea) {
-                    doesAssessmentHaveServiceArea = true;
+                let doesAssessmentHaveUnit = false;
+                if (assessment.unit_identifier === this.unit) {
+                    doesAssessmentHaveUnit = true;
                 }
-                return doesAssessmentHaveServiceArea;
+                return doesAssessmentHaveUnit;
             });
 
         },
@@ -367,6 +376,16 @@ export default {
             }
 
             return this.matchProperty(assessments, 'teacherId', this.teacher)
+
+        },
+
+        getFilteredAssessmentsByRole(assessments = null) {
+
+            if (assessments === null) {
+                assessments = this.assessments;
+            }
+
+            return this.matchProperty(assessments, 'unit_role', this.role)
 
         },
 
@@ -383,6 +402,7 @@ export default {
             this.getRolesDatasets(teacher);
 
             this.getGraph();
+
 
 
         },
@@ -469,7 +489,9 @@ export default {
 
             this.selectedTeacherToGraph = teacher.name
 
-            let info = {userId : teacher.teacherId}
+            let teacherId = teacher.teacherId;
+
+            let info = {userId : teacherId}
 
             let request = await axios.post(route('teachers.getTeachingLadder'), info)
 
@@ -484,7 +506,6 @@ export default {
                 this.responseIdealsCompetencesArray.push(competence.value);
 
             })
-
 
             let hex = this.randomHexColor()
 
@@ -504,25 +525,27 @@ export default {
 
         getRolesDatasets(teacher){
 
-            let teacherServiceAreaArray = this.filteredItems.find((item) => {
-                return item.name == teacher.name && item.service_area_code ==teacher.service_area_code
+            let teacherRolesArrays = this.filteredItems.filter((item) => {
+                return item.name == teacher.name
             })
 
+            teacherRolesArrays.forEach(roleArray => {
 
-            console.log(teacherServiceAreaArray);
+                let hex = this.randomHexColor()
 
-            let hex = this.randomHexColor()
+                this.datasets.push({
 
-            this.datasets.push({
+                    label: this.capitalize(roleArray.unit_role),
+                    data: this.fillCompetencesArray(roleArray),
+                    backgroundColor: hex,
+                    borderColor: hex,
+                    borderWidth: 2
+                })
 
-                label: 'Perspectiva del estudiante',
-                data: this.fillCompetencesArray(teacherServiceAreaArray),
-                backgroundColor: hex,
-                borderColor: hex,
-                borderWidth: 2
             })
 
         },
+
 
 
         setDialogToCancelChart (){
@@ -533,33 +556,13 @@ export default {
             this.finalTeachingLadders.length= 0;
             this.datasets = [];
 
+
         },
 
 
         downloadResults (){
 
-
-            let excelInfo = this.filteredItems.map(item =>{
-
-                return {
-
-                    Nombre :item.name,
-                    AreaDeServicio: item.service_area_name,
-                    PromedioC1: item.first_competence_average,
-                    PromedioC2: item.second_competence_average,
-                    PromedioC3: item.third_competence_average,
-                    PromedioC4: item.fourth_competence_average,
-                    PromedioC5: item.fifth_competence_average,
-                    PromedioC6: item.sixth_competence_average,
-                    ActoresInvolucrados: item.aggregate_students_amount_reviewers,
-                    ActoresTotales: item.aggregate_students_amount_on_service_area
-                }
-
-            })
-
-
-
-            let csv = Papa.unparse(excelInfo, {delimiter:';'});
+            let csv = Papa.unparse(this.filteredItems, {delimiter:';'});
 
             var csvData = new Blob(["\uFEFF"+csv], {type: 'text/csv;charset=utf-8;'});
             var csvURL =  null;
@@ -668,11 +671,14 @@ export default {
 
             let finalAssessments = this.assessments;
 
-            if (this.serviceArea !== '') {
-                finalAssessments = this.getFilteredAssessmentsByServiceArea(finalAssessments);
+            if (this.unit !== '') {
+                finalAssessments = this.getFilteredAssessmentsByUnit(finalAssessments);
             }
             if (this.teacher !== '') {
                 finalAssessments = this.getFilteredAssessmentsByTeacher(finalAssessments);
+            }
+            if (this.role !== '') {
+                finalAssessments = this.getFilteredAssessmentsByRole(finalAssessments);
             }
 
             return finalAssessments;
@@ -685,9 +691,8 @@ export default {
 
             let finalAssessments = this.assessments;
 
-            if (this.serviceArea !== '') {
-
-                finalAssessments = this.getFilteredAssessmentsByServiceArea();
+            if (this.unit !== '') {
+                finalAssessments = this.getFilteredAssessmentsByUnit();
 
                 finalTeachers = finalTeachers.filter((teacher) => {
                     return finalAssessments.some((assessment) => assessment.teacherId == teacher.id)

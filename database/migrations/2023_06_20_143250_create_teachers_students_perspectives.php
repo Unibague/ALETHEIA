@@ -23,8 +23,6 @@ class CreateTeachersStudentsPerspectives extends Migration
             $table->double('fifth_final_aggregate_competence_average')->nullable();
             $table->double('sixth_final_aggregate_competence_average')->nullable();
             $table->integer('groups_amount');
-            $table->integer('aggregate_students_amount_reviewers');
-            $table->integer('aggregate_students_amount_on_360_groups');
             $table->foreignId('assessment_period_id')->references('id')->on('assessment_periods');
             $table->timestamps();
         });

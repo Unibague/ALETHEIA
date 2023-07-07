@@ -35,7 +35,6 @@ use Illuminate\Support\Facades\DB;
  */
 class ServiceArea extends Model
 {
-
     protected $guarded = [];
     use HasFactory;
 
@@ -47,11 +46,8 @@ class ServiceArea extends Model
     {
         $upsertData = [];
         $assessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
-
         foreach ($serviceAreas as $serviceArea) {
-
             $upsertData[] = [
-
                 'code' => $serviceArea->code,
                 'name' => $serviceArea->name,
                 'assessment_period_id' => $assessmentPeriodId,
@@ -59,46 +55,6 @@ class ServiceArea extends Model
         }
         self::upsert($upsertData, ['code', 'assessment_period_id'], ['name', 'assessment_period_id','updated_at']);
     }
-
-    public static function getServiceAreasResults()
-    {
-
-        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
-
-        return  DB::table('teachers_service_areas_results as tsar')
-            ->select([ 't.name', 'sa.name as service_area_name' , 'tsar.service_area_code', 't.id as teacherId',
-                'tsar.first_final_aggregate_competence_average as first_competence_average',
-            'tsar.second_final_aggregate_competence_average as second_competence_average',
-            'tsar.third_final_aggregate_competence_average as third_competence_average',
-            'tsar.fourth_final_aggregate_competence_average as fourth_competence_average',
-            'tsar.fifth_final_aggregate_competence_average as fifth_competence_average',
-            'tsar.sixth_final_aggregate_competence_average as sixth_competence_average', 'tsar.updated_at as submitted_at',
-                'tsar.aggregate_students_amount_reviewers', 'tsar.aggregate_students_amount_on_service_area'])
-            ->join('users as t', 'tsar.teacher_id', '=', 't.id')
-            ->join('service_areas as sa', 'sa.code','=','tsar.service_area_code')
-            ->where('sa.assessment_period_id', '=', $activeAssessmentPeriodId)
-            ->where('tsar.assessment_period_id', '=', $activeAssessmentPeriodId)->orderBy('name', 'ASC')
-            ->get();
-
-
-    }
-
-
-    public static function getServiceAreasTeachersWithResults()
-    {
-
-        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
-
-        return  DB::table('teachers_service_areas_results as tsar')
-            ->select(['t.name', 'sa.name as service_area_name' , 'tsar.service_area_code', 't.id as id'])
-            ->join('users as t', 'tsar.teacher_id', '=', 't.id')
-            ->join('service_areas as sa', 'sa.code','=','tsar.service_area_code')
-            ->where('tsar.assessment_period_id', '=', $activeAssessmentPeriodId)->orderBy('name', 'ASC')
-            ->get();
-
-    }
-
-
 
     public function groups(): \Illuminate\Database\Eloquent\Relations\HasMany
     {

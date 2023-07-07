@@ -372,19 +372,11 @@ export default {
                 icon: 'mdi-cog-box',
                 items: [
                     {
-                        name: 'Reportes por evaluación 360',
-                        href: route('answers.indexTeachers.view'),
-                        role: 10,
-                        icon: 'mdi-cog-box'
-                    },
-
-                    {
-                        name: 'Reportes por área de servicio',
+                        name: 'Reportes',
                         href: route('reports.index'),
                         role: 10,
                         icon: 'mdi-cog-box'
                     },
-
                 ]
             },
 
