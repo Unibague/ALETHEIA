@@ -9,7 +9,9 @@ use App\Models\ServiceArea;
 use App\Http\Requests\StoreServiceAreaRequest;
 use App\Http\Requests\UpdateServiceAreaRequest;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Js;
 use Ospina\CurlCobain\CurlCobain;
+use Psy\Util\Json;
 
 class ServiceAreaController extends Controller
 {
@@ -33,4 +35,20 @@ class ServiceAreaController extends Controller
         ServiceArea::createOrUpdateFromArray($serviceAreas);
         return response()->json(['message' => 'Las áreas de servicio se han sincronizado exitosamente']);
     }
+
+
+    public function getServiceAreasResults(): JsonResponse{
+
+        return response()->json(ServiceArea::getServiceAreasResults());
+
+    }
+
+
+    public function getServiceAreasTeachersWithResults(): JsonResponse{
+
+        return response()->json(ServiceArea::getServiceAreasTeachersWithResults());
+
+    }
+
+
 }

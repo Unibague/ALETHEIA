@@ -27,6 +27,9 @@ Vue.use(PortalVue);
 
 const app = document.getElementById('app');
 
+
+
+
 new Vue({
     vuetify: new Vuetify(),
     render: (h) =>

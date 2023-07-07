@@ -8,9 +8,21 @@
                 <h2 class="align-self-start">Gestionar respuestas de evaluación 360</h2>
             </div>
 
+            <v-container class="d-flex flex-column align-end mr-5">
+
+<!--                <v-btn
+                    color="primario"
+                    class="grey&#45;&#45;text text&#45;&#45;lighten-4"
+                    @click="savePDFFile()"
+                >
+                    Actualizar resultados
+                </v-btn>-->
+
+            </v-container>
+
             <v-toolbar
                     dark
-                    color="blue accent-4"
+                    color="primario"
                     class="mb-1"
                     height="auto"
                 >
@@ -151,13 +163,22 @@
 
                     <v-card-actions>
 
+<!--                        <v-btn
+                            color="purple"
+                            class="white&#45;&#45;text"
+                            @click="savePDFFile()"
+                        >
+                            Descargar reporte en PDF
+                        </v-btn>-->
+
                         <v-btn
                             color="primario"
-                            text
+                            class="grey--text text--lighten-4"
                             @click="setDialogToCancelChart()"
                         >
                             Salir
                         </v-btn>
+
 
 
                     </v-card-actions>
@@ -207,6 +228,8 @@ export default {
                 {text: 'Promedio C4', value: 'fourth_competence_average'},
                 {text: 'Promedio C5', value: 'fifth_competence_average'},
                 {text: 'Promedio C6', value: 'sixth_competence_average'},
+                {text: 'Actores involucrados', value: 'aggregate_students_amount_reviewers'},
+                {text: 'Actores totales', value: 'aggregate_students_amount_on_360_groups'},
                 {text: 'Fecha de envío', value: 'submitted_at'},
                 {text: 'Acciones', value: 'actions', sortable: false},
             ],
@@ -307,7 +330,7 @@ export default {
 
             this.teachers = this.sortArrayAlphabetically(this.teachers);
 
-            console.log(this.teachers);
+            console.log(this.teachers, 'teacherssss');
 
         },
 
@@ -334,6 +357,8 @@ export default {
 
             this.assessments.forEach(assessment =>{
                 assessment.first_competence_average = assessment.first_competence_average.toFixed(1);
+                assessment.aggregate_students_amount_reviewers = 1;
+                assessment.aggregate_students_amount_on_360_groups = 1;
             })
 
 
@@ -349,7 +374,6 @@ export default {
             let request = await axios.get(url);
 
             let answersFromStudents = request.data;
-
 
             console.log(answersFromStudents, 'answers from students');
 
@@ -432,6 +456,7 @@ export default {
 
             this.getGraph();
 
+            console.log(this.chart);
 
 
         },
@@ -602,7 +627,29 @@ export default {
 
         downloadResults (){
 
-                let csv = Papa.unparse(this.filteredItems, {delimiter:';'});
+
+                console.log(this.filteredItems);
+
+                let excelInfo = this.filteredItems.map(item =>{
+
+                    return {
+
+                        Nombre :item.name,
+                        rol: item.unit_role,
+                        NombreUnidad: item.unitName,
+                        PromedioC1: item.first_competence_average,
+                        PromedioC2: item.second_competence_average,
+                        PromedioC3: item.third_competence_average,
+                        PromedioC4: item.fourth_competence_average,
+                        PromedioC5: item.fifth_competence_average,
+                        PromedioC6: item.sixth_competence_average,
+                        ActoresInvolucrados: item.aggregate_students_amount_reviewers,
+                        ActoresTotales: item.aggregate_students_amount_on_360_groups
+                    }
+
+                })
+
+                let csv = Papa.unparse(excelInfo, {delimiter:';'});
 
                 var csvData = new Blob(["\uFEFF"+csv], {type: 'text/csv;charset=utf-8;'});
                 var csvURL =  null;
@@ -622,6 +669,34 @@ export default {
 
         },
 
+
+        async savePDFFile(){
+
+            let parameterChart = this.getChartAsObject().config._config;
+
+            await axios.post(route('reports.index.downloadPdf'),
+                {myChart: parameterChart});
+
+    /*        await axios.post(route('reports.index.downloadPdf'),
+                { myChart: parameterChart },
+                { responseType: 'blob'})
+                .then(res => {
+                    let blob = new Blob([res.data], { type: res.headers['content-type'] });
+                    let link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+
+                    link.download = item.slice(item.lastIndexOf('/')+1);
+                    link.click()
+                }).catch(err => {})
+*/
+
+
+/*            await axios.get(route('reports.index.downloadPdf', {chartInfo:parameterChart}));*/
+
+
+
+        },
+
         getGraph(){
 
                 let miCanvas = document.getElementById("MiGrafica").getContext("2d");
@@ -632,8 +707,6 @@ export default {
                         datasets: this.datasets,
                     },
                     options: {
-
-
                         legend: {
                             display: false
                         },
@@ -676,6 +749,12 @@ export default {
                         }
                     }
                 })
+
+        },
+
+        getChartAsObject(){
+
+            return this.chart
 
         },
 
