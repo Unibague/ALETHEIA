@@ -628,7 +628,6 @@ export default {
 
         downloadResults (){
 
-
                 console.log(this.filteredItems);
 
                 let excelInfo = this.filteredItems.map(item =>{
