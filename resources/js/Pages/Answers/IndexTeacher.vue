@@ -236,6 +236,7 @@ export default {
 
             //Display data
 
+            myThings: [],
             deletedFormId: 0,
             assessments: [],
             unit: '',
