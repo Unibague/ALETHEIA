@@ -273,6 +273,7 @@ export default {
         await this.getTeachers();
         await this.getAnswersFromTeachers();
         await this.getAnswersFromStudents();
+        await this.getFinalGrades();
         this.isLoading = false;
 
     },
@@ -529,19 +530,47 @@ export default {
             return new Question().getPossibleCompetencesAsArrayOfObjects();
         },
 
-        async getResponseIdealsCompetences(teachingLadder){
+        async getResponseIdealsCompetences(teachingLadder, unitIdentifier){
 
             let url = route('responseIdeals.get');
-            let request = await axios.post(url, {teachingLadder: teachingLadder})
+            let request = await axios.post(url, {teachingLadder: teachingLadder, unitIdentifier: unitIdentifier})
             if(request.data.length === 0){
                 return this.getPossibleInitialCompetences();
             }
             return request.data;
         },
 
+        async getFinalGrades(){
+
+            let url = route('formAnswers.teachers.finalGrades');
+
+            let request = await axios.get(url);
+
+            let finalGrades = request.data;
+
+            console.log(finalGrades, 'answers from students');
+
+            finalGrades.forEach(answer =>{
+
+                answer.unit_role = 'promedio final'
+                this.assessments.push(answer)
+
+            });
+
+            this.assessments.sort(this.orderData);
+
+        },
+
+
         async getResponseIdealsDataset(teacher){
 
+            console.log(teacher, 'teacher');
+
             this.selectedTeacherToGraph = teacher.name
+
+            let unitIdentifier = teacher.unit_identifier
+
+            console.log(unitIdentifier, 'unitIdentifier');
 
             let teacherId = teacher.teacherId;
 
@@ -553,7 +582,7 @@ export default {
 
             console.log(teachingLadder, 'teachingLadder');
 
-            let responseIdealsCompetences = await this.getResponseIdealsCompetences(teachingLadder);
+            let responseIdealsCompetences = await this.getResponseIdealsCompetences(teachingLadder, unitIdentifier);
 
             responseIdealsCompetences.forEach(competence =>{
 
@@ -565,7 +594,7 @@ export default {
 
             this.datasets.unshift({
 
-                label: `Ideales de respuesta (${teachingLadder == 'Ninguno' ? 'Sin Escalafón' : teachingLadder})`,
+                label: `Ideales de respuesta (${teachingLadder == 'Ninguno' ? 'Auxiliar' : teachingLadder})`,
                 data: this.responseIdealsCompetencesArray,
                 backgroundColor: hex,
                 borderColor: hex,
@@ -587,14 +616,34 @@ export default {
 
                 let hex = this.randomHexColor()
 
-                this.datasets.push({
+                if(roleArray.unit_role == 'promedio final')
+                {
 
-                    label: this.capitalize(roleArray.unit_role),
-                    data: this.fillCompetencesArray(roleArray),
-                    backgroundColor: hex,
-                    borderColor: hex,
-                    borderWidth: 2
-                })
+                    this.datasets.push({
+
+                        label: this.capitalize(roleArray.unit_role),
+                        data: this.fillCompetencesArray(roleArray),
+                        backgroundColor: 'black',
+                        borderColor: 'black',
+                        borderWidth: 5
+                    })
+
+                }
+
+                else{
+
+                    this.datasets.push({
+
+                        label: this.capitalize(roleArray.unit_role),
+                        data: this.fillCompetencesArray(roleArray),
+                        backgroundColor: hex,
+                        borderColor: hex,
+                        borderWidth: 2
+                    })
+
+                }
+
+
 
             })
 
@@ -703,7 +752,8 @@ export default {
                 this.chart = new Chart(miCanvas, {
                     type:"line",
                     data:{
-                        labels: ["C1", "C2", "C3", "C4", "C5","C6"],
+                        labels: ["Orientación a la calidad educativa", "Trabajo Colaborativo",
+                            "Empatía Universitaria", "Comunicación", "Innovación del conocimiento","Productividad académica"],
                         datasets: this.datasets,
                     },
                     options: {
@@ -734,7 +784,8 @@ export default {
                             ,
                             y:
                                 {
-                                    max:5.5,
+                                    max:5.1,
+
                                     title: {
                                         display: true,
                                         text: 'Valores obtenidos'
@@ -743,7 +794,7 @@ export default {
                                     ticks: {
                                         beginAtZero: true,
                                         padding: 8,
-                                        stepSize: 0.5,
+
                                     }
                                 }
                         }

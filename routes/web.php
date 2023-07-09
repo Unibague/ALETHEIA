@@ -2,9 +2,12 @@
 
 use App\Helpers\AtlanteProvider;
 use App\Models\AcademicPeriod;
+use App\Models\AssessmentPeriod;
 use App\Models\Enroll;
 
+use App\Models\Role;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -51,6 +54,7 @@ Route::get('formAnswers/teachers', [\App\Http\Controllers\FormAnswersController:
 
 Route::get('formAnswers/teachers/studentPerspective', [\App\Http\Controllers\FormAnswersController::class, 'getStudentPerspectiveAnswers'])->name('formAnswers.teachers.studentPerspective')->middleware(['auth']);
 
+Route::get('formAnswers/teachers/finalGrades', [\App\Http\Controllers\FormAnswersController::class, 'getFinalGrades'])->name('formAnswers.teachers.finalGrades')->middleware(['auth']);
 
 
 
@@ -189,6 +193,7 @@ Route::get('/teachers/assessments', [\App\Http\Controllers\TeacherProfileControl
 Route::post('api/teachers/teachingLadder', [\App\Http\Controllers\TeacherProfileController::class, 'getTeachingLadderByUserId'])->middleware(['auth'])->name('teachers.getTeachingLadder');
 
 /* >>>>>>>>>>>>>>>>>>>>>>>>StaffMembers routes <<<<<<<<<<<<<<<<<<<<<<<<<<<< */
+
 
 
 /* >>>>>>>>>>>>>>>>>>>>>>>>>>>> Test routes  (students) <<<<<<<<<<<<<<<<<<<<<<<<<<< */
@@ -538,25 +543,162 @@ Route::get('/fulfillServiceAreasResultsTable', function () {
 
     }
 
+});
+
+Route::get('/fulfillFinalAverageCompetences360Teachers', function () {
+
+
+    $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+
+    $teacherRoleId = Role::getTeacherRoleId();
+
+    $teachersFrom360 = DB::table('teachers_students_perspectives as tsp')->select(['teacher_id'])
+        ->join('v2_unit_user','tsp.teacher_id', '=', 'v2_unit_user.user_id')
+        ->where('v2_unit_user.role_id', '=', $teacherRoleId)->get()->toArray();
+
+
+    $uniqueTeachers = array_column($teachersFrom360, 'teacher_id');
+
+    $uniqueTeachersId = array_unique($uniqueTeachers);
+
+    foreach ($uniqueTeachersId as $uniqueTeacherId){
+
+        $allAssessments = [];
+
+        $peerPercentage = 0.15;
+        $autoPercentage = 0.15;
+        $bossPercentage = 0.35;
+        $studentsPercentage = 0.35;
+
+        $firstCompetenceTotal= 0;
+        $secondCompetenceTotal= 0;
+        $thirdCompetenceTotal= 0;
+        $fourthCompetenceTotal= 0;
+        $fifthCompetenceTotal= 0;
+        $sixthCompetenceTotal= 0;
+
+
+        $peerBossAutoAssessmentAnswers = DB::table('form_answers as fa')
+            ->select(['t.name', 'f.unit_role', 'fa.first_competence_average','fa.second_competence_average','fa.third_competence_average',
+                'fa.fourth_competence_average','fa.fifth_competence_average','fa.sixth_competence_average','t.id as teacherId', 'v2_unit_user.unit_identifier',
+                'v2_units.name as unitName','fa.submitted_at'])
+            ->join('forms as f', 'fa.form_id', '=', 'f.id')
+            ->join('users as t', 'fa.teacher_id', '=', 't.id')
+            ->join('teachers_students_perspectives as tsp', 'tsp.teacher_id','=','t.id')
+            ->join('v2_unit_user','tsp.teacher_id', '=', 'v2_unit_user.user_id')
+            ->join('v2_units', 'v2_unit_user.unit_identifier','=', 'v2_units.identifier')
+            ->where('f.type','=','otros')
+            ->where('v2_unit_user.role_id', '=', $teacherRoleId)
+            ->where('tsp.assessment_period_id', '=', $activeAssessmentPeriodId)
+            ->where('t.id', '=', $uniqueTeacherId)
+            ->get();
+
+
+/*        if($uniqueTeacherId == 92){
+
+            dd(count($peerBossAutoAssessmentAnswers));
+        }*/
+
+        if(count($peerBossAutoAssessmentAnswers) == 0){
+
+            continue;
+
+        }
+
+
+        $studentsAnswers = DB::table('teachers_students_perspectives as tsp')
+            ->select(['tsp.first_final_aggregate_competence_average as first_competence_average',
+            'tsp.second_final_aggregate_competence_average as second_competence_average',
+            'tsp.third_final_aggregate_competence_average as third_competence_average',
+            'tsp.fourth_final_aggregate_competence_average as fourth_competence_average',
+            'tsp.fifth_final_aggregate_competence_average as fifth_competence_average',
+            'tsp.sixth_final_aggregate_competence_average as sixth_competence_average'])
+            ->where('teacher_id', '=', $uniqueTeacherId)->get()->first();
+
+        $studentsAnswers->unit_role = "estudiante";
+
+        $peerBossAutoAssessmentAnswers [] = $studentsAnswers;
+
+        $allAssessments = $peerBossAutoAssessmentAnswers;
+
+        foreach ($allAssessments as $assessment){
+
+            if($assessment->unit_role === "par"){
+                $firstCompetenceTotal += $assessment->first_competence_average*$peerPercentage;
+                $secondCompetenceTotal += $assessment->second_competence_average*$peerPercentage;
+                $thirdCompetenceTotal += $assessment->third_competence_average*$peerPercentage;
+                $fourthCompetenceTotal += $assessment->fourth_competence_average*$peerPercentage;
+                $fifthCompetenceTotal += $assessment->fifth_competence_average*$peerPercentage;
+                $sixthCompetenceTotal += $assessment->sixth_competence_average*$peerPercentage;
+            }
+
+
+            if($assessment->unit_role === "jefe"){
+                $firstCompetenceTotal += $assessment->first_competence_average*$bossPercentage;
+                $secondCompetenceTotal += $assessment->second_competence_average*$bossPercentage;
+                $thirdCompetenceTotal += $assessment->third_competence_average*$bossPercentage;
+                $fourthCompetenceTotal += $assessment->fourth_competence_average*$bossPercentage;
+                $fifthCompetenceTotal += $assessment->fifth_competence_average*$bossPercentage;
+                $sixthCompetenceTotal += $assessment->sixth_competence_average*$bossPercentage;
+            }
+
+            if($assessment->unit_role === "estudiante"){
+
+                $firstCompetenceTotal += $assessment->first_competence_average*$studentsPercentage;
+                $secondCompetenceTotal += $assessment->second_competence_average*$studentsPercentage;
+                $thirdCompetenceTotal += $assessment->third_competence_average*$studentsPercentage;
+                $fourthCompetenceTotal += $assessment->fourth_competence_average*$studentsPercentage;
+                $fifthCompetenceTotal += $assessment->fifth_competence_average*$studentsPercentage;
+                $sixthCompetenceTotal += $assessment->sixth_competence_average*$studentsPercentage;
+            }
+
+            if($assessment->unit_role === "autoevaluación"){
+
+                $firstCompetenceTotal += $assessment->first_competence_average*$autoPercentage;
+                $secondCompetenceTotal += $assessment->second_competence_average*$autoPercentage;
+                $thirdCompetenceTotal += $assessment->third_competence_average*$autoPercentage;
+                $fourthCompetenceTotal += $assessment->fourth_competence_average*$autoPercentage;
+                $fifthCompetenceTotal += $assessment->fifth_competence_average*$autoPercentage;
+                $sixthCompetenceTotal += $assessment->sixth_competence_average*$autoPercentage;
+            }
+
+        }
+
+
+       /* if($uniqueTeacherId == 226){
+            dd($firstCompetenceTotal,$secondCompetenceTotal,$thirdCompetenceTotal,$fourthCompetenceTotal,$fifthCompetenceTotal,$sixthCompetenceTotal);
+
+        }*/
+
+
+
+        $firstCompetenceTotal = number_format($firstCompetenceTotal, 1);
+        $secondCompetenceTotal = number_format($secondCompetenceTotal, 1);
+        $thirdCompetenceTotal = number_format($thirdCompetenceTotal, 1);
+        $fourthCompetenceTotal = number_format($fourthCompetenceTotal, 1);
+        $fifthCompetenceTotal = number_format($fifthCompetenceTotal, 1);
+        $sixthCompetenceTotal = number_format($sixthCompetenceTotal, 1);
+
+
+        DB::table('teachers_360_final_average')->updateOrInsert(['teacher_id' => $uniqueTeacherId,
+            'assessment_period_id' => $activeAssessmentPeriodId], ['first_final_aggregate_competence_average' => $firstCompetenceTotal,
+            'second_final_aggregate_competence_average' => $secondCompetenceTotal,
+            'third_final_aggregate_competence_average' => $thirdCompetenceTotal,
+            'fourth_final_aggregate_competence_average' => $fourthCompetenceTotal,
+            'fifth_final_aggregate_competence_average' => $fifthCompetenceTotal,
+            'sixth_final_aggregate_competence_average' => $sixthCompetenceTotal]);
+
+/*       dd($firstCompetenceTotal,$secondCompetenceTotal,$thirdCompetenceTotal,$fourthCompetenceTotal,$fifthCompetenceTotal,$sixthCompetenceTotal);*/
+
+
+/*        dd($allAssessments);*/
+    }
+
+
+    dd("listo");
 
 });
 
-
-Route::get('/mapAssessmentPeriodIdOnFormAnswers', function (){
-
-       $records = DB::table('form_answers')->get();
-
-       dd($records);
-
-       foreach ($records as $record){
-
-           DB::table('form_answers')->updateOrInsert(['id' => $record->id], ['assessment_period_id' => 1]);
-
-       }
-
-       dd("hecho");
-
-});
 
 /*
 Route::get('/migrateToV2', function () {

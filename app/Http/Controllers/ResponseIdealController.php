@@ -105,9 +105,10 @@ class ResponseIdealController extends Controller
         try {
 
             $teachingLadder = $request->input('teachingLadder');
+            $unitIdentifier = $request->input('unit');
             $competences = json_encode($request->input('competences'));
 
-            ResponseIdeal::saveResponseIdeals($teachingLadder,$competences);
+            ResponseIdeal::saveResponseIdeals($teachingLadder,$competences,$unitIdentifier);
 
         } catch (JsonException $e) {
 
@@ -121,8 +122,10 @@ class ResponseIdealController extends Controller
 
     public function getCompetences(Request $request): JsonResponse
     {
+        $teachingLadder = $request->input('teachingLadder');
+        $unitIdentifier = $request->input('unitIdentifier');
 
-        return ResponseIdeal::getResponseIdeals($request->input('teachingLadder'));
+        return ResponseIdeal::getResponseIdeals($teachingLadder, $unitIdentifier);
 
     }
 
