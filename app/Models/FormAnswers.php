@@ -137,8 +137,30 @@ class FormAnswers extends Model
 
     }
 
+    public static function getFinalGradesFromTeachers(): \Illuminate\Support\Collection
+    {
+
+        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        $teacherRoleId = Role::getTeacherRoleId();
 
 
+        return DB::table('teachers_360_final_average as t360')->select(['t360.first_final_aggregate_competence_average as first_competence_average',
+            't360.second_final_aggregate_competence_average as second_competence_average',
+            't360.third_final_aggregate_competence_average as third_competence_average',
+            't360.fourth_final_aggregate_competence_average as fourth_competence_average',
+            't360.fifth_final_aggregate_competence_average as fifth_competence_average',
+            't360.sixth_final_aggregate_competence_average as sixth_competence_average',
+            't.name as name', 't.id as teacherId', 'v2_unit_user.unit_identifier',
+            'v2_units.name as unitName', 'tsp.updated_at as submitted_at', 'tsp.aggregate_students_amount_reviewers', 'tsp.aggregate_students_amount_on_360_groups'])
+            ->join('teachers_students_perspectives as tsp', 'tsp.teacher_id','=','t360.teacher_id')
+            ->join('users as t', 'tsp.teacher_id', '=', 't.id')
+            ->join('v2_unit_user','t.id', '=', 'v2_unit_user.user_id')
+            ->join('v2_units', 'v2_unit_user.unit_identifier','=', 'v2_units.identifier')
+            ->where('v2_unit_user.role_id', '=', $teacherRoleId)
+            ->where('tsp.assessment_period_id', '=', $activeAssessmentPeriodId)->get();
+
+
+    }
     /**
      * @throws \JsonException
      */

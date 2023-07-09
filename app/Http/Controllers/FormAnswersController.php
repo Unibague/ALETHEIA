@@ -51,4 +51,11 @@ class FormAnswersController extends Controller
     {
         return response()->json(FormAnswers::getCurrentTeacherFormAnswersFromStudents());
     }
+
+
+    public function getFinalGrades(): JsonResponse
+    {
+        return response()->json(FormAnswers::getFinalGradesFromTeachers());
+    }
+
 }

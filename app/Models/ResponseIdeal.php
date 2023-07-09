@@ -39,13 +39,13 @@ class ResponseIdeal extends Model
     }
 
 
-    public static function saveResponseIdeals($teachingLadder,$competences): void{
+    public static function saveResponseIdeals($teachingLadder,$competences, $unit): void{
 
 
         $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
 
         DB::table('response_ideals')->updateOrInsert
-        (['assessment_period_id'  =>   $activeAssessmentPeriodId, 'teaching_ladder' => $teachingLadder],
+        (['unit_identifier' => $unit,'assessment_period_id'  =>   $activeAssessmentPeriodId, 'teaching_ladder' => $teachingLadder],
             ['response' => $competences,
             'created_at' => Carbon::now()->toDateTimeString(),
             'updated_at' => Carbon::now()->toDateTimeString()]
@@ -57,13 +57,25 @@ class ResponseIdeal extends Model
 
 
 
-    public function getResponseIdeals($teaching_ladder): JsonResponse{
+    public function getResponseIdeals($teaching_ladder, $unitIdentifier): JsonResponse{
 
 
         $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
 
-        $competences = DB::table('response_ideals')->where('teaching_ladder', $teaching_ladder)
+        if($teaching_ladder == 'Ninguno'){
+
+            $teaching_ladder = 'auxiliar';
+        }
+
+        $unitIdentifier = DB::table('unit_hierarchy')->select(['father_unit_identifier'])
+            ->where('child_unit_identifier','=', $unitIdentifier)->first()->father_unit_identifier;
+
+
+        $competences = DB::table('response_ideals')->where('teaching_ladder', $teaching_ladder)->where('unit_identifier', $unitIdentifier)
             ->where('assessment_period_id', $activeAssessmentPeriodId)->select('response')->first();
+
+
+
 
         if($competences == null){
 
@@ -75,7 +87,7 @@ class ResponseIdeal extends Model
 
         }
 
-        $competences = DB::table('response_ideals')->where('teaching_ladder', $teaching_ladder)
+        $competences = DB::table('response_ideals')->where('teaching_ladder', $teaching_ladder)->where('unit_identifier', $unitIdentifier)
             ->where('assessment_period_id', $activeAssessmentPeriodId)->select('response')->first()->response;
 
         return response()->json(json_decode($competences));
@@ -90,8 +102,9 @@ class ResponseIdeal extends Model
 
         $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
 
-        $competences = DB::table('response_ideals')
-            ->where('assessment_period_id', $activeAssessmentPeriodId)->select('teaching_ladder','response')->get()->all();
+        $competences = DB::table('response_ideals as ri')
+            ->where('ri.assessment_period_id', $activeAssessmentPeriodId)->select('ri.teaching_ladder','ri.response','ri.unit_identifier')
+            ->join('v2_units','v2_units.identifier', 'ri.unit_identifier')->get()->all();
 
 
         foreach ($competences as $key => $competence){

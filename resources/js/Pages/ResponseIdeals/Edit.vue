@@ -258,7 +258,7 @@ export default {
                 let url = route('responseIdeals.update');
 
                 let request = await axios.post(url, {competences: competences,
-                    teachingLadder: this.teachingLadder});
+                    teachingLadder: this.teachingLadder, unit: '011-1'});
 
                 this.competencesValuesArray.length = 0;
 

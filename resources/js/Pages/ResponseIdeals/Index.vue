@@ -8,7 +8,7 @@
                 <v-col cols="6">
 
                     <div class="d-flex flex-column align-end mb-8">
-                        <h3 class="align-self-start">Definir ideales de respuesta para cada escalafón</h3>
+                        <h3 class="align-self-start">Definir ideales de respuesta para cada escalafón de cada facultaad</h3>
                     </div>
 
                     <!--Inicia tabla-->

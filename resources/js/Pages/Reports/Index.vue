@@ -471,9 +471,10 @@ export default {
 
             let info = {userId : teacher.teacherId}
 
-            let request = await axios.post(route('teachers.getTeachingLadder'), info)
+/*            let request = await axios.post(route('teachers.getTeachingLadder'), info)
 
-            let teachingLadder= await this.getTeachingLadderNameByParameter(request.data)
+            let teachingLadder= await this.getTeachingLadderNameByParameter(request.data)*/
+/*
 
             console.log(teachingLadder, 'teachingLadder');
 
@@ -484,7 +485,8 @@ export default {
                 this.responseIdealsCompetencesArray.push(competence.value);
 
             })
-
+*/
+/*
 
             let hex = this.randomHexColor()
 
@@ -497,7 +499,7 @@ export default {
                 borderWidth: 2,
                 borderDash: [5, 5],
 
-            })
+            })*/
 
         },
 
