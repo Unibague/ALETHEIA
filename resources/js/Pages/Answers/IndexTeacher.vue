@@ -339,7 +339,7 @@ export default {
         getRoles (){
 
             this.roles = [{id:  'Todos los roles', name: ''},{id: 'jefe', name: 'jefe'},
-                {id: 'par', name: 'par'}, {id: 'autoevaluación', name: 'autoevaluación'}, {id: 'estudiante', name: 'estudiante'}]
+                {id: 'par', name: 'par'}, {id: 'autoevaluación', name: 'autoevaluación'}, {id: 'estudiante', name: 'estudiante'}, {id: 'promedio final', name:'promedio final'}]
 
             console.log(this.roles);
 
