@@ -342,6 +342,12 @@ export default {
             isLoading: true,
         }
     },
+
+    props: {
+        propsUnits: Array
+    },
+
+
     async created() {
 
         await this.getRoles();
@@ -382,7 +388,9 @@ export default {
         getUnits: async function (){
 
             let request = await axios.get(route('api.units.index'));
-            console.log(request.data, "units");
+
+            console.log(request.data);
+
             this.units = this.sortArrayAlphabetically(request.data);
             this.units = this.units.filter(unit => {
 
@@ -391,7 +399,28 @@ export default {
             })
 
 
-            this.units.unshift({name: 'Todas las unidades', identifier:''})
+            this.units = this.units.filter (unit => {
+
+                return this.propsUnits.includes(unit.identifier)
+
+            })
+
+            return this.units
+
+       /*     this.units = this.units.filter(unit => {
+
+
+
+
+                return unit.identifier == '025-1' || unit.identifier == '014-1';
+
+            })
+*/
+
+
+
+
+/*            this.units.unshift({name: 'Todas las unidades', identifier:''})*/
 
         },
 
@@ -965,9 +994,9 @@ export default {
 
             let finalAssessments = this.assessments;
 
-            if (this.unit !== '') {
+
                 finalAssessments = this.getFilteredAssessmentsByUnit(finalAssessments);
-            }
+
             if (this.teacher !== '') {
                 finalAssessments = this.getFilteredAssessmentsByTeacher(finalAssessments);
             }

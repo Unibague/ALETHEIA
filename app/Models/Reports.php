@@ -6,6 +6,8 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class Reports extends Model
 {
@@ -19,6 +21,12 @@ class Reports extends Model
 
     }
 
+    public function engineering(): Response
+    {
+        $token = csrf_token();
+
+        return Inertia::render('Reports/Ingenieria', ['token' => $token]);
+    }
 
 
 

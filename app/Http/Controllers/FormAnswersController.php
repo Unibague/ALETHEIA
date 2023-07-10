@@ -6,6 +6,7 @@ use App\Models\FormAnswers;
 use App\Http\Requests\StoreFormAnswersRequest;
 use App\Http\Requests\UpdateFormAnswersRequest;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class FormAnswersController extends Controller
 {
@@ -57,5 +58,25 @@ class FormAnswersController extends Controller
     {
         return response()->json(FormAnswers::getFinalGradesFromTeachers());
     }
+
+
+    public function getOpenAnswersStudents(Request $request): JsonResponse
+    {
+
+        $teacherId = $request->input('teacherId');
+        $serviceArea = $request->input('serviceArea');
+
+
+        return response()->json(FormAnswers::getOpenAnswersFromStudents($teacherId, $serviceArea));
+    }
+
+    public function getOpenAnswersColleagues(Request $request): JsonResponse
+    {
+
+        $teacherId = $request->input('teacherId');
+
+        return response()->json(FormAnswers::getOpenAnswersFromColleagues($teacherId));
+    }
+
 
 }
