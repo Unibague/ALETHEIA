@@ -198,7 +198,8 @@ class Unit extends Model
 
         $roleId= Role::getRoleIdByName('docente');
 
-        return DB::table('v2_unit_user as uu')->select(['users.id','users.name'])->where('role_id', $roleId)->join('users', 'uu.user_id', '=','users.id')->get();
+        return DB::table('v2_unit_user as uu')->select(['users.id','users.name'])
+            ->where('role_id', $roleId)->join('users', 'uu.user_id', '=','users.id')->orderBy('users.name', 'ASC')->get();
 
     }
 

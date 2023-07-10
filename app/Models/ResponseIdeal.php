@@ -67,27 +67,48 @@ class ResponseIdeal extends Model
             $teaching_ladder = 'auxiliar';
         }
 
-        $unitIdentifier = DB::table('unit_hierarchy')->select(['father_unit_identifier'])
-            ->where('child_unit_identifier','=', $unitIdentifier)->first()->father_unit_identifier;
 
 
-        $competences = DB::table('response_ideals')->where('teaching_ladder', $teaching_ladder)->where('unit_identifier', $unitIdentifier)
+        $finalUnit = DB::table('unit_hierarchy')->select(['father_unit_identifier'])
+            ->where('child_unit_identifier','=', $unitIdentifier)->first();
+
+
+        if ($finalUnit == null){
+
+            $finalUnit = DB::table('unit_hierarchy')->select(['father_unit_identifier'])
+                ->where('prior_child_unit_identifier','=',$unitIdentifier)->first();
+
+
+            if($finalUnit == null){
+
+                $finalUnit = DB::table('unit_hierarchy')->select(['father_unit_identifier'])
+                    ->where('father_unit_identifier','=',$unitIdentifier)->first();
+
+                if($finalUnit == null){
+
+
+                    return response()->json("");
+                }
+
+            }
+
+        }
+
+
+        $finalUnit = $finalUnit->father_unit_identifier;
+
+
+        $competences = DB::table('response_ideals')->where('teaching_ladder', $teaching_ladder)->where('unit_identifier', $finalUnit)
             ->where('assessment_period_id', $activeAssessmentPeriodId)->select('response')->first();
-
-
 
 
         if($competences == null){
 
-            $competences = DB::table('response_ideals')->where('teaching_ladder', $teaching_ladder)
-                ->where('assessment_period_id', $activeAssessmentPeriodId)->select('response')->get();
-
-            return response()->json($competences);
-
+            return response()->json("");
 
         }
 
-        $competences = DB::table('response_ideals')->where('teaching_ladder', $teaching_ladder)->where('unit_identifier', $unitIdentifier)
+        $competences = DB::table('response_ideals')->where('teaching_ladder', $teaching_ladder)->where('unit_identifier', $finalUnit)
             ->where('assessment_period_id', $activeAssessmentPeriodId)->select('response')->first()->response;
 
         return response()->json(json_decode($competences));

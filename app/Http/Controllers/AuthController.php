@@ -34,6 +34,13 @@ class AuthController extends Controller
     public function handleRoleRedirect()
     {
         $user = auth()->user();
+
+
+        if ($user->role()->name == "Resultados Evaluación") {
+
+            return redirect()->route('reports.showFaculty');
+        }
+
         if ($user->isAdmin()) {
             return redirect()->route('forms.index.view');
         }
@@ -47,6 +54,9 @@ class AuthController extends Controller
             Group::purifyGroups($user);
             return redirect()->route('tests.index.view');
         }
+
+
+
 
         if ($user->role()->name == "docente" || $user->role()->name == "jefe de profesor") {
             return redirect()->route('teachers.assessments.view');

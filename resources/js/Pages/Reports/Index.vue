@@ -101,7 +101,7 @@
                     class="elevation-1"
                 >
 
-                    <template v-slot:item.actions="{ item }">
+                    <template v-slot:item.graph="{ item }">
 
                         <v-tooltip top
                         >
@@ -118,6 +118,29 @@
 
                             </template>
                             <span>Graficar resultados</span>
+                        </v-tooltip>
+
+                    </template>
+
+
+
+                    <template v-slot:item.op_answers="{ item }">
+
+                        <v-tooltip top
+                        >
+                            <template v-slot:activator="{on,attrs}">
+
+                                <v-icon
+                                    v-bind="attrs"
+                                    v-on="on"
+                                    class="mr-2 primario--text"
+                                    @click="setDialogToShowOpenAnswers(item)"
+                                >
+                                    mdi-text-box
+                                </v-icon>
+
+                            </template>
+                            <span>Visualizar Comentarios</span>
                         </v-tooltip>
 
                     </template>
@@ -166,6 +189,46 @@
             </v-dialog>
 
 
+            <v-dialog
+                v-model="showOpenAnswersDialog"
+                persistent
+            >
+
+                <v-card>
+
+                    <v-card-text>
+                        <h2 class="black--text pt-5" style="text-align: center"> Visualizando comentarios hacia el docente: {{ this.capitalize(this.selectedTeacherOpenAnswers) }}</h2>
+
+                        <h3 class="black--text pt-5"> PREGUNTA:  {{openAnswersStudents[0] == null ? '' : openAnswersStudents[0].question}}</h3>
+
+                        <h3 class="black--text pt-5 mt-4"> Comentarios por parte de estudiantes:</h3>
+
+                        <div v-for="studentAnswer in openAnswersStudents" class="mt-3">
+
+                            <h4> {{ studentAnswer.answer }}</h4>
+
+                        </div>
+
+
+
+                    </v-card-text>
+
+
+                    <v-card-actions>
+
+                        <v-btn
+                            color="primario"
+                            class="grey--text text--lighten-4"
+                            @click="setDialogToCancelOpenAnswers()"
+                        >
+                            Salir
+                        </v-btn>
+
+
+                    </v-card-actions>
+                </v-card>
+
+            </v-dialog>
 
 
         </v-container>
@@ -209,7 +272,8 @@ export default {
                 {text: 'Estudiantes que evaluaron', value: 'aggregate_students_amount_reviewers'},
                 {text: 'Estudiantes totales', value: 'aggregate_students_amount_on_service_area'},
                 {text: 'Fecha de envío', value: 'submitted_at'},
-                {text: 'Acciones', value: 'actions', sortable: false},
+                {text: 'Graficar Resultados', value: 'graph', sortable: false},
+                {text: 'Visualizar Comentarios', value: 'op_answers', sortable: false},
             ],
 
             //Display data
@@ -229,6 +293,10 @@ export default {
             teachingLadder:[],
             responseIdealsCompetences: [],
             responseIdealsCompetencesArray: [],
+            openAnswersStudents: [],
+            showOpenAnswersDialog: false,
+            selectedTeacherOpenAnswers: '',
+
             //Snackbars
             snackbar: {
                 text: "",
@@ -329,6 +397,30 @@ export default {
 
         },
 
+
+        getOpenAnswersFromStudents: async function (teacherId, serviceArea){
+
+            let url = route('formAnswers.teachers.openAnswersStudents');
+
+            let request = await axios.post(url, {teacherId: teacherId, serviceArea:serviceArea});
+
+            this.openAnswersStudents = request.data;
+
+
+        },
+
+
+        async setDialogToShowOpenAnswers(teacher){
+
+            this.selectedTeacherOpenAnswers = teacher.name;
+
+            this.showOpenAnswersDialog = true
+
+            console.log(teacher, "teacherrr")
+
+            await this.getOpenAnswersFromStudents(teacher.teacherId, teacher.service_area_code);
+
+        },
 
         capitalize($field){
 
@@ -538,6 +630,14 @@ export default {
         },
 
 
+
+        setDialogToCancelOpenAnswers (){
+
+            this.showOpenAnswersDialog = false;
+            this.openAnswersStudents= [];
+
+        },
+
         downloadResults (){
 
 
@@ -587,7 +687,8 @@ export default {
             this.chart = new Chart(miCanvas, {
                 type:"line",
                 data:{
-                    labels: ["C1", "C2", "C3", "C4", "C5","C6"],
+                    labels: ["Orientación a la calidad educativa", "Trabajo Colaborativo",
+                        "Empatía Universitaria", "Comunicación", "Innovación del conocimiento","Productividad académica"],
                     datasets: this.datasets,
                 },
                 options: {
