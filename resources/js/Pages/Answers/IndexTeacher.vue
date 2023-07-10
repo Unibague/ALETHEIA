@@ -114,6 +114,14 @@
                     class="elevation-1"
                 >
 
+
+                    <template v-slot:item.unit_role="{ item }">
+
+                        {{capitalize(item.unit_role)}}
+
+                    </template>
+
+
                     <template v-slot:item.graph="{ item }">
 
                         <v-tooltip top
@@ -291,14 +299,15 @@ export default {
             //Table info
             search: '',
             headers: [
+
                 {text: 'Profesor', value: 'name'},
                 {text: 'Rol', value: 'unit_role'},
-                {text: 'Promedio C1', value: 'first_competence_average'},
-                {text: 'Promedio C2', value: 'second_competence_average'},
-                {text: 'Promedio C3', value: 'third_competence_average'},
-                {text: 'Promedio C4', value: 'fourth_competence_average'},
-                {text: 'Promedio C5', value: 'fifth_competence_average'},
-                {text: 'Promedio C6', value: 'sixth_competence_average'},
+                {text: 'Orientación a la calidad educativa', value: 'first_competence_average'},
+                {text: 'Trabajo Colaborativo', value: 'second_competence_average'},
+                {text: 'Empatía Universitaria', value: 'third_competence_average'},
+                {text: 'Comunicación', value: 'fourth_competence_average'},
+                {text: 'Innovación del conocimiento', value: 'fifth_competence_average'},
+                {text: 'Productividad académica', value: 'sixth_competence_average'},
                 {text: 'Actores involucrados', value: 'aggregate_students_amount_reviewers'},
                 {text: 'Actores totales', value: 'aggregate_students_amount_on_360_groups'},
                 {text: 'Fecha de envío', value: 'submitted_at'},
@@ -709,7 +718,7 @@ export default {
 
             this.datasets.unshift({
 
-                label: `Ideales de respuesta (${teachingLadder == 'Ninguno' ? 'Auxiliar' : teachingLadder})`,
+                label: `Nivel Esperado (${teachingLadder == 'Ninguno' ? 'Auxiliar' : teachingLadder})`,
                 data: this.responseIdealsCompetencesArray,
                 backgroundColor: hex,
                 borderColor: hex,
