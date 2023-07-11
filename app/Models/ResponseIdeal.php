@@ -69,6 +69,7 @@ class ResponseIdeal extends Model
 
 
 
+
         $finalUnit = DB::table('unit_hierarchy')->select(['father_unit_identifier'])
             ->where('child_unit_identifier','=', $unitIdentifier)->first();
 
