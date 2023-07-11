@@ -157,6 +157,26 @@ class ReportsController extends Controller
         }
 //Proyectos Especiales
 
+
+
+//Centro de Idiomas
+
+        //Fredy
+        if($user->id == 122927){
+
+            $units = ['036-1'];
+        }
+
+
+        //Maria Beatriz
+        if($user->id == 121316){
+
+            $units = ['036-1'];
+        }
+
+//Centro de Idiomas
+
+
         return Inertia::render('Reports/FacultyOrProgramResults', ['propsUnits' => $units]);
     }
 

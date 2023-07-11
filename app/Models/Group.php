@@ -148,8 +148,6 @@ class Group extends Model
 
             $academicPeriods = AcademicPeriod::getCurrentAcademicPeriods();
 
-/*            dd($academicPeriods);*/
-
             $email = $user->email;
             $userId = $user->id;
 
