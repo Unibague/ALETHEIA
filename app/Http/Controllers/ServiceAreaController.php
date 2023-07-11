@@ -8,8 +8,11 @@ use App\Models\AssessmentPeriod;
 use App\Models\ServiceArea;
 use App\Http\Requests\StoreServiceAreaRequest;
 use App\Http\Requests\UpdateServiceAreaRequest;
+use App\Models\Unit;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Js;
+use Inertia\Inertia;
 use Ospina\CurlCobain\CurlCobain;
 use Psy\Util\Json;
 
@@ -24,6 +27,19 @@ class ServiceAreaController extends Controller
     {
         return response()->json(ServiceArea::getCurrentServiceAreas());
     }
+
+
+
+    public function edit($serviceArea): JsonResponse
+    {
+        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+
+        $serviceArea = DB::table('service_areas')->where('code', '=', $serviceArea)
+            ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->get();
+
+        return Inertia::render('ServiceAreas/ManageServiceArea', ['serviceArea' => $serviceArea]);
+    }
+
 
     public function sync(): JsonResponse
     {

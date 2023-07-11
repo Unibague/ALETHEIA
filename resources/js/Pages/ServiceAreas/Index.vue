@@ -41,6 +41,31 @@
                     class="elevation-1"
                 >
                 </v-data-table>
+
+
+                <v-tooltip top>
+                    <template v-slot:activator="{on,attrs}">
+
+                        <InertiaLink :href="route('units.manageUnit', {unit:item.identifier})">
+
+                            <v-icon
+                                v-bind="attrs"
+                                v-on="on"
+                                class="mr-2 primario--text"
+                            >
+                                mdi-account-group
+                            </v-icon>
+
+                        </InertiaLink>
+
+                    </template>
+                    <span>Gestionar Unidad</span>
+                </v-tooltip>
+
+
+
+
+
             </v-card>
             <!--Acaba tabla-->
         </v-container>
