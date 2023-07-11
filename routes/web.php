@@ -151,6 +151,14 @@ Route::get('serviceAreas/getServiceAreasResults', [\App\Http\Controllers\Service
 Route::get('serviceAreas/getTeachersWithResults', [\App\Http\Controllers\ServiceAreaController::class, 'getServiceAreasTeachersWithResults'])
     ->middleware(['auth'])->name('serviceAreas.teachersWithResults');
 
+Route::get('/serviceAreas/{serviceArea}', [\App\Http\Controllers\UnitController::class, 'edit'])->middleware(['auth', 'isAdminOrUnitAdmin'])->name('serviceAreas.manageServiceArea');
+
+
+
+
+
+
+
 
 /* >>>>>>>>>>>>>>>>>>>>>>>>> Groups routes <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< */
 Route::inertia('/groups', 'Groups/Index')->middleware(['auth', 'isAdmin'])->name('groups.index.view');
@@ -198,7 +206,6 @@ Route::post('api/teachers/teachingLadder', [\App\Http\Controllers\TeacherProfile
 
 /* >>>>>>>>>>>>>>>>>>>>>>>>StaffMembers routes <<<<<<<<<<<<<<<<<<<<<<<<<<<< */
 
-Route::get('/reports/showFaculty', [\App\Http\Controllers\ReportsController::class, 'showFaculty'])->middleware(['auth'])->name('reports.showFaculty');
 
 
 /* >>>>>>>>>>>>>>>>>>>>>>>>>>>> Test routes  (students) <<<<<<<<<<<<<<<<<<<<<<<<<<< */
@@ -244,6 +251,15 @@ Route::post('/api/roles/select', [\App\Http\Controllers\Users\ApiUserController:
 Route::get('/reports', [\App\Http\Controllers\ReportsController::class, 'index'])->middleware(['auth', 'isAdmin'])->name('reports.index');
 
 Route::post('/reports/downloadPdf', [\App\Http\Controllers\ReportsController::class, 'downloadPDF'])->middleware(['auth', 'isAdmin'])->name('reports.index.downloadPdf');
+
+
+Route::get('/reports/showFaculty', [\App\Http\Controllers\ReportsController::class, 'showFaculty'])->middleware(['auth'])->name('reports.showFaculty');
+
+Route::get('/reports/showServiceArea', [\App\Http\Controllers\ReportsController::class, 'showServiceArea'])->middleware(['auth'])->name('reports.showServiceArea');
+
+
+
+
 
 
 /* >>>>>>>>>>>>>>>>>>>>>>>>ResponseIdeals routes <<<<<<<<<<<<<<<<<<<<<<<<<<<< */

@@ -7,6 +7,7 @@ use App\Models\Reports;
 use App\Models\ServiceArea;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class ReportsController extends Controller
@@ -28,7 +29,6 @@ class ReportsController extends Controller
 
 
     public function showFaculty(Request $request){
-
 
         $user = auth()->user();
 
@@ -54,15 +54,12 @@ class ReportsController extends Controller
 
         }
 
-
-
         //Del Rio
         if($user->id == 31){
 
             $units = ['028-1'];
 
         }
-
 //Ingenierías
 
 
@@ -100,7 +97,6 @@ class ReportsController extends Controller
             $units = ['092-1', '024-1', '013-1', '017-1', '103-1'];
         }
 
-
         //Paula Lorena Rodríguez
 
         if($user->id == 154){
@@ -118,6 +114,15 @@ class ReportsController extends Controller
 
             $units = ['008-1', '012-1'];
         }
+
+
+        //Cesar Barrera
+        if($user->id == 98){
+
+            $units = ['012-1'];
+        }
+
+
 //Facultad Derecho
 
 
@@ -143,8 +148,6 @@ class ReportsController extends Controller
             $units = ['111-1'];
         }
 
-
-
 //Proyectos Especiales
 
         //Hernan Lopez-Garay
@@ -154,11 +157,28 @@ class ReportsController extends Controller
         }
 //Proyectos Especiales
 
-        return Inertia::render('Answers/Ingenieria', ['propsUnits' => $units]);
+        return Inertia::render('Reports/FacultyOrProgramResults', ['propsUnits' => $units]);
     }
 
+    public function showServiceArea(Request $request){
+
+        $userId = auth()->user()->id;
+
+        $serviceAreasArray = [];
+
+        $serviceAreas = DB::table('service_area_user')->where('user_id', '=', $userId)->get();
 
 
-    /*      */
+        foreach ($serviceAreas as $serviceArea){
+
+            $serviceAreasArray [] = $serviceArea->service_area_code;
+
+        }
+
+/*        dd($serviceAreasArray);*/
+
+        return Inertia::render('Reports/ServiceAreaResults', ['propsServiceAreas' => $serviceAreasArray]);
+    }
+
 
 }
