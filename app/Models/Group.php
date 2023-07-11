@@ -148,6 +148,8 @@ class Group extends Model
 
             $academicPeriods = AcademicPeriod::getCurrentAcademicPeriods();
 
+/*            dd($academicPeriods);*/
+
             $email = $user->email;
             $userId = $user->id;
 
@@ -177,14 +179,17 @@ class Group extends Model
 
                 }
 
+
                 $existingGroups = DB::table('group_user')
                     ->where('user_id', $userId)->where('academic_period_id', $academicPeriod->id)
                     ->select('group_id', 'academic_period_id')->get()->toArray();
 
 
+
                 if (count($existingGroups) > 0) {
 
                     foreach ($existingGroups as $existingGroup) {
+
 
                         if (!in_array($existingGroup->group_id, $groupsId, false)) {
 
