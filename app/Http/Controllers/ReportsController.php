@@ -135,11 +135,22 @@ class ReportsController extends Controller
         }
 
 
+
+        //Sandra Abella
+        if($user->id == 164){
+
+            $units = ['011-1', '110-1', '111-1'];
+        }
+
         //Torrente
         if($user->id == 46){
 
             $units = ['110-1'];
         }
+
+
+
+
 
 
         //Tatiana Ávila
