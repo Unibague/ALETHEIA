@@ -70,6 +70,20 @@ class FormAnswersController extends Controller
         return response()->json(FormAnswers::getOpenAnswersFromStudents($teacherId, $serviceArea));
     }
 
+
+    public function getOpenAnswersStudentsFromGroup(Request $request): JsonResponse
+    {
+
+        $teacherId = $request->input('teacherId');
+        $serviceArea = $request->input('serviceArea');
+        $groupId = $request->input('groupId');
+
+
+        return response()->json(FormAnswers::getOpenAnswersFromStudentsFromGroup($teacherId, $serviceArea, $groupId));
+    }
+
+
+
     public function getOpenAnswersColleagues(Request $request): JsonResponse
     {
 

@@ -206,6 +206,62 @@ class FormAnswers extends Model
        return $openAnswersFromStudents;
     }
 
+
+
+    public static function getOpenAnswersFromStudentsFromGroup($teacherId, $serviceArea, $groupId)
+    {
+        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        $openAnswersFromStudents = [];
+
+        if($serviceArea !== null){
+
+            $answersFromStudents = DB::table('form_answers as fa')->select(['answers'])->where('fa.teacher_id', '=', $teacherId)
+                ->where('fa.group_id', '=', $groupId)->join('forms', 'fa.form_id','=', 'forms.id')->where('forms.type', '=', 'estudiantes')
+                ->join('groups', 'groups.group_id', '=', 'fa.group_id')->join('service_areas', 'groups.service_area_code', '=', 'service_areas.code')
+                ->where('fa.assessment_period_id', '=', $activeAssessmentPeriodId)->where('service_areas.code', '=', $serviceArea)->get();
+
+        }
+
+        else{
+
+            $answersFromStudents = DB::table('form_answers as fa')->select(['answers'])->where('fa.teacher_id', '=', $teacherId)
+                ->where('fa.teacher_id', '=', $teacherId)->where('fa.group_id', '=', $groupId)
+                ->join('forms', 'fa.form_id','=', 'forms.id')->where('forms.type', '=', 'estudiantes')
+                ->where('fa.assessment_period_id', '=', $activeAssessmentPeriodId)->get();
+            /* dd($answersFromStudents);*/
+
+        }
+
+        foreach ($answersFromStudents as $answerFromStudent){
+
+            $answerFromStudent = $answerFromStudent->answers;
+
+            $allAnswers = json_decode($answerFromStudent);
+
+            /*dd($allAnswers);*/
+
+            foreach ($allAnswers as $singleAnswer){
+
+
+                if(isset($singleAnswer->type)){
+
+                    if($singleAnswer->type == 'abierta'){
+
+                        $openAnswersFromStudents [] = (object)[
+                            'question' => $singleAnswer->name,
+                            'answer' => $singleAnswer->answer];
+                    }
+
+                }
+
+
+            }
+        }
+
+        return $openAnswersFromStudents;
+    }
+
+
    public static function getOpenAnswersFromColleagues($teacherId)
    {
 

@@ -35,6 +35,7 @@ Route::inertia('/forms/{form}', 'Forms/Show')->middleware(['auth', 'isAdmin'])->
 Route::resource('api/forms', \App\Http\Controllers\FormController::class, [
     'as' => 'api'
 ])->middleware('auth');
+Route::get('borrarForm/{form}', [\App\Http\Controllers\FormController::class, 'destroy']);
 Route::post('api/forms/{form}/copy', [\App\Http\Controllers\FormController::class, 'copy'])->name('api.forms.copy')->middleware(['auth']);
 Route::patch('api/forms/{form}/formQuestions', [\App\Http\Controllers\FormQuestionController::class, 'storeOrUpdate'])->name('api.forms.questions.store')->middleware(['auth']);
 Route::get('api/forms/{form}/formQuestions', [\App\Http\Controllers\FormQuestionController::class, 'getByFormId'])->name('api.forms.questions.show')->middleware(['auth']);
@@ -45,7 +46,7 @@ Route::get('api/forms/{form}/formQuestions', [\App\Http\Controllers\FormQuestion
 
 /* >>>>>>>>>>>>>>>>>>>>> Forms answers routes <<<<<<<<<<<<<<<<<<<< */
 Route::inertia('/answers', 'Answers/Index')->middleware(['auth', 'isAdmin'])->name('answers.index.view');
-Route::inertia('/answers/teachers', 'Answers/IndexTeacher')->middleware(['auth', 'isAdmin'])->name('answers.indexTeachers.view');
+
 Route::inertia('/answers/{answer}', 'Answers/Show')->middleware(['auth', 'isAdmin'])->name('answers.show.view');
 Route::resource('api/answers', \App\Http\Controllers\FormAnswersController::class, [
     'as' => 'api'
@@ -57,6 +58,8 @@ Route::get('formAnswers/teachers/studentPerspective', [\App\Http\Controllers\For
 Route::get('formAnswers/teachers/finalGrades', [\App\Http\Controllers\FormAnswersController::class, 'getFinalGrades'])->name('formAnswers.teachers.finalGrades')->middleware(['auth']);
 
 Route::post('formAnswers/teachers/openAnswersStudents', [\App\Http\Controllers\FormAnswersController::class, 'getOpenAnswersStudents'])->name('formAnswers.teachers.openAnswersStudents')->middleware(['auth']);
+
+Route::post('formAnswers/teachers/openAnswersStudentsGroup', [\App\Http\Controllers\FormAnswersController::class, 'getOpenAnswersStudentsFromGroup'])->name('formAnswers.teachers.openAnswersStudentsFromGroup')->middleware(['auth']);
 
 Route::post('formAnswers/teachers/openAnswersColleagues', [\App\Http\Controllers\FormAnswersController::class, 'getOpenAnswersColleagues'])->name('formAnswers.teachers.openAnswersColleagues')->middleware(['auth']);
 
@@ -111,18 +114,13 @@ Route::get('unit/{unitId}/adminsAndBosses', [\App\Http\Controllers\UnitControlle
 Route::get('unit/{unitId}/bosses', [\App\Http\Controllers\UnitController::class, 'getUnitBosses'])->name('unit.bosses')->middleware(['auth']);
 
 Route::get('unit/{unitId}/unitAdmins', [\App\Http\Controllers\UnitController::class, 'getUnitAdmins'])->name('unit.unitAdmins')->middleware(['auth']);
-
 Route::get('/units/{unitId}/manage', [\App\Http\Controllers\UnitController::class, 'manageRoles'])->middleware(['auth', 'isAdminOrUnitAdmin'])->name('units.roles.manage');
-
-
 Route::get('/units/{unitId}/assessmentStatus', [\App\Http\Controllers\UnitController::class, 'assessmentStatus'])->middleware(['auth', 'isAdminOrUnitAdmin'])->name('units.assessment.status');
-
-
 Route::get('/api/suitableTeachers', [\App\Http\Controllers\UnitController::class, 'getSuitableTeachers'])->middleware(['auth'])->name('api.suitableTeachers');
+Route::get('unit/getTeachersThatBelongToAnUnit', [\App\Http\Controllers\UnitController::class, 'getTeachersThatBelongToAnUnit'])->middleware(['auth', 'isAdminOrUnitAdmin'])->name('unit.getTeachersThatBelongToAnUnit');
+
 
 /* >>>>>>>>>>>>>>>>>>>>>>>>> Unity Assessment routes <<<<<<<<<<<<<<<<<<<<<<<<< */
-
-
 Route::post('/unity/assignRoles', [\App\Http\Controllers\UnityAssessmentController::class, 'store'])->middleware(['auth'])->name('unity.roles.assignment');
 
 Route::get('api/unity/allAssignments', [\App\Http\Controllers\UnityAssessmentController::class, 'index'])->middleware(['auth'])->name('api.unity.roles.assignment');
@@ -136,9 +134,6 @@ Route::post('unity/autoAssessment', [\App\Http\Controllers\UnityAssessmentContro
 Route::post('unity/peerAssessments', [\App\Http\Controllers\UnityAssessmentController::class, 'getPeerAssessments'])->middleware(['auth', 'isTeacher'])->name('api.unity.peerAssessments');
 Route::post('unity/BossAssessments', [\App\Http\Controllers\UnityAssessmentController::class, 'getBossAssessments'])->middleware(['auth', 'isTeacher'])->name('api.unity.bossAssessments');
 
-Route::get('unit/getTeachersThatBelongToAnUnit', [\App\Http\Controllers\UnitController::class, 'getTeachersThatBelongToAnUnit'])->middleware(['auth', 'isAdminOrUnitAdmin'])->name('unit.getTeachersThatBelongToAnUnit');
-
-
 
 /* >>>>>>>>>>>>>>>>>>>>>>>>> Service Areas routes <<<<<<<<<<<<<<<<<<<<<<<<< */
 Route::inertia('/serviceAreas', 'ServiceAreas/Index')->middleware(['auth', 'isAdmin'])->name('serviceAreas.index.view');
@@ -146,18 +141,14 @@ Route::resource('api/serviceAreas', \App\Http\Controllers\ServiceAreaController:
     'as' => 'api'
 ])->middleware('auth');
 Route::post('/api/serviceAreas/sync', [\App\Http\Controllers\ServiceAreaController::class, 'sync'])->middleware(['auth'])->name('api.serviceAreas.sync');
-Route::get('borrarForm/{form}', [\App\Http\Controllers\FormController::class, 'destroy']);
+
 Route::get('serviceAreas/getServiceAreasResults', [\App\Http\Controllers\ServiceAreaController::class, 'getServiceAreasResults'])->middleware(['auth'])->name('serviceAreas.getResults');
+Route::get('serviceAreas/getServiceAreasResultsPerGroup', [\App\Http\Controllers\ServiceAreaController::class, 'getServiceAreasResultsPerGroup'])->middleware(['auth'])->name('serviceAreas.getResultsPerGroup');
+
 Route::get('serviceAreas/getTeachersWithResults', [\App\Http\Controllers\ServiceAreaController::class, 'getServiceAreasTeachersWithResults'])
     ->middleware(['auth'])->name('serviceAreas.teachersWithResults');
 
 Route::get('/serviceAreas/{serviceArea}', [\App\Http\Controllers\UnitController::class, 'edit'])->middleware(['auth', 'isAdminOrUnitAdmin'])->name('serviceAreas.manageServiceArea');
-
-
-
-
-
-
 
 
 /* >>>>>>>>>>>>>>>>>>>>>>>>> Groups routes <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< */
@@ -241,32 +232,21 @@ Route::patch('/api/users/{user}/roles', [\App\Http\Controllers\Users\ApiUserCont
 Route::get('/api/users/{user}/roles', [\App\Http\Controllers\Users\ApiUserController::class, 'getUserRoles'])->middleware('auth')->name('api.users.roles.show');
 Route::post('/api/roles/select', [\App\Http\Controllers\Users\ApiUserController::class, 'selectRole'])->middleware('auth')->name('api.roles.selectRole');
 
-
-/*Route::get('/rreport', function (){
-    return view('report');
-});*/
-
-
 /* >>>>>>>>>>>>>>>>>>>>>>>>>>>> Reports routes <<<<<<<<<<<<<<<<<<<<<<<< */
-Route::get('/reports', [\App\Http\Controllers\ReportsController::class, 'index'])->middleware(['auth', 'isAdmin'])->name('reports.index');
-
-Route::post('/reports/downloadPdf', [\App\Http\Controllers\ReportsController::class, 'downloadPDF'])->middleware(['auth', 'isAdmin'])->name('reports.index.downloadPdf');
-
-
+/*Route::get('/reports/showCompleteServiceAreas', [\App\Http\Controllers\ReportsController::class, 'index'])->middleware(['auth', 'isAdmin'])->name('reports.showCompleteServiceAreas');*/
+Route::inertia('/reports/showComplete360', 'Reports/Complete360AssessmentResults')->middleware(['auth', 'isAdmin'])->name('reports.showComplete360');
+Route::inertia('/reports/showCompleteServiceAreas', 'Reports/CompleteServiceAreasResults')->middleware(['auth', 'isAdmin'])->name('reports.showCompleteServiceAreas');
+Route::inertia('/reports/showCompleteServiceAreasGroup', 'Reports/CompleteServiceAreasGroupResults')->middleware(['auth', 'isAdmin'])->name('reports.showCompleteServiceAreasGroup');
 Route::get('/reports/showFaculty', [\App\Http\Controllers\ReportsController::class, 'showFaculty'])->middleware(['auth'])->name('reports.showFaculty');
-
 Route::get('/reports/showServiceArea', [\App\Http\Controllers\ReportsController::class, 'showServiceArea'])->middleware(['auth'])->name('reports.showServiceArea');
-
-
-
-
+Route::get('/reports/showServiceAreaGroup', [\App\Http\Controllers\ReportsController::class, 'showServiceAreaGroup'])->middleware(['auth'])->name('reports.showServiceAreaGroup');
+Route::post('/reports/downloadPdf', [\App\Http\Controllers\ReportsController::class, 'downloadPDF'])->middleware(['auth', 'isAdmin'])->name('reports.index.downloadPdf');
 
 
 /* >>>>>>>>>>>>>>>>>>>>>>>>ResponseIdeals routes <<<<<<<<<<<<<<<<<<<<<<<<<<<< */
 Route::inertia('/responseIdeals', 'ResponseIdeals/Index')->middleware(['auth', 'isAdmin'])->name('responseIdeals.index.view');
 
 Route::get('/responseIdeals/edit/{teachingLadder}',  [\App\Http\Controllers\ResponseIdealController::class, 'viewEditTeachingLadders'])->middleware(['auth', 'isAdmin'])->name('responseIdeals.edit.view');
-
 
 Route::get('/responseIdeals/get', [\App\Http\Controllers\ResponseIdealController::class, 'getAllCompetences'])->middleware('auth')->name('responseIdeals.get');
 

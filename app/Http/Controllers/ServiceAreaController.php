@@ -59,6 +59,11 @@ class ServiceAreaController extends Controller
 
     }
 
+    public function getServiceAreasResultsPerGroup(): JsonResponse{
+
+        return response()->json(ServiceArea::getServiceAreasResultsPerGroup());
+
+    }
 
     public function getServiceAreasTeachersWithResults(): JsonResponse{
 

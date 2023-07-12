@@ -15,7 +15,7 @@ class ReportsController extends Controller
 
     public function index()
     {
-        return Inertia::render('Reports/Index');
+        return Inertia::render('Reports/CompleteServiceAreasResults');
     }
 
 
@@ -115,7 +115,6 @@ class ReportsController extends Controller
             $units = ['008-1', '012-1'];
         }
 
-
         //Cesar Barrera
         if($user->id == 98){
 
@@ -134,8 +133,6 @@ class ReportsController extends Controller
             $units = ['011-1', '110-1', '111-1'];
         }
 
-
-
         //Sandra Abella
         if($user->id == 164){
 
@@ -147,11 +144,6 @@ class ReportsController extends Controller
 
             $units = ['110-1'];
         }
-
-
-
-
-
 
         //Tatiana Ávila
         if($user->id == 40){
@@ -178,7 +170,6 @@ class ReportsController extends Controller
             $units = ['036-1'];
         }
 
-
         //Maria Beatriz
         if($user->id == 121316){
 
@@ -191,7 +182,7 @@ class ReportsController extends Controller
         return Inertia::render('Reports/FacultyOrProgramResults', ['propsUnits' => $units]);
     }
 
-    public function showServiceArea(Request $request){
+    public function showServiceArea(){
 
         $userId = auth()->user()->id;
 
@@ -210,6 +201,27 @@ class ReportsController extends Controller
 
         return Inertia::render('Reports/ServiceAreaResults', ['propsServiceAreas' => $serviceAreasArray]);
     }
+
+
+    public function showServiceAreaGroup(){
+
+        $userId = auth()->user()->id;
+
+        $serviceAreasArray = [];
+
+        $serviceAreas = DB::table('service_area_user')->where('user_id', '=', $userId)->get();
+
+        foreach ($serviceAreas as $serviceArea){
+
+            $serviceAreasArray [] = $serviceArea->service_area_code;
+
+        }
+
+        /*        dd($serviceAreasArray);*/
+
+        return Inertia::render('Reports/ServiceAreaGroupResults', ['propsServiceAreas' => $serviceAreasArray]);
+    }
+
 
 
 }

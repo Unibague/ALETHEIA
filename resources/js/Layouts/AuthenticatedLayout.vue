@@ -373,14 +373,21 @@ export default {
                 items: [
                     {
                         name: 'Reportes por evaluación 360',
-                        href: route('answers.indexTeachers.view'),
+                        href: route('reports.showComplete360'),
                         role: 10,
                         icon: 'mdi-cog-box'
                     },
 
                     {
                         name: 'Reportes por área de servicio',
-                        href: route('reports.index'),
+                        href: route('reports.showCompleteServiceAreas'),
+                        role: 10,
+                        icon: 'mdi-cog-box'
+                    },
+
+                    {
+                        name: 'Reportes por grupo',
+                        href: route('reports.showCompleteServiceAreasGroup'),
                         role: 10,
                         icon: 'mdi-cog-box'
                     },
