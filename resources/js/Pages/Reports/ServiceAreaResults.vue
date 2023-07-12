@@ -25,8 +25,7 @@
 
                     <v-btn
                         color="primario"
-                        class="white--text"
-                        @click="">
+                        class="white--text">
                         Visualizar resultados por grupo
                     </v-btn>
 

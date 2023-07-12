@@ -10,7 +10,15 @@
 
             <v-container class="d-flex flex-column align-end mr-5">
 
+                <InertiaLink :href="route('reports.showServiceArea')">
 
+                    <v-btn
+                        color="primario"
+                        class="white--text">
+                        Visualizar resultados por área de servicio
+                    </v-btn>
+
+                </InertiaLink>
 
 
             </v-container>
@@ -266,12 +274,12 @@ export default {
                 {text: 'Asignatura', value: 'group_name'},
                 {text: 'Grupo', value: 'group_number'},
                 {text: 'Área de Servicio', value: 'service_area_name'},
-                {text: 'Promedio C1', value: 'first_competence_average'},
-                {text: 'Promedio C2', value: 'second_competence_average'},
-                {text: 'Promedio C3', value: 'third_competence_average'},
-                {text: 'Promedio C4', value: 'fourth_competence_average'},
-                {text: 'Promedio C5', value: 'fifth_competence_average'},
-                {text: 'Promedio C6', value: 'sixth_competence_average'},
+                {text: 'Orientación a la calidad educativa', value: 'first_competence_average'},
+                {text: 'Trabajo Colaborativo', value: 'second_competence_average'},
+                {text: 'Empatía Universitaria', value: 'third_competence_average'},
+                {text: 'Comunicación', value: 'fourth_competence_average'},
+                {text: 'Innovación del conocimiento', value: 'fifth_competence_average'},
+                {text: 'Productividad académica', value: 'sixth_competence_average'},
                 {text: 'Estudiantes que evaluaron', value: 'students_amount_reviewers'},
                 {text: 'Estudiantes totales', value: 'students_amount_on_group'},
                 {text: 'Fecha de envío', value: 'submitted_at'},
