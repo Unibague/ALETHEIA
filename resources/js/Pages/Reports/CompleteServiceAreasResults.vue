@@ -13,26 +13,12 @@
 <!--
                 <v-btn
                     color="primario"
-                    class="white&#45;&#45;text"
+                    class="grey&#45;&#45;text text&#45;&#45;lighten-4"
                     @click=""
                 >
-                    Visualizar resultados por grupo
+                    Actualizar resultados
                 </v-btn>
-
 -->
-
-                <InertiaLink :href="route('reports.showServiceAreaGroup')">
-
-                    <v-btn
-                        color="primario"
-                        class="white--text"
-                        @click="">
-                        Visualizar resultados por grupo
-                    </v-btn>
-
-                </InertiaLink>
-
-
 
             </v-container>
 
@@ -277,12 +263,12 @@ export default {
             headers: [
                 {text: 'Profesor', value: 'name'},
                 {text: 'Área de Servicio', value: 'service_area_name'},
-                {text: 'Orientación a la calidad educativa', value: 'first_competence_average'},
-                {text: 'Trabajo Colaborativo', value: 'second_competence_average'},
-                {text: 'Empatía Universitaria', value: 'third_competence_average'},
-                {text: 'Comunicación', value: 'fourth_competence_average'},
-                {text: 'Innovación del conocimiento', value: 'fifth_competence_average'},
-                {text: 'Productividad académica', value: 'sixth_competence_average'},
+                {text: 'Promedio C1', value: 'first_competence_average'},
+                {text: 'Promedio C2', value: 'second_competence_average'},
+                {text: 'Promedio C3', value: 'third_competence_average'},
+                {text: 'Promedio C4', value: 'fourth_competence_average'},
+                {text: 'Promedio C5', value: 'fifth_competence_average'},
+                {text: 'Promedio C6', value: 'sixth_competence_average'},
                 {text: 'Estudiantes que evaluaron', value: 'aggregate_students_amount_reviewers'},
                 {text: 'Estudiantes totales', value: 'aggregate_students_amount_on_service_area'},
                 {text: 'Fecha de envío', value: 'submitted_at'},
@@ -323,11 +309,6 @@ export default {
             isLoading: true,
         }
     },
-
-    props: {
-        propsServiceAreas: Array
-    },
-
 
     async created() {
 
@@ -379,15 +360,7 @@ export default {
 
             console.log(this.serviceAreas, 'service areas');
 
-            this.serviceAreas = this.serviceAreas.filter (serviceArea => {
-
-                return this.propsServiceAreas.includes(serviceArea.code)
-
-            })
-
- /*           this.serviceAreas.unshift({name: 'Todas las áreas de servicio', code:''})*/
-
-            return this.serviceAreas;
+            this.serviceAreas.unshift({name: 'Todas las áreas de servicio', code:''})
 
         },
 
@@ -799,8 +772,9 @@ export default {
 
             let finalAssessments = this.assessments;
 
-            finalAssessments = this.getFilteredAssessmentsByServiceArea(finalAssessments);
-
+            if (this.serviceArea !== '') {
+                finalAssessments = this.getFilteredAssessmentsByServiceArea(finalAssessments);
+            }
             if (this.teacher !== '') {
                 finalAssessments = this.getFilteredAssessmentsByTeacher(finalAssessments);
             }

@@ -5,32 +5,11 @@
 
         <v-container fluid>
             <div class="d-flex flex-column align-end mb-5">
-                <h2 class="align-self-start">Gestionar respuestas de evaluación por área de servicio</h2>
+                <h2 class="align-self-start">Gestionar respuestas de evaluación por grupo</h2>
             </div>
 
             <v-container class="d-flex flex-column align-end mr-5">
 
-<!--
-                <v-btn
-                    color="primario"
-                    class="white&#45;&#45;text"
-                    @click=""
-                >
-                    Visualizar resultados por grupo
-                </v-btn>
-
--->
-
-                <InertiaLink :href="route('reports.showServiceAreaGroup')">
-
-                    <v-btn
-                        color="primario"
-                        class="white--text"
-                        @click="">
-                        Visualizar resultados por grupo
-                    </v-btn>
-
-                </InertiaLink>
 
 
 
@@ -210,8 +189,11 @@
 
                 <v-card>
 
-                    <v-card-text>
-                        <h2 class="black--text pt-5" style="text-align: center"> Visualizando comentarios hacia el docente: {{ this.capitalize(this.selectedTeacherOpenAnswers) }}</h2>
+                    <v-card-text v-if="openAnswersStudents.length >0">
+                        <h2 class="black--text pt-5" style="text-align: center"> Visualizando comentarios hacia el docente:
+                            {{ this.capitalize(this.selectedTeacherOpenAnswers)}}</h2>
+
+                        <h2 class="black--text pt-3 pb-4" style="text-align: center">{{this.selectedGroupNameOpenAnswers}} - Grupo: {{this.selectedGroupNumberOpenAnswers}}</h2>
 
                         <h3 class="black--text pt-5"> PREGUNTA:  {{openAnswersStudents[0] == null ? '' : openAnswersStudents[0].question}}</h3>
 
@@ -223,7 +205,12 @@
 
                         </div>
 
+                    </v-card-text>
 
+
+                    <v-card-text v-else>
+
+                        <h2 class="black--text pt-5" style="text-align: center"> No hay comentarios disponibles para el grupo de este docente</h2>
 
                     </v-card-text>
 
@@ -276,15 +263,17 @@ export default {
             search: '',
             headers: [
                 {text: 'Profesor', value: 'name'},
+                {text: 'Asignatura', value: 'group_name'},
+                {text: 'Grupo', value: 'group_number'},
                 {text: 'Área de Servicio', value: 'service_area_name'},
-                {text: 'Orientación a la calidad educativa', value: 'first_competence_average'},
-                {text: 'Trabajo Colaborativo', value: 'second_competence_average'},
-                {text: 'Empatía Universitaria', value: 'third_competence_average'},
-                {text: 'Comunicación', value: 'fourth_competence_average'},
-                {text: 'Innovación del conocimiento', value: 'fifth_competence_average'},
-                {text: 'Productividad académica', value: 'sixth_competence_average'},
-                {text: 'Estudiantes que evaluaron', value: 'aggregate_students_amount_reviewers'},
-                {text: 'Estudiantes totales', value: 'aggregate_students_amount_on_service_area'},
+                {text: 'Promedio C1', value: 'first_competence_average'},
+                {text: 'Promedio C2', value: 'second_competence_average'},
+                {text: 'Promedio C3', value: 'third_competence_average'},
+                {text: 'Promedio C4', value: 'fourth_competence_average'},
+                {text: 'Promedio C5', value: 'fifth_competence_average'},
+                {text: 'Promedio C6', value: 'sixth_competence_average'},
+                {text: 'Estudiantes que evaluaron', value: 'students_amount_reviewers'},
+                {text: 'Estudiantes totales', value: 'students_amount_on_group'},
                 {text: 'Fecha de envío', value: 'submitted_at'},
                 {text: 'Graficar Resultados', value: 'graph', sortable: false},
                 {text: 'Visualizar Comentarios', value: 'op_answers', sortable: false},
@@ -310,6 +299,8 @@ export default {
             openAnswersStudents: [],
             showOpenAnswersDialog: false,
             selectedTeacherOpenAnswers: '',
+            selectedGroupNumberOpenAnswers: '',
+            selectedGroupNameOpenAnswers: '',
 
             //Snackbars
             snackbar: {
@@ -327,7 +318,6 @@ export default {
     props: {
         propsServiceAreas: Array
     },
-
 
     async created() {
 
@@ -347,8 +337,6 @@ export default {
 
 
         updateResults: function (){
-
-
 
 
         },
@@ -385,9 +373,10 @@ export default {
 
             })
 
- /*           this.serviceAreas.unshift({name: 'Todas las áreas de servicio', code:''})*/
+            /*           this.serviceAreas.unshift({name: 'Todas las áreas de servicio', code:''})*/
 
             return this.serviceAreas;
+
 
         },
 
@@ -407,15 +396,12 @@ export default {
             })
 
             this.teachers = this.sortArrayAlphabetically(this.teachers);
-
-
-
         },
 
 
         getServiceAreasTeacherResults: async function (){
 
-            let url = route('serviceAreas.getResults');
+            let url = route('serviceAreas.getResultsPerGroup');
 
             let request = await axios.get(url);
 
@@ -426,11 +412,13 @@ export default {
         },
 
 
-        getOpenAnswersFromStudents: async function (teacherId, serviceArea){
+        getOpenAnswersFromStudentsFromGroup: async function (teacherId, serviceArea, groupId){
 
-            let url = route('formAnswers.teachers.openAnswersStudents');
+            let url = route('formAnswers.teachers.openAnswersStudentsFromGroup');
 
-            let request = await axios.post(url, {teacherId: teacherId, serviceArea:serviceArea});
+            let request = await axios.post(url, {teacherId: teacherId, serviceArea:serviceArea, groupId: groupId});
+
+            console.log(request.data);
 
             this.openAnswersStudents = request.data;
 
@@ -444,9 +432,13 @@ export default {
 
             this.showOpenAnswersDialog = true
 
+            this.selectedGroupNumberOpenAnswers = teacher.group_number;
+
+            this.selectedGroupNameOpenAnswers = teacher.group_name
+
             console.log(teacher, "teacherrr")
 
-            await this.getOpenAnswersFromStudents(teacher.teacherId, teacher.service_area_code);
+            await this.getOpenAnswersFromStudentsFromGroup(teacher.teacherId, teacher.service_area_code, teacher.group_id);
 
         },
 
@@ -591,35 +583,35 @@ export default {
 
             let info = {userId : teacher.teacherId}
 
-/*            let request = await axios.post(route('teachers.getTeachingLadder'), info)
+            /*            let request = await axios.post(route('teachers.getTeachingLadder'), info)
 
-            let teachingLadder= await this.getTeachingLadderNameByParameter(request.data)*/
-/*
+                        let teachingLadder= await this.getTeachingLadderNameByParameter(request.data)*/
+            /*
 
-            console.log(teachingLadder, 'teachingLadder');
+                        console.log(teachingLadder, 'teachingLadder');
 
-            let responseIdealsCompetences = await this.getResponseIdealsCompetences(teachingLadder);
+                        let responseIdealsCompetences = await this.getResponseIdealsCompetences(teachingLadder);
 
-            responseIdealsCompetences.forEach(competence =>{
+                        responseIdealsCompetences.forEach(competence =>{
 
-                this.responseIdealsCompetencesArray.push(competence.value);
+                            this.responseIdealsCompetencesArray.push(competence.value);
 
-            })
-*/
-/*
+                        })
+            */
+            /*
 
-            let hex = this.randomHexColor()
+                        let hex = this.randomHexColor()
 
-            this.datasets.unshift({
+                        this.datasets.unshift({
 
-                label: `Ideales de respuesta (${teachingLadder == 'Ninguno' ? 'Sin Escalafón' : teachingLadder})`,
-                data: this.responseIdealsCompetencesArray,
-                backgroundColor: hex,
-                borderColor: hex,
-                borderWidth: 2,
-                borderDash: [5, 5],
+                            label: `Ideales de respuesta (${teachingLadder == 'Ninguno' ? 'Sin Escalafón' : teachingLadder})`,
+                            data: this.responseIdealsCompetencesArray,
+                            backgroundColor: hex,
+                            borderColor: hex,
+                            borderWidth: 2,
+                            borderDash: [5, 5],
 
-            })*/
+                        })*/
 
         },
 
@@ -798,6 +790,7 @@ export default {
         filteredItems() {
 
             let finalAssessments = this.assessments;
+
 
             finalAssessments = this.getFilteredAssessmentsByServiceArea(finalAssessments);
 
