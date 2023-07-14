@@ -148,7 +148,13 @@ Route::get('serviceAreas/getServiceAreasResultsPerGroup', [\App\Http\Controllers
 Route::get('serviceAreas/getTeachersWithResults', [\App\Http\Controllers\ServiceAreaController::class, 'getServiceAreasTeachersWithResults'])
     ->middleware(['auth'])->name('serviceAreas.teachersWithResults');
 
-Route::get('/serviceAreas/{serviceArea}', [\App\Http\Controllers\UnitController::class, 'edit'])->middleware(['auth', 'isAdminOrUnitAdmin'])->name('serviceAreas.manageServiceArea');
+Route::get('/serviceAreas/{serviceAreaCode}', [\App\Http\Controllers\ServiceAreaController::class, 'edit'])->middleware(['auth', 'isAdminOrUnitAdmin'])->name('serviceAreas.manageServiceArea');
+
+Route::get('serviceArea/{serviceAreaCode}/admins', [\App\Http\Controllers\ServiceAreaController::class, 'getServiceAreaAdmins'])->name('serviceArea.admins')->middleware(['auth']);
+
+Route::post('serviceArea/assignAdmin', [\App\Http\Controllers\ServiceAreaController::class, 'assignServiceAreaAdmin'])->name('serviceArea.assignAdmin')->middleware(['auth']);
+
+Route::post('serviceArea/deleteAdmin', [\App\Http\Controllers\ServiceAreaController::class, 'deleteServiceAreaAdmin'])->name('serviceArea.deleteAdmin')->middleware(['auth']);
 
 
 /* >>>>>>>>>>>>>>>>>>>>>>>>> Groups routes <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< */
