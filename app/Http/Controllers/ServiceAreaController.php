@@ -11,6 +11,7 @@ use App\Http\Requests\UpdateServiceAreaRequest;
 use App\Models\Unit;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Js;
 use Inertia\Inertia;
 use Ospina\CurlCobain\CurlCobain;
@@ -28,16 +29,14 @@ class ServiceAreaController extends Controller
         return response()->json(ServiceArea::getCurrentServiceAreas());
     }
 
-
-
-    public function edit($serviceArea): JsonResponse
+    public function edit($serviceArea)
     {
         $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
 
         $serviceArea = DB::table('service_areas')->where('code', '=', $serviceArea)
-            ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->get();
+            ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->get()->first();
 
-        return Inertia::render('ServiceAreas/ManageServiceArea', ['serviceArea' => $serviceArea]);
+        return Inertia::render('ServiceAreas/ManageServiceArea', ['serviceAreaCode' => $serviceArea]);
     }
 
 
@@ -70,6 +69,34 @@ class ServiceAreaController extends Controller
         return response()->json(ServiceArea::getServiceAreasTeachersWithResults());
 
     }
+
+    public function getServiceAreaAdmins($serviceAreaCode): JsonResponse{
+
+        return response()->json(ServiceArea::getServiceAreaAdmins($serviceAreaCode));
+
+    }
+
+
+    public function assignServiceAreaAdmin(\Illuminate\Http\Request $request): JsonResponse{
+
+
+        $serviceAreaCode = $request->input('serviceAreaCode');
+        $userId = $request->input('userId');
+
+        return (ServiceArea::assignServiceAreaAdmin($serviceAreaCode, $userId));
+
+    }
+
+
+    public function deleteServiceAreaAdmin(\Illuminate\Http\Request $request): JsonResponse{
+
+        $serviceAreaCode = $request->input('serviceAreaCode');
+        $userId = $request->input('userId');
+
+        return (ServiceArea::deleteServiceAreaAdmin($serviceAreaCode, $userId));
+
+    }
+
 
 
 }

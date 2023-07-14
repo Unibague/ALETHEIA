@@ -40,27 +40,31 @@
                     }"
                     class="elevation-1"
                 >
+
+                    <template v-slot:item.actions="{ item }">
+                    <v-tooltip top>
+                        <template v-slot:activator="{on,attrs}">
+
+                            <InertiaLink :href="route('serviceAreas.manageServiceArea', {serviceAreaCode:item.code})">
+
+                                <v-icon
+                                    v-bind="attrs"
+                                    v-on="on"
+                                    class="mr-2 primario--text"
+                                >
+                                    mdi-account-group
+                                </v-icon>
+
+                            </InertiaLink>
+
+                        </template>
+                        <span>Gestionar Usuarios</span>
+                    </v-tooltip>
+                    </template>
+
                 </v-data-table>
 
 
-                <v-tooltip top>
-                    <template v-slot:activator="{on,attrs}">
-
-                        <InertiaLink :href="route('units.manageUnit', {unit:item.identifier})">
-
-                            <v-icon
-                                v-bind="attrs"
-                                v-on="on"
-                                class="mr-2 primario--text"
-                            >
-                                mdi-account-group
-                            </v-icon>
-
-                        </InertiaLink>
-
-                    </template>
-                    <span>Gestionar Unidad</span>
-                </v-tooltip>
 
 
 
@@ -89,6 +93,7 @@ export default {
             headers: [
                 {text: 'Nombre', value: 'name'},
                 {text: 'Código', value: 'code'},
+                {text: 'Gestionar', value: 'actions'},
             ],
             serviceAreas: [],
             //Snackbars
@@ -118,6 +123,7 @@ export default {
         },
         getAllServiceAreas: async function () {
             let request = await axios.get(route('api.serviceAreas.index'));
+            console.log(request.data);
             this.serviceAreas = request.data;
         },
 

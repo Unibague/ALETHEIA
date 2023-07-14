@@ -115,6 +115,59 @@ class ServiceArea extends Model
 
     }
 
+    public static function getServiceAreaAdmins($serviceArea)
+    {
+
+        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+
+        return  DB::table('service_area_user as sau')
+            ->select(['t.name', 'sau.user_id as teacherId' , 'sau.service_area_code'])
+            ->join('users as t', 'sau.user_id', '=', 't.id')
+            ->join('service_areas as sa', 'sa.code','=','sau.service_area_code')
+            ->where('sau.service_area_code', '=', $serviceArea)
+            ->where('sau.assessment_period_id', '=', $activeAssessmentPeriodId)->orderBy('name', 'ASC')
+            ->get();
+
+    }
+
+
+    public static function assignServiceAreaAdmin($serviceArea, $userId)
+    {
+        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        $serviceAreaAdminRole = Role::getServiceAreaAdminRoleId();
+
+        $assignment = DB::table('service_area_user')->where('service_area_code', '=', $serviceArea)
+            ->where('role_id', '=', $serviceAreaAdminRole)->where('assessment_period_id', '=', $activeAssessmentPeriodId)
+            ->where('user_id', '=', $userId)->first();
+
+        if ($assignment !== null){
+
+            return response()->json(['message' => 'Esa persona ya es administradora de esta unidad'],500);
+
+        }
+
+        DB::table('service_area_user')->updateOrInsert(['user_id' => $userId, 'service_area_code' => $serviceArea],
+            ['role_id' => $serviceAreaAdminRole,
+            'assessment_period_id' =>$activeAssessmentPeriodId ]);
+
+        return response()->json(['message' => 'Adminstrador de unidad actualizado exitosamente']);
+    }
+
+
+
+    public static function deleteServiceAreaAdmin($serviceArea, $userId)
+    {
+        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        $serviceAreaAdminRole = Role::getServiceAreaAdminRoleId();
+
+        DB::table('service_area_user')->where('service_area_code', '=', $serviceArea)
+            ->where('role_id', '=', $serviceAreaAdminRole)->where('assessment_period_id', '=', $activeAssessmentPeriodId)
+            ->where('user_id', '=', $userId)->delete();
+
+        return response()->json(['message' => 'Adminstrador de unidad eliminado exitosamente']);
+    }
+
+
 
 
     public function groups(): \Illuminate\Database\Eloquent\Relations\HasMany

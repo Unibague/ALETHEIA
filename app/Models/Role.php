@@ -51,6 +51,16 @@ class Role extends Model
 
     }
 
+
+    public static function getServiceAreaAdminRoleId(): int
+    {
+        $id = DB::table('roles')
+            ->select('id')->where('name','Jefe de Área de Servicio')->first()->id;
+
+        return $id;
+
+    }
+
     public static function getStaffMemberRoleId(): int
     {
         $staffMemberRole = DB::table('roles')->select('id')->where('name','funcionario')->first();
