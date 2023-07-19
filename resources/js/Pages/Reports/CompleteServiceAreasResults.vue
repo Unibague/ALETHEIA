@@ -3,22 +3,23 @@
         <Snackbar :timeout="snackbar.timeout" :text="snackbar.text" :type="snackbar.type"
                   :show="snackbar.status" @closeSnackbar="snackbar.status = false"></Snackbar>
 
-        <v-container fluid>
+
+        <!--Inicia tabla resultados por áreas de servicio-->
+        <v-container fluid v-if="!resultsPerGroup">
             <div class="d-flex flex-column align-end mb-5">
                 <h2 class="align-self-start">Gestionar respuestas de evaluación por área de servicio</h2>
             </div>
 
             <v-container class="d-flex flex-column align-end mr-5">
 
-<!--
-                <v-btn
-                    color="primario"
-                    class="grey&#45;&#45;text text&#45;&#45;lighten-4"
-                    @click=""
-                >
-                    Actualizar resultados
-                </v-btn>
--->
+                    <v-btn
+                        color="primario"
+                        class="white--text"
+                        @click="activateResultsPerGroup"
+                    >
+                        Visualizar resultados por grupo
+                    </v-btn>
+
 
             </v-container>
 
@@ -30,7 +31,7 @@
             >
                 <v-row class="py-3">
                     <v-col cols="6" >
-                        <v-select
+                        <v-autocomplete
                             v-model="serviceArea"
                             flat
                             solo-inverted
@@ -40,11 +41,11 @@
                             item-value="code"
                             prepend-inner-icon="mdi-home-search"
                             label="Áreas de Servicio"
-                        ></v-select>
+                        ></v-autocomplete>
                     </v-col>
 
                     <v-col cols="5">
-                        <v-select
+                        <v-autocomplete
                             v-model="teacher"
                             flat
                             solo-inverted
@@ -54,7 +55,7 @@
                             item-value="id"
                             prepend-inner-icon="mdi-account-search"
                             label="Docente"
-                        ></v-select>
+                        ></v-autocomplete>
                     </v-col>
 
 
@@ -92,7 +93,7 @@
                     :search="search"
                     loading-text="Cargando, por favor espere..."
                     :loading="isLoading"
-                    :headers="headers"
+                    :headers="serviceAreasViewHeaders"
                     :items="filteredItems"
                     :items-per-page="20"
                     :footer-props="{
@@ -151,14 +152,236 @@
 
             <!--Seccion de dialogos-->
 
-            <!--Transferir docente entre unidades-->
+            <!--Mostrar gráfica con resultados del docente-->
+
+            <v-dialog
+                v-model="showChartDialog"
+                persistent
+            >
+                <v-card>
+                    <v-card-text class="py-3">
+
+                        <h2 class="black--text ma-2" style="text-align: center"> Visualizando al docente: {{this.capitalize(this.selectedTeacherToGraph)}}</h2>
+
+                    </v-card-text>
+
+                    <v-container style="position: relative; height:60vh; width:90vw; background: #FAF9F6">
+                        <canvas id="MiGrafica"></canvas>
+                    </v-container>
+
+                    <v-card-actions>
+
+                        <v-btn
+                            color="primario"
+                            class="white--text"
+                            @click="savePDFFile()"
+                            :disabled="!teacher"
+                        >
+                            Descargar reporte en PDF
+                        </v-btn>
+
+                        <v-btn
+                            color="primario"
+                            class="grey--text text--lighten-4"
+                            @click="setDialogToCancelChart()"
+                        >
+                            Salir
+                        </v-btn>
+
+                    </v-card-actions>
+                </v-card>
+            </v-dialog>
+
+
+
+            <v-dialog
+                v-model="showOpenAnswersDialog"
+                persistent
+            >
+
+                <v-card>
+
+                    <v-card-text>
+                        <h2 class="black--text pt-5" style="text-align: center"> Visualizando comentarios hacia el docente: {{ this.capitalize(this.selectedTeacherOpenAnswers) }}</h2>
+
+                        <h3 class="black--text pt-5"> PREGUNTA:  {{openAnswersStudents[0] == null ? '' : openAnswersStudents[0].question}}</h3>
+
+                        <h3 class="black--text pt-5 mt-4"> Comentarios por parte de estudiantes:</h3>
+
+                        <div v-for="studentAnswer in openAnswersStudents" class="mt-3">
+
+                            <h4> {{ studentAnswer.answer }}</h4>
+
+                        </div>
+                    </v-card-text>
+
+
+                    <v-card-actions>
+                        <v-btn
+                            color="primario"
+                            class="grey--text text--lighten-4"
+                            @click="setDialogToCancelOpenAnswers()"
+                        >
+                            Salir
+                        </v-btn>
+
+
+                    </v-card-actions>
+                </v-card>
+
+            </v-dialog>
+
+
+        </v-container>
+
+        <!--Inicia tabla resultados individuales por grupo-->
+        <v-container fluid v-if="resultsPerGroup">
+            <div class="d-flex flex-column align-end mb-5">
+                <h2 class="align-self-start">Gestionar respuestas de evaluación por grupo</h2>
+            </div>
+
+            <v-container class="d-flex flex-column align-end mr-5">
+
+                    <v-btn
+                        color="primario"
+                        class="white--text"
+                        @click="activateResultsPerServiceAreas"
+
+                    >
+                        Visualizar resultados por Área de servicio
+                    </v-btn>
+
+            </v-container>
+            <v-toolbar
+                dark
+                color="primario"
+                class="mb-1"
+                height="auto"
+            >
+                <v-row class="py-3">
+                    <v-col cols="6" >
+                        <v-autocomplete
+                            v-model="serviceArea"
+                            flat
+                            solo-inverted
+                            hide-details
+                            :items="serviceAreas"
+                            :item-text="(pStatus)=> capitalize(pStatus.name)"
+                            item-value="code"
+                            prepend-inner-icon="mdi-home-search"
+                            label="Áreas de Servicio"
+                        ></v-autocomplete>
+                    </v-col>
+
+                    <v-col cols="5">
+                        <v-autocomplete
+                            v-model="teacher"
+                            flat
+                            solo-inverted
+                            hide-details
+                            :items="filteredTeachers"
+                            :item-text="(pStatus)=> capitalize(pStatus.name)"
+                            item-value="id"
+                            prepend-inner-icon="mdi-account-search"
+                            label="Docente"
+                        ></v-autocomplete>
+                    </v-col>
+
+
+                    <v-col cols="1">
+                        <v-tooltip top>
+                            <template v-slot:activator="{ on, attrs }">
+                                <v-btn
+                                    v-on="on"
+                                    v-bind="attrs"
+                                    icon
+                                    class="mr-2 secundario--text"
+                                    @click="downloadResults()"
+                                >
+                                    <v-icon>
+                                        mdi-file-excel
+                                    </v-icon>
+                                </v-btn>
+                            </template>
+                            <span>Exportar resultados actuales a Excel</span>
+                        </v-tooltip>
+                    </v-col>
+
+
+                </v-row>
+
+
+            </v-toolbar>
+
+            <!--Inicia tabla-->
+            <v-card>
+                <v-data-table
+                    :search="search"
+                    loading-text="Cargando, por favor espere..."
+                    :loading="isLoading"
+                    :headers="serviceAreaGroupsViewHeaders"
+                    :items="filteredItems"
+                    :items-per-page="20"
+                    :footer-props="{
+                        'items-per-page-options': [20,50,100,-1]
+                    }"
+                    class="elevation-1"
+                >
+
+                    <template v-slot:item.graph="{ item }">
+
+                        <v-tooltip top
+                        >
+                            <template v-slot:activator="{on,attrs}">
+
+                                <v-icon
+                                    v-bind="attrs"
+                                    v-on="on"
+                                    class="mr-2 primario--text"
+                                    @click="setDialogToShowChart(item)"
+                                >
+                                    mdi-chart-line
+                                </v-icon>
+
+                            </template>
+                            <span>Graficar resultados</span>
+                        </v-tooltip>
+
+                    </template>
+
+
+
+                    <template v-slot:item.op_answers="{ item }">
+
+                        <v-tooltip top>
+                            <template v-slot:activator="{on,attrs}">
+                                <v-icon
+                                    v-bind="attrs"
+                                    v-on="on"
+                                    class="mr-2 primario--text"
+                                    @click="setDialogToShowOpenAnswers(item)"
+                                >
+                                    mdi-text-box
+                                </v-icon>
+
+                            </template>
+                            <span>Visualizar Comentarios</span>
+                        </v-tooltip>
+
+                    </template>
+
+                </v-data-table>
+            </v-card>
+
+
+            <!--Seccion de dialogos-->
 
             <v-dialog
                 v-model="showChartDialog"
                 persistent
             >
 
-                <v-card>
+                <v-card class="py-2">
 
                     <v-card-text>
 
@@ -171,7 +394,20 @@
                         <canvas id="MiGrafica"></canvas>
                     </v-container>
 
+                    <h5 class="gray--text" style="text-align: left; margin-left: 60px; margin-bottom: 5px"> Puedes dar click izquierdo sobre la leyenda de la línea de tendencia que desees ocultar </h5>
+
                     <v-card-actions>
+
+
+                        <v-btn
+                            color="primario"
+                            class="white--text"
+                            @click="savePDFFile()"
+                            :disabled="!teacher || !serviceArea"
+                        >
+                            Descargar reporte en PDF
+                        </v-btn>
+
 
                         <v-btn
                             color="primario"
@@ -195,9 +431,11 @@
             >
 
                 <v-card>
+                    <v-card-text v-if="openAnswersStudents.length >0">
+                        <h2 class="black--text pt-5" style="text-align: center"> Visualizando comentarios hacia el docente:
+                            {{ this.capitalize(this.selectedTeacherOpenAnswers)}}</h2>
 
-                    <v-card-text>
-                        <h2 class="black--text pt-5" style="text-align: center"> Visualizando comentarios hacia el docente: {{ this.capitalize(this.selectedTeacherOpenAnswers) }}</h2>
+                        <h2 class="black--text pt-3 pb-4" style="text-align: center">{{this.selectedGroupNameOpenAnswers}} - Grupo: {{this.selectedGroupNumberOpenAnswers}}</h2>
 
                         <h3 class="black--text pt-5"> PREGUNTA:  {{openAnswersStudents[0] == null ? '' : openAnswersStudents[0].question}}</h3>
 
@@ -209,7 +447,12 @@
 
                         </div>
 
+                    </v-card-text>
 
+
+                    <v-card-text v-else>
+
+                        <h2 class="black--text pt-5" style="text-align: center"> No hay comentarios disponibles para el grupo de este docente</h2>
 
                     </v-card-text>
 
@@ -260,21 +503,41 @@ export default {
             sheet: false,
             //Table info
             search: '',
-            headers: [
+            serviceAreasViewHeaders: [
                 {text: 'Profesor', value: 'name'},
                 {text: 'Área de Servicio', value: 'service_area_name'},
-                {text: 'Promedio C1', value: 'first_competence_average'},
-                {text: 'Promedio C2', value: 'second_competence_average'},
-                {text: 'Promedio C3', value: 'third_competence_average'},
-                {text: 'Promedio C4', value: 'fourth_competence_average'},
-                {text: 'Promedio C5', value: 'fifth_competence_average'},
-                {text: 'Promedio C6', value: 'sixth_competence_average'},
+                {text: 'Orientación a la calidad educativa', value: 'first_competence_average'},
+                {text: 'Trabajo Colaborativo', value: 'second_competence_average'},
+                {text: 'Empatía Universitaria', value: 'third_competence_average'},
+                {text: 'Comunicación', value: 'fourth_competence_average'},
+                {text: 'Innovación del conocimiento', value: 'fifth_competence_average'},
+                {text: 'Productividad académica', value: 'sixth_competence_average'},
                 {text: 'Estudiantes que evaluaron', value: 'aggregate_students_amount_reviewers'},
                 {text: 'Estudiantes totales', value: 'aggregate_students_amount_on_service_area'},
                 {text: 'Fecha de envío', value: 'submitted_at'},
                 {text: 'Graficar Resultados', value: 'graph', sortable: false},
                 {text: 'Visualizar Comentarios', value: 'op_answers', sortable: false},
             ],
+
+
+            serviceAreaGroupsViewHeaders: [
+                {text: 'Profesor', value: 'name'},
+                {text: 'Asignatura', value: 'group_name'},
+                {text: 'Grupo', value: 'group_number'},
+                {text: 'Área de Servicio', value: 'service_area_name'},
+                {text: 'Orientación a la calidad educativa', value: 'first_competence_average'},
+                {text: 'Trabajo Colaborativo', value: 'second_competence_average'},
+                {text: 'Empatía Universitaria', value: 'third_competence_average'},
+                {text: 'Comunicación', value: 'fourth_competence_average'},
+                {text: 'Innovación del conocimiento', value: 'fifth_competence_average'},
+                {text: 'Productividad académica', value: 'sixth_competence_average'},
+                {text: 'Estudiantes que evaluaron', value: 'students_amount_reviewers'},
+                {text: 'Estudiantes totales', value: 'students_amount_on_group'},
+                {text: 'Fecha de envío', value: 'submitted_at'},
+                {text: 'Graficar Resultados', value: 'graph', sortable: false},
+                {text: 'Visualizar Comentarios', value: 'op_answers', sortable: false},
+            ],
+
 
             //Display data
 
@@ -296,7 +559,10 @@ export default {
             openAnswersStudents: [],
             showOpenAnswersDialog: false,
             selectedTeacherOpenAnswers: '',
-
+            selectedGroupNumberOpenAnswers: '',
+            selectedGroupNameOpenAnswers: '',
+            individualView: false,
+            resultsPerGroup: false,
             //Snackbars
             snackbar: {
                 text: "",
@@ -310,8 +576,14 @@ export default {
         }
     },
 
+    props: {
+        propsServiceAreas: Array
+    },
+
+
     async created() {
 
+        await this.checkUser();
         await this.getServiceAreas();
         await this.getTeachers();
         await this.getServiceAreasTeacherResults();
@@ -325,14 +597,35 @@ export default {
             model.unshift({id: '', name: text});
         },
 
+        checkUser: function (){
 
+            if (this.propsServiceAreas !== undefined){
 
-        updateResults: function (){
+                this.individualView = true;
 
-
-
+            }
 
         },
+
+
+        activateResultsPerGroup(){
+
+            this.resultsPerGroup = true
+            this.isLoading = true
+            this.getServiceAreaGroupsTeacherResults();
+
+        },
+
+
+        activateResultsPerServiceAreas(){
+
+            this.resultsPerGroup = false
+            this.isLoading = true
+            this.getServiceAreasTeacherResults();
+
+        },
+
+
 
         matchProperty: function (array, propertyPath, reference) {
 
@@ -359,6 +652,16 @@ export default {
             this.serviceAreas = this.sortArrayAlphabetically(request.data);
 
             console.log(this.serviceAreas, 'service areas');
+
+            if (this.individualView){
+
+                this.serviceAreas = this.serviceAreas.filter (serviceArea => {
+
+                    return this.propsServiceAreas.includes(serviceArea.code)
+
+                })
+                return this.serviceAreas;
+            }
 
             this.serviceAreas.unshift({name: 'Todas las áreas de servicio', code:''})
 
@@ -394,6 +697,23 @@ export default {
 
             this.assessments = request.data
 
+            this.isLoading = false;
+
+            console.log(request.data, 'resultsss');
+
+        },
+
+
+        getServiceAreaGroupsTeacherResults: async function (){
+
+            let url = route('serviceAreas.getResultsPerGroup');
+
+            let request = await axios.get(url);
+
+            this.assessments = request.data
+
+            this.isLoading = false
+
             console.log(request.data, 'resultsss');
 
         },
@@ -410,6 +730,19 @@ export default {
 
         },
 
+        getOpenAnswersFromStudentsFromGroup: async function (teacherId, serviceArea, groupId){
+
+            let url = route('formAnswers.teachers.openAnswersStudentsFromGroup');
+
+            let request = await axios.post(url, {teacherId: teacherId, serviceArea:serviceArea, groupId: groupId});
+
+            console.log(request.data);
+
+            this.openAnswersStudents = request.data;
+
+
+        },
+
 
         async setDialogToShowOpenAnswers(teacher){
 
@@ -419,9 +752,46 @@ export default {
 
             console.log(teacher, "teacherrr")
 
-            await this.getOpenAnswersFromStudents(teacher.teacherId, teacher.service_area_code);
+            if(this.resultsPerGroup == false){
+
+                await this.getOpenAnswersFromStudents(teacher.teacherId, teacher.service_area_code);
+            }
+
+            else{
+
+                this.selectedTeacherOpenAnswers = teacher.name;
+
+                this.showOpenAnswersDialog = true
+
+                this.selectedGroupNumberOpenAnswers = teacher.group_number;
+
+                this.selectedGroupNameOpenAnswers = teacher.group_name
+
+                await this.getOpenAnswersFromStudentsFromGroup(teacher.teacherId, teacher.service_area_code, teacher.group_id)
+
+            }
+
 
         },
+
+
+        async setDialogToShowOpenAnswersFromGroups(teacher){
+
+            this.selectedTeacherOpenAnswers = teacher.name;
+
+            this.showOpenAnswersDialog = true
+
+            this.selectedGroupNumberOpenAnswers = teacher.group_number;
+
+            this.selectedGroupNameOpenAnswers = teacher.group_name
+
+            console.log(teacher, "teacherrr")
+
+            await this.getOpenAnswersFromStudentsFromGroup(teacher.teacherId, teacher.service_area_code, teacher.group_id);
+
+        },
+
+
 
         capitalize($field){
 
@@ -466,14 +836,13 @@ export default {
 
         async setDialogToShowChart(teacher){
 
-
             this.showChartDialog = true
 
             console.log(teacher, 'jefjewfjefj')
 
             await this.getResponseIdealsDataset(teacher);
 
-            this.getRolesDatasets(teacher);
+            this.getServiceAreasDatasets(teacher);
 
             this.getGraph();
 
@@ -482,10 +851,8 @@ export default {
 
         fillCompetencesArray(roleArray) {
 
-            let array = [roleArray.first_competence_average, roleArray.second_competence_average, roleArray.third_competence_average, roleArray.fourth_competence_average,
-
-                roleArray.fifth_competence_average, roleArray.sixth_competence_average]
-
+            let array = [roleArray.first_competence_average, roleArray.second_competence_average, roleArray.third_competence_average,
+                roleArray.fourth_competence_average, roleArray.fifth_competence_average, roleArray.sixth_competence_average]
 
             return array;
 
@@ -597,25 +964,49 @@ export default {
         },
 
 
-        getRolesDatasets(teacher){
+        getServiceAreasDatasets(teacher){
 
-            let teacherServiceAreaArray = this.filteredItems.find((item) => {
-                return item.name == teacher.name && item.service_area_code ==teacher.service_area_code
+            let teacherServiceAreaArray = this.filteredItems.filter((item) => {
+                return item.name == teacher.name
             })
 
+            let colorsArray = ['blue', 'red', 'green', 'purple', 'black', 'orange']
 
-            console.log(teacherServiceAreaArray);
+            console.log(teacherServiceAreaArray, 'array of serviceareas');
 
-            let hex = this.randomHexColor()
+            if (this.resultsPerGroup == false){
 
-            this.datasets.push({
+                teacherServiceAreaArray.forEach((serviceArea, index) => {
 
-                label: 'Perspectiva del estudiante',
-                data: this.fillCompetencesArray(teacherServiceAreaArray),
-                backgroundColor: hex,
-                borderColor: hex,
-                borderWidth: 2
-            })
+                    this.datasets.push({
+                        label: this.capitalize(serviceArea.service_area_name),
+                        data: this.fillCompetencesArray(serviceArea),
+                        backgroundColor: colorsArray[index],
+                        borderColor: colorsArray[index],
+                        borderWidth: 3
+                    })
+
+                })
+
+            }
+
+            else{
+
+                teacherServiceAreaArray.forEach((serviceArea, index) => {
+
+                    this.datasets.push({
+                        label: `${this.capitalize(serviceArea.group_name)} - Gr. ${serviceArea.group_number} - P.A: ${serviceArea.academic_period_name}`,
+                        data: this.fillCompetencesArray(serviceArea),
+                        backgroundColor: colorsArray[index],
+                        borderColor: colorsArray[index],
+                        borderWidth: 3
+                    })
+
+                })
+
+            }
+
+
 
         },
 
@@ -630,8 +1021,6 @@ export default {
 
         },
 
-
-
         setDialogToCancelOpenAnswers (){
 
             this.showOpenAnswersDialog = false;
@@ -641,26 +1030,49 @@ export default {
 
         downloadResults (){
 
+            let excelInfo = [];
 
-            let excelInfo = this.filteredItems.map(item =>{
+            if(this.resultsPerGroup == false){
 
-                return {
+                excelInfo = this.filteredItems.map(item =>{
 
-                    Nombre :item.name,
-                    AreaDeServicio: item.service_area_name,
-                    PromedioC1: item.first_competence_average,
-                    PromedioC2: item.second_competence_average,
-                    PromedioC3: item.third_competence_average,
-                    PromedioC4: item.fourth_competence_average,
-                    PromedioC5: item.fifth_competence_average,
-                    PromedioC6: item.sixth_competence_average,
-                    ActoresInvolucrados: item.aggregate_students_amount_reviewers,
-                    ActoresTotales: item.aggregate_students_amount_on_service_area
-                }
+                    return {
+                        Nombre :item.name,
+                        AreaDeServicio: item.service_area_name,
+                        PromedioC1: item.first_competence_average,
+                        PromedioC2: item.second_competence_average,
+                        PromedioC3: item.third_competence_average,
+                        PromedioC4: item.fourth_competence_average,
+                        PromedioC5: item.fifth_competence_average,
+                        PromedioC6: item.sixth_competence_average,
+                        ActoresInvolucrados: item.aggregate_students_amount_reviewers,
+                        ActoresTotales: item.aggregate_students_amount_on_service_area
+                    }
 
-            })
+                })
+            }
 
 
+            else{
+
+                excelInfo = this.filteredItems.map(item =>{
+
+                    return {
+                        Nombre :item.name,
+                        Asignatura: item.group_name,
+                        Grupo: item.group_number,
+                        AreaDeServicio: item.service_area_name,
+                        PromedioC1: item.first_competence_average,
+                        PromedioC2: item.second_competence_average,
+                        PromedioC3: item.third_competence_average,
+                        PromedioC4: item.fourth_competence_average,
+                        PromedioC5: item.fifth_competence_average,
+                        PromedioC6: item.sixth_competence_average
+                    }
+
+                })
+
+            }
 
             let csv = Papa.unparse(excelInfo, {delimiter:';'});
 
@@ -668,7 +1080,7 @@ export default {
             var csvURL =  null;
             if (navigator.msSaveBlob)
             {
-                csvURL = navigator.msSaveBlob(csvData, 'ResultadosEvaluaciónDocente360.csv');
+                csvURL = navigator.msSaveBlob(csvData, 'ResultadosEvaluaciónDocente.csv');
             }
             else
             {
@@ -677,10 +1089,33 @@ export default {
 
             var tempLink = document.createElement('a');
             tempLink.href = csvURL;
-            tempLink.setAttribute('download', 'ResultadosEvaluaciónDocente360.csv');
+            tempLink.setAttribute('download', 'ResultadosEvaluaciónDocente.csv');
             tempLink.click();
 
         },
+
+
+        async savePDFFile(){
+
+            this.datasets.forEach(dataset =>{
+
+                dataset.fill = {target: 'origin',
+                    above: 'rgb(255, 255, 255)',
+                    below: 'rgb(255, 255, 255)'}
+
+            })
+
+            let parameterChart = this.getChartAsObject().config._config;
+
+                window.open(route('reports.serviceArea.index.downloadPdf', {
+                    teacherResults: JSON.stringify(this.filteredItems),
+                    chartInfo: JSON.stringify(parameterChart),
+
+                }));
+
+
+        },
+
 
         getGraph(){
 
@@ -696,7 +1131,8 @@ export default {
 
 
                     legend: {
-                        display: false
+                        display: true,
+                        position: 'bottom'
                     },
                     responsive: true,
                     tooltips: {
@@ -712,31 +1148,49 @@ export default {
                             {
                                 title: {
                                     display: true,
-                                    text: 'Competencias'
+                                    text: 'Competencias',
+                                    color: 'black',
+                                    font: {
+                                        size: 15,
+                                        weight: 'bold',
+                                        lineHeight: 1.2,
+                                    },
                                 },
                                 position:"top",
-                                ticks: {
-                                    padding: 8,
-                                }
+
                             }
                         ,
                         y:
                             {
-                                max:5.5,
+                                min: 0,
+                                max:5.4,
                                 title: {
                                     display: true,
-                                    text: 'Valores obtenidos'
+                                    text: 'Valores obtenidos',
+                                    color: 'black',
+                                    font: {
+                                        size: 15,
+                                        weight: 'bold',
+                                        lineHeight: 1.2,
+                                    },
                                 },
 
-                                ticks: {
-                                    beginAtZero: true,
-                                    padding: 8,
-                                    stepSize: 0.5,
-                                }
+                                ticks:{
+
+                                    callback: (value, index, values) => (index == (values.length-1)) ? undefined : value,
+
+                                },
                             }
                     }
                 }
             })
+
+        },
+
+
+        getChartAsObject(){
+
+            return this.chart
 
         },
 
@@ -772,9 +1226,22 @@ export default {
 
             let finalAssessments = this.assessments;
 
-            if (this.serviceArea !== '') {
+
+            if (this.individualView){
+
                 finalAssessments = this.getFilteredAssessmentsByServiceArea(finalAssessments);
+
             }
+
+            else {
+
+                if (this.serviceArea !== '') {
+                    finalAssessments = this.getFilteredAssessmentsByServiceArea(finalAssessments);
+
+                }
+
+            }
+
             if (this.teacher !== '') {
                 finalAssessments = this.getFilteredAssessmentsByTeacher(finalAssessments);
             }

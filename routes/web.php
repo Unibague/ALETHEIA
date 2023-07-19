@@ -240,13 +240,17 @@ Route::post('/api/roles/select', [\App\Http\Controllers\Users\ApiUserController:
 
 /* >>>>>>>>>>>>>>>>>>>>>>>>>>>> Reports routes <<<<<<<<<<<<<<<<<<<<<<<< */
 /*Route::get('/reports/showCompleteServiceAreas', [\App\Http\Controllers\ReportsController::class, 'index'])->middleware(['auth', 'isAdmin'])->name('reports.showCompleteServiceAreas');*/
-Route::inertia('/reports/showComplete360', 'Reports/Complete360AssessmentResults')->middleware(['auth', 'isAdmin'])->name('reports.showComplete360');
+/*Route::inertia('/reports/showComplete360', 'Reports/Complete360AssessmentResults')->middleware(['auth'])->name('reports.showComplete360');*/
+Route::get('/reports/show360Assessment', [\App\Http\Controllers\ReportsController::class, 'show360Assessment'])->middleware(['auth'])->name('reports.show360Assessment');
+Route::get('/reports/showServiceAreasAssessment', [\App\Http\Controllers\ReportsController::class, 'showServiceAreasAssessment'])->middleware(['auth'])->name('reports.showServiceAreasAssessment');
+/*Route::get('/reports/showServiceAreaGroupsAssessment', [\App\Http\Controllers\ReportsController::class, 'showServiceAreaGroupsAssessment'])->middleware(['auth'])->name('reports.showServiceAreaGroupsAssessment');
 Route::inertia('/reports/showCompleteServiceAreas', 'Reports/CompleteServiceAreasResults')->middleware(['auth', 'isAdmin'])->name('reports.showCompleteServiceAreas');
 Route::inertia('/reports/showCompleteServiceAreasGroup', 'Reports/CompleteServiceAreasGroupResults')->middleware(['auth', 'isAdmin'])->name('reports.showCompleteServiceAreasGroup');
 Route::get('/reports/showFaculty', [\App\Http\Controllers\ReportsController::class, 'showFaculty'])->middleware(['auth'])->name('reports.showFaculty');
 Route::get('/reports/showServiceArea', [\App\Http\Controllers\ReportsController::class, 'showServiceArea'])->middleware(['auth'])->name('reports.showServiceArea');
-Route::get('/reports/showServiceAreaGroup', [\App\Http\Controllers\ReportsController::class, 'showServiceAreaGroup'])->middleware(['auth'])->name('reports.showServiceAreaGroup');
-Route::post('/reports/downloadPdf', [\App\Http\Controllers\ReportsController::class, 'downloadPDF'])->middleware(['auth', 'isAdmin'])->name('reports.index.downloadPdf');
+Route::get('/reports/showServiceAreaGroup', [\App\Http\Controllers\ReportsController::class, 'showServiceAreaGroup'])->middleware(['auth'])->name('reports.showServiceAreaGroup');*/
+Route::get('/reports/chart/{chartInfo}/teacher/{teacherResults}/downloadPdf', [\App\Http\Controllers\ReportsController::class, 'downloadPDF'])->middleware(['auth'])->name('reports.index.downloadPdf');
+Route::get('/reports/serviceArea/chart/{chartInfo}/teacher/{teacherResults}/downloadPdf', [\App\Http\Controllers\ReportsController::class, 'downloadServiceAreaPDF'])->middleware(['auth'])->name('reports.serviceArea.index.downloadPdf');
 
 
 /* >>>>>>>>>>>>>>>>>>>>>>>>ResponseIdeals routes <<<<<<<<<<<<<<<<<<<<<<<<<<<< */
@@ -279,7 +283,6 @@ Route::get('/pickRole', [\App\Http\Controllers\AuthController::class, 'pickRole'
 
 
 Route::get('/firstRunAggregateResults', function () {
-
 
     set_time_limit(300);
 
@@ -370,7 +373,7 @@ Route::get('/firstRunAggregateResults', function () {
                     'third_final_competence_average' => $final_third_competence_average, 'fourth_final_competence_average' => $final_fourth_competence_average,
                     'fifth_final_competence_average' => $final_fifth_competence_average, 'sixth_final_competence_average' => $final_sixth_competence_average,
                     'students_amount_reviewers' => $studentsAmount, 'students_amount_on_group' => $totalStudentsEnrolledOnGroup, 'created_at' => Carbon::now()->toDateTimeString(),
-                    'updated_at' => Carbon::now()->toDateTimeString()]);
+                    'updated_at' => Carbon::now('GMT-5')->toDateTimeString()]);
         }
 
     }
@@ -454,8 +457,8 @@ Route::get('/firstRunAggregateResults', function () {
                     'groups_amount' => $groupsAmount,
                     'aggregate_students_amount_reviewers' => $aggregateTotalStudentsReviewersOnGroups,
                     'aggregate_students_amount_on_360_groups' => $aggregateTotalStudentsEnrolledOnGroups,
-                    'created_at' => Carbon::now()->toDateTimeString(),
-                    'updated_at' => Carbon::now()->toDateTimeString() ]);
+                    'created_at' => Carbon::now('GMT-5')->toDateTimeString(),
+                    'updated_at' => Carbon::now('GMT-5')->toDateTimeString() ]);
 
         }
 
@@ -542,8 +545,8 @@ Route::get('/fulfillServiceAreasResultsTable', function () {
                     'sixth_final_aggregate_competence_average' => $final_sixth_aggregate_competence_average,
                     'aggregate_students_amount_reviewers' => $aggregateTotalStudentsReviewersOnServiceArea,
                     'aggregate_students_amount_on_service_area' => $aggregateTotalStudentsEnrolledOnServiceArea,
-                    'created_at' => Carbon::now()->toDateTimeString(),
-                    'updated_at' => Carbon::now()->toDateTimeString() ]);
+                    'created_at' => Carbon::now('GMT-5')->toDateTimeString(),
+                    'updated_at' => Carbon::now('GMT-5')->toDateTimeString() ]);
 
 
         }

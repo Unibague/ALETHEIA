@@ -10,12 +10,13 @@
 
             <v-container class="d-flex flex-column align-end mr-5">
 
-<!--                <v-btn
+<!--               <v-btn
                     color="primario"
-                    class="grey&#45;&#45;text text&#45;&#45;lighten-4"
+                    class="white&#45;&#45;text"
                     @click="savePDFFile()"
+                    :disabled="!teacher"
                 >
-                    Actualizar resultados
+                    Descargar Reporte en PDF
                 </v-btn>-->
 
             </v-container>
@@ -28,7 +29,8 @@
                 >
                     <v-row class="py-3">
                         <v-col cols="4" >
-                            <v-select
+
+                            <v-autocomplete
                                 v-model="unit"
                                 flat
                                 solo-inverted
@@ -38,11 +40,13 @@
                                 item-value="identifier"
                                 prepend-inner-icon="mdi-home-search"
                                 label="Unidades"
-                            ></v-select>
+                            ></v-autocomplete>
+
                         </v-col>
 
                         <v-col cols="4">
-                            <v-select
+
+                            <v-autocomplete
                                 v-model="teacher"
                                 flat
                                 solo-inverted
@@ -52,7 +56,8 @@
                                 item-value="id"
                                 prepend-inner-icon="mdi-account-search"
                                 label="Docente"
-                            ></v-select>
+                            ></v-autocomplete>
+
                         </v-col>
 
 
@@ -183,22 +188,31 @@
 
                         <h2 class="black--text pt-5" style="text-align: center"> Visualizando al docente: {{this.capitalize(this.selectedTeacherToGraph)}}</h2>
 
+
+
                     </v-card-text>
+
+
 
 
                     <v-container style="position: relative; height:60vh; width:90vw; background: #FAF9F6">
                         <canvas id="MiGrafica"></canvas>
                     </v-container>
 
+
+                    <h5 class="gray--text" style="text-align: left; margin-left: 60px; margin-bottom: 5px"> Puedes dar click izquierdo sobre la leyenda de la linea de tendencia que desees ocultar </h5>
+
+
                     <v-card-actions>
 
-<!--                        <v-btn
-                            color="purple"
-                            class="white&#45;&#45;text"
+                       <v-btn
+                            color="primario"
+                            class="white--text"
                             @click="savePDFFile()"
+                            :disabled="!teacher"
                         >
                             Descargar reporte en PDF
-                        </v-btn>-->
+                        </v-btn>
 
                         <v-btn
                             color="primario"
@@ -349,10 +363,19 @@ export default {
             showChartDialog: false,
             showOpenAnswersDialog: false,
             isLoading: true,
+            individualView: true,
         }
     },
+
+    props: {
+        propsUnits: Array
+    },
+
+
+
     async created() {
 
+        await this.checkUser();
         await this.getRoles();
         await this.getUnits();
         await this.getTeachers();
@@ -369,6 +392,15 @@ export default {
             model.unshift({id: '', name: text});
         },
 
+        checkUser: function (){
+
+            if (this.propsUnits === undefined){
+
+                this.individualView = false;
+
+            }
+
+        },
 
         matchProperty: function (array, propertyPath, reference) {
 
@@ -399,6 +431,17 @@ export default {
 
             })
 
+            if (this.individualView){
+
+                this.units = this.units.filter (unit => {
+
+                    return this.propsUnits.includes(unit.identifier)
+
+                })
+
+                return this.units
+
+            }
 
             this.units.unshift({name: 'Todas las unidades', identifier:''})
 
@@ -720,8 +763,8 @@ export default {
 
                 label: `Nivel Esperado (${teachingLadder == 'Ninguno' ? 'Auxiliar' : teachingLadder})`,
                 data: this.responseIdealsCompetencesArray,
-                backgroundColor: hex,
-                borderColor: hex,
+                backgroundColor: 'orange',
+                borderColor: 'orange',
                 borderWidth: 2,
                 borderDash: [5, 5],
 
@@ -735,6 +778,10 @@ export default {
             let teacherRolesArrays = this.filteredItems.filter((item) => {
                 return item.name == teacher.name
             })
+
+            let colors = new Question().getLineChartColors();
+
+            /*console.log(colors.getLineChartColors(), 'colorssssss')*/
 
             teacherRolesArrays.forEach(roleArray => {
 
@@ -756,14 +803,25 @@ export default {
 
                 else{
 
-                    this.datasets.push({
+                    colors.forEach(color => {
 
-                        label: this.capitalize(roleArray.unit_role),
-                        data: this.fillCompetencesArray(roleArray),
-                        backgroundColor: hex,
-                        borderColor: hex,
-                        borderWidth: 2
+                        if(color.role === roleArray.unit_role){
+
+                            this.datasets.push({
+
+                                label: this.capitalize(roleArray.unit_role),
+                                data: this.fillCompetencesArray(roleArray),
+                                backgroundColor: color.color,
+                                borderColor: color.color,
+                                borderWidth: 2
+                            })
+
+                        }
+
+
+
                     })
+
 
                 }
 
@@ -809,13 +867,11 @@ export default {
 
         downloadResults (){
 
-
                 console.log(this.filteredItems);
 
                 let excelInfo = this.filteredItems.map(item =>{
 
                     return {
-
                         Nombre :item.name,
                         rol: item.unit_role,
                         NombreUnidad: item.unitName,
@@ -854,26 +910,21 @@ export default {
 
         async savePDFFile(){
 
+            this.datasets.forEach(dataset =>{
+
+                dataset.fill = {target: 'origin',
+                    above: 'rgb(255, 255, 255)',
+                    below: 'rgb(255, 255, 255)'}
+
+            })
+
             let parameterChart = this.getChartAsObject().config._config;
 
-            await axios.post(route('reports.index.downloadPdf'),
-                {myChart: parameterChart});
 
-    /*        await axios.post(route('reports.index.downloadPdf'),
-                { myChart: parameterChart },
-                { responseType: 'blob'})
-                .then(res => {
-                    let blob = new Blob([res.data], { type: res.headers['content-type'] });
-                    let link = document.createElement('a');
-                    link.href = window.URL.createObjectURL(blob);
-
-                    link.download = item.slice(item.lastIndexOf('/')+1);
-                    link.click()
-                }).catch(err => {})
-*/
-
-
-/*            await axios.get(route('reports.index.downloadPdf', {chartInfo:parameterChart}));*/
+            window.open(route('reports.index.downloadPdf', {
+                teacherResults: JSON.stringify(this.filteredItems),
+                chartInfo: JSON.stringify(parameterChart),
+            }));
 
 
 
@@ -881,17 +932,50 @@ export default {
 
         getGraph(){
 
+
+    /*           const legendMargin ={
+                       beforeInit: function(chart, options) {
+                           chart.legend.afterFit = function() {
+                               this.height += 10; // must use `function` and not => because of `this`
+                           };
+                       }
+               }*/
+
+        /*    Chart.legend.prototype.afterFit = function() {
+                this.height = this.height + 50;
+            };
+*/
                 let miCanvas = document.getElementById("MiGrafica").getContext("2d");
                 this.chart = new Chart(miCanvas, {
                     type:"line",
                     data:{
                         labels: ["Orientación a la calidad educativa", "Trabajo Colaborativo",
                             "Empatía Universitaria", "Comunicación", "Innovación del conocimiento","Productividad académica"],
-                        datasets: this.datasets,
+                        datasets: this.datasets
                     },
                     options: {
+                        plugins: {
+                            filler: {
+                                propagate: false
+                            },
+                        },
+                        layout:{
+
+                            padding:{
+
+                                left: 0,
+                                right: 0,
+                                top: 0,
+                                bottom: 0
+                            }
+
+                        },
                         legend: {
-                            display: false
+                            display: true,
+                         /*   labels:{
+                                padding:20
+                            },*/
+                           position: "bottom"
                         },
                         responsive: true,
                         tooltips: {
@@ -900,38 +984,58 @@ export default {
                         },
                         hover: {
                             mode: "nearest",
-                            intersect: true
+                            intersect: false
                         },
+
+
                         scales: {
                             x:
                                 {
+                                    display: true,
                                     title: {
                                         display: true,
-                                        text: 'Competencias'
+                                        text: 'Competencias',
+                                        color: 'black',
+                                        font: {
+                                            size: 15,
+                                            weight: 'bold',
+                                            lineHeight: 1.2,
+                                        },
                                     },
-                                    position:"top",
-                                    ticks: {
-                                        padding: 8,
-                                    }
+                                    position: 'top'
                                 }
                             ,
                             y:
                                 {
-                                    max:5.1,
+                                    min: 0,
+                                    max: 5.4,
+                                    display: true,
 
                                     title: {
                                         display: true,
-                                        text: 'Valores obtenidos'
+                                        text: 'Valores obtenidos',
+                                        color: 'black',
+                                        font: {
+                                            size: 15,
+                                            weight: 'bold',
+                                            lineHeight: 1.2,
+                                        },
+
+
                                     },
 
-                                    ticks: {
-                                        beginAtZero: true,
-                                        padding: 8,
+                                    ticks:{
 
-                                    }
+                                        callback: (value, index, values) => (index == (values.length-1)) ? undefined : value,
+
+                                    },
+
                                 }
                         }
-                    }
+
+
+                    },/*
+                   plugins: [legendMargin]*/
                 })
 
         },
@@ -974,9 +1078,19 @@ export default {
 
             let finalAssessments = this.assessments;
 
-            if (this.unit !== '') {
+            if (this.individualView){
+
                 finalAssessments = this.getFilteredAssessmentsByUnit(finalAssessments);
+
             }
+
+            else {
+
+                if (this.unit !== '') {
+                    finalAssessments = this.getFilteredAssessmentsByUnit(finalAssessments);
+                }
+            }
+
             if (this.teacher !== '') {
                 finalAssessments = this.getFilteredAssessmentsByTeacher(finalAssessments);
             }
