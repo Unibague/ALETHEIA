@@ -184,13 +184,14 @@
 
                     <v-card-actions>
 
-<!--                        <v-btn
-                            color="purple"
-                            class="white&#45;&#45;text"
+                       <v-btn
+                           color="primario"
+                           class="white--text"
                             @click="savePDFFile()"
+                            :disabled="!teacher"
                         >
                             Descargar reporte en PDF
-                        </v-btn>-->
+                        </v-btn>
 
                         <v-btn
                             color="primario"
@@ -239,8 +240,6 @@
                             <h4> {{ studentAnswer.answer }}</h4>
 
                         </div>
-
-
 
                     </v-card-text>
 
@@ -406,21 +405,6 @@ export default {
             })
 
             return this.units
-
-       /*     this.units = this.units.filter(unit => {
-
-
-
-
-                return unit.identifier == '025-1' || unit.identifier == '014-1';
-
-            })
-*/
-
-
-
-
-/*            this.units.unshift({name: 'Todas las unidades', identifier:''})*/
 
         },
 
@@ -738,10 +722,10 @@ export default {
 
             this.datasets.unshift({
 
-                label: `Ideales de respuesta (${teachingLadder == 'Ninguno' ? 'Auxiliar' : teachingLadder})`,
+                label: `Nivel Esperado (${teachingLadder == 'Ninguno' ? 'Auxiliar' : teachingLadder})`,
                 data: this.responseIdealsCompetencesArray,
-                backgroundColor: hex,
-                borderColor: hex,
+                backgroundColor: 'orange',
+                borderColor: 'orange',
                 borderWidth: 2,
                 borderDash: [5, 5],
 
@@ -755,6 +739,10 @@ export default {
             let teacherRolesArrays = this.filteredItems.filter((item) => {
                 return item.name == teacher.name
             })
+
+            let colors = new Question().getLineChartColors();
+
+            /*console.log(colors.getLineChartColors(), 'colorssssss')*/
 
             teacherRolesArrays.forEach(roleArray => {
 
@@ -776,14 +764,25 @@ export default {
 
                 else{
 
-                    this.datasets.push({
+                    colors.forEach(color => {
 
-                        label: this.capitalize(roleArray.unit_role),
-                        data: this.fillCompetencesArray(roleArray),
-                        backgroundColor: hex,
-                        borderColor: hex,
-                        borderWidth: 2
+                        if(color.role === roleArray.unit_role){
+
+                            this.datasets.push({
+
+                                label: this.capitalize(roleArray.unit_role),
+                                data: this.fillCompetencesArray(roleArray),
+                                backgroundColor: color.color,
+                                borderColor: color.color,
+                                borderWidth: 2
+                            })
+
+                        }
+
+
+
                     })
+
 
                 }
 
@@ -874,30 +873,24 @@ export default {
 
         async savePDFFile(){
 
+            this.datasets.forEach(dataset =>{
+
+                dataset.fill = {target: 'origin',
+                    above: 'rgb(255, 255, 255)',
+                    below: 'rgb(255, 255, 255)'}
+
+            })
+
             let parameterChart = this.getChartAsObject().config._config;
 
-            await axios.post(route('reports.index.downloadPdf'),
-                {myChart: parameterChart});
-
-    /*        await axios.post(route('reports.index.downloadPdf'),
-                { myChart: parameterChart },
-                { responseType: 'blob'})
-                .then(res => {
-                    let blob = new Blob([res.data], { type: res.headers['content-type'] });
-                    let link = document.createElement('a');
-                    link.href = window.URL.createObjectURL(blob);
-
-                    link.download = item.slice(item.lastIndexOf('/')+1);
-                    link.click()
-                }).catch(err => {})
-*/
-
-
-/*            await axios.get(route('reports.index.downloadPdf', {chartInfo:parameterChart}));*/
-
+            window.open(route('reports.index.downloadPdf', {
+                teacherResults: JSON.stringify(this.filteredItems),
+                chartInfo: JSON.stringify(parameterChart),
+            }));
 
 
         },
+
 
         getGraph(){
 

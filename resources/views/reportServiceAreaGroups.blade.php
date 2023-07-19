@@ -13,12 +13,16 @@
 
 <p> Periodo de evaluación: <strong> {{$assessmentPeriodName}} </strong> </p>
 
-<p style="margin-bottom: 30px"> Visualizando desempeño en evaluación 360° del docente: <strong> {{ucwords($teacherName)}} </strong></p>
+<p style="margin-bottom: 30px"> Visualizando desempeño del docente  <strong> {{ucwords($teacherName)}} </strong> en el área de servicio: <strong>
+
+        {{$teacherResults[0]->service_area_name}}  </strong></p>
 
 <table class="table" style="max-width: 85%; margin: auto" >
     <thead>
     <tr>
         <th scope="col">Rol</th>
+        <th scope="col">Asignatura</th>
+        <th scope="col">Grupo</th>
         @foreach($labels as $label)
         <th scope="col">{{$label}}</th>
         @endforeach
@@ -29,7 +33,10 @@
 
     @foreach($teacherResults as $teacherResult)
     <tr>
-        <td style="text-transform: capitalize">{{$teacherResult->unit_role}}</td>
+        <td style="text-transform: capitalize">Estudiante</td>
+        <td>{{$teacherResult->group_name}}</td>
+        <td>{{$teacherResult->group_number}}</td>
+        <td>{{$teacherResult->service_area_name}}</td>
         <td>{{$teacherResult->first_competence_average}}</td>
         <td>{{$teacherResult->second_competence_average}}</td>
         <td>{{$teacherResult->third_competence_average}}</td>

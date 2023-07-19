@@ -88,7 +88,7 @@ class ServiceArea extends Model
 
         return DB::table('group_results as gr')->where('gr.assessment_period_id', '=', $activeAssessmentPeriodId)
             ->select([ 't.name', 'sa.name as service_area_name' , 'gr.service_area_code', 't.id as teacherId', 'gr.group_id',
-                'g.name as group_name', 'g.group as group_number',
+                'g.name as group_name', 'g.group as group_number', 'ap.name as academic_period_name',
                 'gr.first_final_competence_average as first_competence_average',
                 'gr.second_final_competence_average as second_competence_average',
                 'gr.third_final_competence_average as third_competence_average',
@@ -98,7 +98,8 @@ class ServiceArea extends Model
                 'gr.students_amount_reviewers', 'gr.students_amount_on_group'])
             ->join('groups as g', 'gr.group_id', '=', 'g.group_id')
             ->join('users as t', 'gr.teacher_id', '=', 't.id')
-            ->join('service_areas as sa', 'sa.code','=','gr.service_area_code')->get();
+            ->join('service_areas as sa', 'sa.code','=','gr.service_area_code')
+            ->join('academic_periods as ap', 'ap.id', '=', 'g.academic_period_id')->get();
     }
 
     public static function getServiceAreasTeachersWithResults()

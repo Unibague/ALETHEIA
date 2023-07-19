@@ -13,6 +13,14 @@ export default class Question {
         return ['C1', 'C2', 'C3', 'C4', 'C5', 'C6'];
     }
 
+
+    getLineChartColors(){
+
+        return [{role: 'autoevaluación', color: 'blue'}, {role: 'jefe', color: 'red'}, {role: 'par', color: 'green'}, {role: 'estudiante', color: 'purple'}]
+
+    }
+
+
     getPossibleCompetencesAsArrayOfObjects() {
 
         let finalCompetences = []

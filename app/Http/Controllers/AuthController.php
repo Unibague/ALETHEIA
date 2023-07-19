@@ -38,12 +38,12 @@ class AuthController extends Controller
 
         if ($user->role()->name == "Resultados Evaluación") {
 
-            return redirect()->route('reports.showFaculty');
+            return redirect()->route('reports.show360Assessment');
         }
 
         if($user->role()->name == "Jefe de Área de Servicio") {
 
-            return redirect()->route('reports.showServiceArea');
+            return redirect()->route('reports.showServiceAreasAssessment');
         }
 
 

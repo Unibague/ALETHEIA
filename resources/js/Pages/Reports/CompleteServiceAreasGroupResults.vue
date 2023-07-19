@@ -3,25 +3,27 @@
         <Snackbar :timeout="snackbar.timeout" :text="snackbar.text" :type="snackbar.type"
                   :show="snackbar.status" @closeSnackbar="snackbar.status = false"></Snackbar>
 
+
+
         <v-container fluid>
             <div class="d-flex flex-column align-end mb-5">
                 <h2 class="align-self-start">Gestionar respuestas de evaluación por grupo</h2>
             </div>
 
-            <v-container class="d-flex flex-column align-end mr-5">
+            <v-container class="d-flex flex-column align-end mr-5" v-if="individualView">
 
-                <!--
-                                <v-btn
-                                    color="primario"
-                                    class="grey&#45;&#45;text text&#45;&#45;lighten-4"
-                                    @click=""
-                                >
-                                    Actualizar resultados
-                                </v-btn>
-                -->
+                <InertiaLink :href="route('reports.showCompleteServiceAreasGroup')">
+
+                    <v-btn
+                        color="primario"
+                        class="white--text">
+                        Visualizar resultados por Área de servicio
+                    </v-btn>
+
+                </InertiaLink>
+
 
             </v-container>
-
             <v-toolbar
                 dark
                 color="primario"
@@ -83,8 +85,6 @@
 
 
             </v-toolbar>
-
-
 
             <!--Inicia tabla-->
             <v-card>
@@ -172,6 +172,17 @@
                     </v-container>
 
                     <v-card-actions>
+
+
+                        <v-btn
+                            color="primario"
+                            class="white--text"
+                            @click="savePDFFile()"
+                            :disabled="!teacher || !serviceArea"
+                        >
+                            Descargar reporte en PDF
+                        </v-btn>
+
 
                         <v-btn
                             color="primario"
@@ -273,12 +284,12 @@ export default {
                 {text: 'Asignatura', value: 'group_name'},
                 {text: 'Grupo', value: 'group_number'},
                 {text: 'Área de Servicio', value: 'service_area_name'},
-                {text: 'Promedio C1', value: 'first_competence_average'},
-                {text: 'Promedio C2', value: 'second_competence_average'},
-                {text: 'Promedio C3', value: 'third_competence_average'},
-                {text: 'Promedio C4', value: 'fourth_competence_average'},
-                {text: 'Promedio C5', value: 'fifth_competence_average'},
-                {text: 'Promedio C6', value: 'sixth_competence_average'},
+                {text: 'Orientación a la calidad educativa', value: 'first_competence_average'},
+                {text: 'Trabajo Colaborativo', value: 'second_competence_average'},
+                {text: 'Empatía Universitaria', value: 'third_competence_average'},
+                {text: 'Comunicación', value: 'fourth_competence_average'},
+                {text: 'Innovación del conocimiento', value: 'fifth_competence_average'},
+                {text: 'Productividad académica', value: 'sixth_competence_average'},
                 {text: 'Estudiantes que evaluaron', value: 'students_amount_reviewers'},
                 {text: 'Estudiantes totales', value: 'students_amount_on_group'},
                 {text: 'Fecha de envío', value: 'submitted_at'},
@@ -308,7 +319,7 @@ export default {
             selectedTeacherOpenAnswers: '',
             selectedGroupNumberOpenAnswers: '',
             selectedGroupNameOpenAnswers: '',
-
+            individualView: false,
             //Snackbars
             snackbar: {
                 text: "",
@@ -321,8 +332,15 @@ export default {
             isLoading: true,
         }
     },
+
+    props: {
+        propsServiceAreas: Array
+    },
+
+
     async created() {
 
+        await this.checkUser();
         await this.getServiceAreas();
         await this.getTeachers();
         await this.getServiceAreasTeacherResults();
@@ -336,6 +354,12 @@ export default {
             model.unshift({id: '', name: text});
         },
 
+
+        checkUser(){
+
+
+
+        },
 
 
         updateResults: function (){
@@ -368,6 +392,8 @@ export default {
             this.serviceAreas = this.sortArrayAlphabetically(request.data);
 
             console.log(this.serviceAreas, 'service areas');
+
+            console.log(this.propsUnits, 'UNITSSSSSSSSSSSSSSSSSSSSS');
 
             this.serviceAreas.unshift({name: 'Todas las áreas de servicio', code:''})
 
@@ -611,24 +637,25 @@ export default {
 
         getRolesDatasets(teacher){
 
-            let teacherServiceAreaArray = this.filteredItems.find((item) => {
-                return item.name == teacher.name && item.service_area_code ==teacher.service_area_code
+            let teacherServiceAreaArray = this.filteredItems.filter((item) => {
+                return item.name == teacher.name
             })
 
+            let colorsArray = ['blue', 'red', 'green', 'purple', 'black', 'orange']
 
-            console.log(teacherServiceAreaArray);
+            console.log(teacherServiceAreaArray, 'array of serviceareasss');
 
-            let hex = this.randomHexColor()
+            teacherServiceAreaArray.forEach((serviceArea, index) => {
 
-            this.datasets.push({
+                this.datasets.push({
+                    label: `${this.capitalize(serviceArea.group_name)} - Gr. ${serviceArea.group_number}`,
+                    data: this.fillCompetencesArray(serviceArea),
+                    backgroundColor: colorsArray[index],
+                    borderColor: colorsArray[index],
+                    borderWidth: 3
+                })
 
-                label: 'Perspectiva del estudiante',
-                data: this.fillCompetencesArray(teacherServiceAreaArray),
-                backgroundColor: hex,
-                borderColor: hex,
-                borderWidth: 2
             })
-
         },
 
 
@@ -657,22 +684,19 @@ export default {
             let excelInfo = this.filteredItems.map(item =>{
 
                 return {
-
                     Nombre :item.name,
+                    Asignatura: item.group_name,
+                    Grupo: item.group_number,
                     AreaDeServicio: item.service_area_name,
                     PromedioC1: item.first_competence_average,
                     PromedioC2: item.second_competence_average,
                     PromedioC3: item.third_competence_average,
                     PromedioC4: item.fourth_competence_average,
                     PromedioC5: item.fifth_competence_average,
-                    PromedioC6: item.sixth_competence_average,
-                    ActoresInvolucrados: item.aggregate_students_amount_reviewers,
-                    ActoresTotales: item.aggregate_students_amount_on_service_area
+                    PromedioC6: item.sixth_competence_average
                 }
 
             })
-
-
 
             let csv = Papa.unparse(excelInfo, {delimiter:';'});
 
@@ -680,7 +704,7 @@ export default {
             var csvURL =  null;
             if (navigator.msSaveBlob)
             {
-                csvURL = navigator.msSaveBlob(csvData, 'ResultadosEvaluaciónDocente360.csv');
+                csvURL = navigator.msSaveBlob(csvData, 'ResultadosEvaluaciónDocente.csv');
             }
             else
             {
@@ -689,8 +713,28 @@ export default {
 
             var tempLink = document.createElement('a');
             tempLink.href = csvURL;
-            tempLink.setAttribute('download', 'ResultadosEvaluaciónDocente360.csv');
+            tempLink.setAttribute('download', 'ResultadosEvaluaciónDocente.csv');
             tempLink.click();
+
+        },
+
+        async savePDFFile(){
+
+            this.datasets.forEach(dataset =>{
+
+                dataset.fill = {target: 'origin',
+                    above: 'rgb(255, 255, 255)',
+                    below: 'rgb(255, 255, 255)'}
+
+            })
+
+            let parameterChart = this.getChartAsObject().config._config;
+
+                window.open(route('reports.serviceArea.index.downloadPdf', {
+                    teacherResults: JSON.stringify(this.filteredItems),
+                    chartInfo: JSON.stringify(parameterChart),
+
+                }));
 
         },
 
@@ -734,7 +778,7 @@ export default {
                         ,
                         y:
                             {
-                                max:5.5,
+
                                 title: {
                                     display: true,
                                     text: 'Valores obtenidos'
@@ -743,12 +787,17 @@ export default {
                                 ticks: {
                                     beginAtZero: true,
                                     padding: 8,
-                                    stepSize: 0.5,
                                 }
                             }
                     }
                 }
             })
+
+        },
+
+        getChartAsObject(){
+
+            return this.chart
 
         },
 

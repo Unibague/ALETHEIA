@@ -639,8 +639,8 @@ export default {
 
                 label: 'Perspectiva del estudiante',
                 data: this.fillCompetencesArray(teacherServiceAreaArray),
-                backgroundColor: hex,
-                borderColor: hex,
+                backgroundColor: 'red',
+                borderColor: 'red',
                 borderWidth: 2
             })
 

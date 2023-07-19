@@ -63,13 +63,6 @@
                     </template>
 
                 </v-data-table>
-
-
-
-
-
-
-
             </v-card>
             <!--Acaba tabla-->
         </v-container>
