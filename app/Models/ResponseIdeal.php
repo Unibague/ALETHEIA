@@ -54,10 +54,31 @@ class ResponseIdeal extends Model
 
     }
 
+    public function getUnitResponseIdeals($unitId): JsonResponse{
+
+
+        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+
+
+        $responseIdeals = DB::table('response_ideals')->where('assessment_period_id', '=', $activeAssessmentPeriodId)
+            ->where('unit_identifier', '=', $unitId)->get();
+
+
+        foreach ($responseIdeals as $key => $responseIdeal){
+
+            $responseIdeals[$key]->response = json_decode($responseIdeal->response);
+
+        }
+
+
+        return response()->json($responseIdeals);
+
+
+    }
 
 
 
-    public function getResponseIdeals($teaching_ladder, $unitIdentifier): JsonResponse{
+    public function getTeacherResponseIdeals($teaching_ladder, $unitIdentifier): JsonResponse{
 
 
         $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
@@ -125,7 +146,7 @@ class ResponseIdeal extends Model
         $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
 
         $competences = DB::table('response_ideals as ri')
-            ->where('ri.assessment_period_id', $activeAssessmentPeriodId)->select('ri.teaching_ladder','ri.response','ri.unit_identifier')
+            ->where('ri.assessment_period_id', $activeAssessmentPeriodId)->select('ri.unit_identifier', 'v2_units.name', 'ri.teaching_ladder','ri.response')
             ->join('v2_units','v2_units.identifier', 'ri.unit_identifier')->get()->all();
 
 
@@ -135,7 +156,7 @@ class ResponseIdeal extends Model
 
         }
 
-
+        /*dd($competences);*/
         return response()->json($competences);
 
 

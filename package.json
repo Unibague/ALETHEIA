@@ -30,6 +30,7 @@
     },
     "dependencies": {
         "chart.js": "^4.3.0",
+        "jspdf": "^2.5.1",
         "papaparse": "^5.4.1",
         "vuetify": "^2.6.3"
     }

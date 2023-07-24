@@ -118,6 +118,7 @@ Route::get('/units/{unitId}/manage', [\App\Http\Controllers\UnitController::clas
 Route::get('/units/{unitId}/assessmentStatus', [\App\Http\Controllers\UnitController::class, 'assessmentStatus'])->middleware(['auth', 'isAdminOrUnitAdmin'])->name('units.assessment.status');
 Route::get('/api/suitableTeachers', [\App\Http\Controllers\UnitController::class, 'getSuitableTeachers'])->middleware(['auth'])->name('api.suitableTeachers');
 Route::get('unit/getTeachersThatBelongToAnUnit', [\App\Http\Controllers\UnitController::class, 'getTeachersThatBelongToAnUnit'])->middleware(['auth', 'isAdminOrUnitAdmin'])->name('unit.getTeachersThatBelongToAnUnit');
+Route::get('unit/faculties', [\App\Http\Controllers\UnitController::class, 'getAllFaculties'])->middleware(['auth', 'isAdminOrUnitAdmin'])->name('unit.getFaculties');
 
 
 /* >>>>>>>>>>>>>>>>>>>>>>>>> Unity Assessment routes <<<<<<<<<<<<<<<<<<<<<<<<< */
@@ -254,13 +255,21 @@ Route::get('/reports/serviceArea/chart/{chartInfo}/teacher/{teacherResults}/down
 
 
 /* >>>>>>>>>>>>>>>>>>>>>>>>ResponseIdeals routes <<<<<<<<<<<<<<<<<<<<<<<<<<<< */
-Route::inertia('/responseIdeals', 'ResponseIdeals/Index')->middleware(['auth', 'isAdmin'])->name('responseIdeals.index.view');
+Route::inertia('/responseIdeals', 'ResponseIdeals/IndexUnits')->middleware(['auth', 'isAdmin'])->name('responseIdeals.index.view');
 
-Route::get('/responseIdeals/edit/{teachingLadder}',  [\App\Http\Controllers\ResponseIdealController::class, 'viewEditTeachingLadders'])->middleware(['auth', 'isAdmin'])->name('responseIdeals.edit.view');
+Route::post('teacher/responseIdeals/get', [\App\Http\Controllers\ResponseIdealController::class, 'getTeacherResponseIdeals'])->middleware('auth')->name('teacher.responseIdeals.get');
+
+Route::get('{unitId}/responseIdeals/get', [\App\Http\Controllers\ResponseIdealController::class, 'getUnitResponseIdeals'])->middleware('auth')->name('unit.responseIdeals.get');
+
+Route::get('/responseIdeals/index/{unitId}',  [\App\Http\Controllers\ResponseIdealController::class, 'indexUnitResponseIdeals'])->middleware(['auth', 'isAdmin'])->name('unit.responseIdeals.index');
+
+Route::get('/responseIdeals/edit/{unitId}/{teachingLadder}',  [\App\Http\Controllers\ResponseIdealController::class, 'editUnitTeachingLadderResponseIdeals'])->middleware(['auth', 'isAdmin'])->name('unit.teachingLadder.responseIdeals.edit');
+
+Route::get('/responseIdeals/get/{unitId}/{teachingLadder}',  [\App\Http\Controllers\ResponseIdealController::class, 'getUnitTeachingLadderResponseIdeals'])->middleware(['auth', 'isAdmin'])->name('unit.teachingLadder.responseIdeals.get');
+
 
 Route::get('/responseIdeals/get', [\App\Http\Controllers\ResponseIdealController::class, 'getAllCompetences'])->middleware('auth')->name('responseIdeals.get');
 
-Route::post('/responseIdeals/get', [\App\Http\Controllers\ResponseIdealController::class, 'getCompetences'])->middleware('auth')->name('responseIdeals.get');
 
 Route::post('/responseIdeals/update', [\App\Http\Controllers\ResponseIdealController::class, 'upsertData'])->middleware('auth')->name('responseIdeals.update');
 
@@ -606,9 +615,9 @@ Route::get('/fulfillFinalAverageCompetences360Teachers', function () {
             ->get();
 
 
-/*        if($uniqueTeacherId == 92){
+/*        if($uniqueTeacherId == 236){
 
-            dd(count($peerBossAutoAssessmentAnswers));
+            dd($peerBossAutoAssessmentAnswers);
         }*/
 
         if(count($peerBossAutoAssessmentAnswers) == 0){
@@ -677,11 +686,9 @@ Route::get('/fulfillFinalAverageCompetences360Teachers', function () {
         }
 
 
-       /* if($uniqueTeacherId == 226){
+/*       if($uniqueTeacherId == 236){
             dd($firstCompetenceTotal,$secondCompetenceTotal,$thirdCompetenceTotal,$fourthCompetenceTotal,$fifthCompetenceTotal,$sixthCompetenceTotal);
-
         }*/
-
 
 
         $firstCompetenceTotal = number_format($firstCompetenceTotal, 1);

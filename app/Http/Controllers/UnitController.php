@@ -417,7 +417,11 @@ class UnitController extends Controller
     }
 
 
+    public function getAllFaculties(): JsonResponse {
 
+        return response()->json(Unit::getFaculties());
+
+    }
 
 
     /**

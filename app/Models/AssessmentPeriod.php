@@ -144,6 +144,7 @@ class AssessmentPeriod extends Model
             }
         }
 
+
         return $suitableTeachingLadders;
 
     }

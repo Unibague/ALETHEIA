@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AssessmentPeriod;
+use App\Models\Unit;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Models\ResponseIdeal;
 use App\Http\Requests\StoreResponseIdealRequest;
 use App\Http\Requests\UpdateResponseIdealRequest;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\Exception\JsonException;
 
@@ -89,16 +92,41 @@ class ResponseIdealController extends Controller
     }
 
 
-    public function viewEditTeachingLadders($teachingLadder){
+    public function indexUnitResponseIdeals($unitId){
+
+        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
 
 
-        return Inertia::render('ResponseIdeals/Edit', ['teachingLadder' => $teachingLadder]);
+        $unit = Unit::where('identifier','=', $unitId)->where('assessment_period_id', '=', $activeAssessmentPeriodId)->first();
+
+        return Inertia::render('ResponseIdeals/IndexUnit', ['unit' => $unit]);
+
+    }
+
+
+    public function editUnitTeachingLadderResponseIdeals($unitId, $teachingLadder){
+
+        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+
+
+        $unit = Unit::where('identifier','=', $unitId)->where('assessment_period_id', '=', $activeAssessmentPeriodId)->first();
+
+        return Inertia::render('ResponseIdeals/IndexUnit', ['unit' => $unit]);
 
     }
 
 
 
+    public function getUnitTeachingLadderResponseIdeals($unitId, $teachingLadder){
 
+        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+
+        $responseIdeals = DB::table('response_ideals')->select(['response'])->where('assessment_period_id', '=', $activeAssessmentPeriodId)
+            ->where('teaching_ladder', '=', $teachingLadder)->where('unit_identifier', '=', $unitId)->first()->response;
+
+        return response()->json(json_decode($responseIdeals));
+
+    }
 
     public function upsertData(Request $request): JsonResponse{
 
@@ -120,22 +148,26 @@ class ResponseIdealController extends Controller
     }
 
 
-    public function getCompetences(Request $request): JsonResponse
-    {
-        $teachingLadder = $request->input('teachingLadder');
-        $unitIdentifier = $request->input('unitIdentifier');
-
-        return ResponseIdeal::getResponseIdeals($teachingLadder, $unitIdentifier);
-
-    }
-
-
     public function getAllCompetences(): JsonResponse
     {
 
         return ResponseIdeal::getAllResponseIdeals();
+    }
 
 
+    public function getTeacherResponseIdeals(Request $request): JsonResponse
+    {
+        $teachingLadder = $request->input('teachingLadder');
+        $unitIdentifier = $request->input('unitIdentifier');
+
+        return ResponseIdeal::getTeacherResponseIdeals($teachingLadder, $unitIdentifier);
+
+    }
+
+
+    public function getUnitResponseIdeals($unitId): JsonResponse
+    {
+        return ResponseIdeal::getUnitResponseIdeals($unitId);
     }
 
 }
