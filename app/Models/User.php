@@ -117,7 +117,7 @@ class User extends Authenticatable
 
     public static function updateOrCreateFromArrayAndGetUsers(array $data): array
     {
-        $now = Carbon::now()->toDateTimeString();
+        $now = Carbon::now('GMT-5')->toDateTimeString();
         $upsertData = [];
         $emails = [];
         foreach ($data as $user) {
@@ -230,7 +230,7 @@ class User extends Authenticatable
 
     public function groups(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
-        $now = Carbon::now();
+        $now = Carbon::now('GMT-5');
         $date = $now->toDateString();
         return $this->belongsToMany(Group::class,'group_user',
             'user_id','group_id','id','group_id')

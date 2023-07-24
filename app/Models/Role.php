@@ -133,8 +133,8 @@ class Role extends Model
             [
                 'user_id' => $userId,
                 'role_id' => $roleId,
-                'created_at' => Carbon::now()->toDateTimeString(),
-                'updated_at' => Carbon::now()->toDateTimeString(),
+                'created_at' => Carbon::now('GMT-5')->toDateTimeString(),
+                'updated_at' => Carbon::now('GMT-5')->toDateTimeString(),
             ]
         );
     }

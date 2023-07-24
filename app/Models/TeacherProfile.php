@@ -180,8 +180,8 @@ class TeacherProfile extends Model
                     ['evaluated_id' => $userId, 'evaluator_id'=> $userId, 'role' => 'autoevaluación'],
                     ['pending' => 1, 'unit_identifier' => $unitIdentifier,
                         'assessment_period_id'=> $activeAssessmentPeriod,
-                        'created_at' => Carbon::now()->toDateTimeString(),
-                        'updated_at' => Carbon::now()->toDateTimeString()]);
+                        'created_at' => Carbon::now('GMT-5')->toDateTimeString(),
+                        'updated_at' => Carbon::now('GMT-5')->toDateTimeString()]);
 
             }
 

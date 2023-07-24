@@ -127,7 +127,7 @@ class UpdateReportResultsCommand extends Command
                     ['hour_type' => $hourTypeFromGroup, 'service_area_code' => $serviceAreaCodeFromGroup, 'first_final_competence_average' => $final_first_competence_average, 'second_final_competence_average' => $final_second_competence_average,
                         'third_final_competence_average' => $final_third_competence_average, 'fourth_final_competence_average' => $final_fourth_competence_average,
                         'fifth_final_competence_average' => $final_fifth_competence_average, 'sixth_final_competence_average' => $final_sixth_competence_average,
-                        'students_amount_reviewers' => $studentsAmount, 'students_amount_on_group' => $totalStudentsEnrolledOnGroup, 'created_at' => Carbon::now()->toDateTimeString(),
+                        'students_amount_reviewers' => $studentsAmount, 'students_amount_on_group' => $totalStudentsEnrolledOnGroup, 'created_at' => Carbon::now('GMT-5')->toDateTimeString(),
                         'updated_at' => Carbon::now('GMT-5')->toDateTimeString()]);
             }
 
