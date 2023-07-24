@@ -474,7 +474,7 @@ Route::get('/firstRunAggregateResults', function () {
 
 
 });
-/*
+
 
 Route::get('/fulfillServiceAreasResultsTable', function () {
 
@@ -562,7 +562,7 @@ Route::get('/fulfillServiceAreasResultsTable', function () {
 
     }
 
-});*/
+});
 
 
 
