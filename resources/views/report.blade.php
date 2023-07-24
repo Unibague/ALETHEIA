@@ -6,7 +6,7 @@
 <body class="mx-5 my-5">
 
 <img src="/images/realWhiteLogo.png"
-     style="max-height: 300px; max-width:300px; object-fit: contain" alt="Logo_universidad">
+     style="max-height: 40px; max-width:255px" alt="Logo_universidad">
 
 <p  style="margin-top: 30px"> Sistema de Información para evaluación docente: <strong> ALETHEIA </strong></p>
 
