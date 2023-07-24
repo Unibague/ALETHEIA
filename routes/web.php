@@ -145,16 +145,11 @@ Route::post('/api/serviceAreas/sync', [\App\Http\Controllers\ServiceAreaControll
 
 Route::get('serviceAreas/getServiceAreasResults', [\App\Http\Controllers\ServiceAreaController::class, 'getServiceAreasResults'])->middleware(['auth'])->name('serviceAreas.getResults');
 Route::get('serviceAreas/getServiceAreasResultsPerGroup', [\App\Http\Controllers\ServiceAreaController::class, 'getServiceAreasResultsPerGroup'])->middleware(['auth'])->name('serviceAreas.getResultsPerGroup');
-
 Route::get('serviceAreas/getTeachersWithResults', [\App\Http\Controllers\ServiceAreaController::class, 'getServiceAreasTeachersWithResults'])
     ->middleware(['auth'])->name('serviceAreas.teachersWithResults');
-
 Route::get('/serviceAreas/{serviceAreaCode}', [\App\Http\Controllers\ServiceAreaController::class, 'edit'])->middleware(['auth', 'isAdminOrUnitAdmin'])->name('serviceAreas.manageServiceArea');
-
 Route::get('serviceArea/{serviceAreaCode}/admins', [\App\Http\Controllers\ServiceAreaController::class, 'getServiceAreaAdmins'])->name('serviceArea.admins')->middleware(['auth']);
-
 Route::post('serviceArea/assignAdmin', [\App\Http\Controllers\ServiceAreaController::class, 'assignServiceAreaAdmin'])->name('serviceArea.assignAdmin')->middleware(['auth']);
-
 Route::post('serviceArea/deleteAdmin', [\App\Http\Controllers\ServiceAreaController::class, 'deleteServiceAreaAdmin'])->name('serviceArea.deleteAdmin')->middleware(['auth']);
 
 
@@ -252,6 +247,9 @@ Route::get('/reports/showServiceArea', [\App\Http\Controllers\ReportsController:
 Route::get('/reports/showServiceAreaGroup', [\App\Http\Controllers\ReportsController::class, 'showServiceAreaGroup'])->middleware(['auth'])->name('reports.showServiceAreaGroup');*/
 Route::get('/reports/chart/{chartInfo}/teacher/{teacherResults}/downloadPdf', [\App\Http\Controllers\ReportsController::class, 'downloadPDF'])->middleware(['auth'])->name('reports.index.downloadPdf');
 Route::get('/reports/serviceArea/chart/{chartInfo}/teacher/{teacherResults}/downloadPdf', [\App\Http\Controllers\ReportsController::class, 'downloadServiceAreaPDF'])->middleware(['auth'])->name('reports.serviceArea.index.downloadPdf');
+
+Route::post('/reports/360Assessment/downloadPdf', [\App\Http\Controllers\ReportsController::class, 'download360'])->middleware(['auth'])->name('reports.savePDFF');
+Route::post('/reports/serviceAreasAssessment/downloadPdf', [\App\Http\Controllers\ReportsController::class, 'downloadServiceAreasAssessment'])->middleware(['auth'])->name('reports.serviceAreas.savePDF');
 
 
 /* >>>>>>>>>>>>>>>>>>>>>>>>ResponseIdeals routes <<<<<<<<<<<<<<<<<<<<<<<<<<<< */
@@ -563,7 +561,6 @@ Route::get('/fulfillServiceAreasResultsTable', function () {
     }
 
 });
-
 
 
 Route::get('/fulfillFinalAverageCompetences360Teachers', function () {
