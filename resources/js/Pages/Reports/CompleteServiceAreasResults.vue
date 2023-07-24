@@ -174,7 +174,7 @@
                         <v-btn
                             color="primario"
                             class="white--text"
-                            @click="savePDFFile()"
+                            @click="savePDF()"
                             :disabled="!teacher"
                         >
                             Descargar reporte en PDF
@@ -402,8 +402,8 @@
                         <v-btn
                             color="primario"
                             class="white--text"
-                            @click="savePDFFile()"
-                            :disabled="!teacher || !serviceArea"
+                            @click="savePDF()"
+                            :disabled="!teacher && !serviceArea"
                         >
                             Descargar reporte en PDF
                         </v-btn>
@@ -577,7 +577,8 @@ export default {
     },
 
     props: {
-        propsServiceAreas: Array
+        propsServiceAreas: Array,
+        token: String
     },
 
 
@@ -602,11 +603,9 @@ export default {
             if (this.propsServiceAreas !== undefined){
 
                 this.individualView = true;
-
             }
 
         },
-
 
         activateResultsPerGroup(){
 
@@ -616,7 +615,6 @@ export default {
 
         },
 
-
         activateResultsPerServiceAreas(){
 
             this.resultsPerGroup = false
@@ -624,8 +622,6 @@ export default {
             this.getServiceAreasTeacherResults();
 
         },
-
-
 
         matchProperty: function (array, propertyPath, reference) {
 
@@ -683,9 +679,6 @@ export default {
             })
 
             this.teachers = this.sortArrayAlphabetically(this.teachers);
-
-
-
         },
 
 
@@ -726,7 +719,6 @@ export default {
             let request = await axios.post(url, {teacherId: teacherId, serviceArea:serviceArea});
 
             this.openAnswersStudents = request.data;
-
 
         },
 
@@ -1095,24 +1087,41 @@ export default {
         },
 
 
-        async savePDFFile(){
+        async savePDF(){
 
             this.datasets.forEach(dataset =>{
 
                 dataset.fill = {target: 'origin',
                     above: 'rgb(255, 255, 255)',
                     below: 'rgb(255, 255, 255)'}
-
             })
 
-            let parameterChart = this.getChartAsObject().config._config;
+            var winName='MyWindow';
+            var winURL= route('reports.serviceAreas.savePDF');
+            var windowOption='resizable=yes,height=600,width=800,location=0,menubar=0,scrollbars=1';
+            var params = { _token: this.token,
+                chart: JSON.stringify(this.getChartAsObject()),
+                teacherResults: JSON.stringify(this.filteredItems)
+            };
 
-                window.open(route('reports.serviceArea.index.downloadPdf', {
-                    teacherResults: JSON.stringify(this.filteredItems),
-                    chartInfo: JSON.stringify(parameterChart),
-
-                }));
-
+            var form = document.createElement("form");
+            form.setAttribute("method", "post");
+            form.setAttribute("action", winURL);
+            form.setAttribute("target",winName);
+            for (var i in params) {
+                if (params.hasOwnProperty(i)) {
+                    var input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = i;
+                    input.value = params[i];
+                    form.appendChild(input);
+                }
+            }
+            document.body.appendChild(form);
+            window.open('', winName, windowOption);
+            form.target = winName;
+            form.submit();
+            document.body.removeChild(form);
 
         },
 
@@ -1190,32 +1199,8 @@ export default {
 
         getChartAsObject(){
 
-            return this.chart
-
+            return this.chart.config._config;
         },
-
-        randomInteger(max) {
-            return Math.floor(Math.random() * (max + 1));
-        },
-
-        randomRgbColor() {
-            let r = this.randomInteger(255);
-            let g = this.randomInteger(255);
-            let b = this.randomInteger(255);
-            return [r, g, b];
-        },
-
-        randomHexColor() {
-            let [r, g, b] = this.randomRgbColor();
-
-            let hr = r.toString(16).padStart(2, '0');
-            let hg = g.toString(16).padStart(2, '0');
-            let hb = b.toString(16).padStart(2, '0');
-
-            return "#" + hr + hg + hb;
-        }
-
-
 
     },
 
@@ -1226,18 +1211,14 @@ export default {
 
             let finalAssessments = this.assessments;
 
-
             if (this.individualView){
-
                 finalAssessments = this.getFilteredAssessmentsByServiceArea(finalAssessments);
-
             }
 
             else {
 
                 if (this.serviceArea !== '') {
                     finalAssessments = this.getFilteredAssessmentsByServiceArea(finalAssessments);
-
                 }
 
             }

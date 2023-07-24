@@ -192,10 +192,6 @@
 
                     <v-container style="position: relative; height:60vh; width:90vw; background: #FAF9F6" id="malparido">
                         <canvas id="MiGrafica"></canvas>
-                        <div class="d-flex flex-column align-end mb-5" >
-                            <h2 class="align-self-start">Gestionar respuestas de evaluación 360</h2>
-                        </div>
-
                     </v-container>
 
 
@@ -206,7 +202,7 @@
                        <v-btn
                             color="primario"
                             class="white--text"
-                            @click="jsPDFDownload()"
+                            @click="savePDF()"
                             :disabled="!teacher"
                         >
                             Descargar reporte en PDF
@@ -220,12 +216,11 @@
                             Salir
                         </v-btn>
 
+
                     </v-card-actions>
+
                 </v-card>
-
-
             </v-dialog>
-
 
             <v-dialog
                 v-model="showOpenAnswersDialog"
@@ -363,7 +358,9 @@ export default {
     },
 
     props: {
-        propsUnits: Array
+        propsUnits: Array,
+        token: String
+
     },
 
 
@@ -382,55 +379,6 @@ export default {
     },
 
     methods: {
-
-
-        jsPDFDownload(src, options){
-
-
-            let source = document.getElementById('malparido').innerHTML;
-
-            let margins = {
-                top: 300,
-                bottom: 60,
-                left: 40,
-                width: 522
-            };
-
-            var canvas = document.getElementById('MiGrafica');
-            var imgData = canvas.toDataURL("image/jpeg", 1.0);
-
-            let pdf = new jsPDF();
-
-            pdf.addImage(imgData, 'JPEG', 15, 15, 275, 120);
-
-            pdf.html(source, function (dispose) {
-                pdf.save('Test.pdf');
-            });
-
-
-/*
-
-
-
-
-            const pdfChart = document.getElementById('MiGrafica');
-
-            const pdfChartImage = pdfChart.toDataURL('image/jpeg', 2.0)
-
-
-            let pdf = new jsPDF('landscape');
-            pdf.setFontSize(15);
-/!*            pdf.addImage(pdfChartImage, 'JPEG', 15, 15);*!/
-
-
-            let source = document.getElementById('malparido').innerHTML
-            pdf.html(source);
-            pdf.save("ffefe.pdf");
-            pdf.addImage(pdfChartImage, 'JPEG', 15, 15, 275, 120);
-            pdf.save('mychart.pdf');
-*/
-
-        },
 
 
         addAllElementSelectionItem(model, text) {
@@ -648,13 +596,15 @@ export default {
 
             this.showChartDialog = true
 
-            console.log(teacher, 'jefjewfjefj')
+            console.log(teacher, 'malparidooooooooooo')
 
             await this.getResponseIdealsDataset(teacher);
 
             this.getRolesDatasets(teacher);
 
             this.getGraph();
+
+            this.getChartAsObject()
 
             console.log(this.chart);
 
@@ -858,18 +808,9 @@ export default {
                             })
 
                         }
-
-
-
                     })
-
-
                 }
-
-
-
             })
-
         },
 
         orderData(a,b){
@@ -896,15 +837,12 @@ export default {
 
         },
 
-
-
         setDialogToCancelOpenAnswers (){
 
             this.showOpenAnswersDialog = false;
             this.openAnswersStudents= [];
 
         },
-
 
         downloadResults (){
 
@@ -949,7 +887,7 @@ export default {
         },
 
 
-        async savePDFFile(){
+        async savePDF(){
 
             this.datasets.forEach(dataset =>{
 
@@ -959,19 +897,35 @@ export default {
 
             })
 
-            let parameterChart = this.getChartAsObject().config._config;
+            var winName='MyWindow';
+            var winURL= route('reports.savePDFF');
+            var windowOption='resizable=yes,height=600,width=800,location=0,menubar=0,scrollbars=1';
+            var params = { _token: this.token,
+                chart: JSON.stringify(this.getChartAsObject()),
+                teacherResults: JSON.stringify(this.filteredItems)
+            };
 
-
-            window.open(route('reports.index.downloadPdf', {
-                teacherResults: JSON.stringify(this.filteredItems),
-                chartInfo: JSON.stringify(parameterChart),
-            }));
-
+            var form = document.createElement("form");
+            form.setAttribute("method", "post");
+            form.setAttribute("action", winURL);
+            form.setAttribute("target",winName);
+            for (var i in params) {
+                if (params.hasOwnProperty(i)) {
+                    var input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = i;
+                    input.value = params[i];
+                    form.appendChild(input);
+                }
+            }
+            document.body.appendChild(form);
+            window.open('', winName, windowOption);
+            form.target = winName;
+            form.submit();
+            document.body.removeChild(form);
 
 
         },
-
-
 
 
 
@@ -987,24 +941,6 @@ export default {
                }
 
 
-            const bgColor ={
-
-                id:'bgColor',
-                beforeDraw: (chart,options) => {
-
-                    const { ctx, width, height} = chart;
-                    ctx.fillStyle = 'white';
-                    ctx.fillRect(0,0,width, height)
-                    ctx.restore();
-                }
-
-
-            }
-
-        /*    Chart.legend.prototype.afterFit = function() {
-                this.height = this.height + 50;
-            };
-*/
                 let miCanvas = document.getElementById("MiGrafica").getContext("2d");
                 this.chart = new Chart(miCanvas, {
                     type:"line",
@@ -1088,20 +1024,16 @@ export default {
                                         callback: (value, index, values) => (index == (values.length-1)) ? undefined : value,
 
                                     },
-
                                 }
                         }
-
-
                     },
-                   plugins: [bgColor]
                 })
 
         },
 
         getChartAsObject(){
 
-            return this.chart
+            return this.chart.config._config;
 
         },
 
@@ -1155,9 +1087,6 @@ export default {
             this.addAllElementSelectionItem(finalTeachers, 'Todos los docentes');
 
             return finalTeachers;
-
-
-
 
         }
     }

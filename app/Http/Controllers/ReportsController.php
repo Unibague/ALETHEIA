@@ -154,7 +154,9 @@ class ReportsController extends Controller
 
         else{
 
-            return Inertia::render('Reports/Complete360AssessmentResults');
+            $token = csrf_token();
+
+            return Inertia::render('Reports/Complete360AssessmentResults', ['token' => $token]);
 
         }
 
@@ -184,7 +186,9 @@ class ReportsController extends Controller
             }
         }
 
-        return Inertia::render('Reports/CompleteServiceAreasResults');
+        $token = csrf_token();
+
+        return Inertia::render('Reports/CompleteServiceAreasResults', ['token' => $token]);
 
     }
 
@@ -228,7 +232,55 @@ class ReportsController extends Controller
     }
 
 
+    public function download360(Request $request){
 
+
+        $assessmentPeriodName = AssessmentPeriod::select(['name'])->where('active', '=', 1)->first()->name;
+
+        $teacherResults = $request->input('teacherResults');
+
+        $teacherResults = json_decode($teacherResults);
+
+        $chartInfo = $request->input('chart');
+
+        $chart = json_decode($chartInfo);
+
+        $labels = $chart->data->labels;
+        $teacherName = strtolower($teacherResults[0]->name);
+        $chart = urlencode(json_encode($chart));
+
+        /*dd($chart);*/
+/*        $pdf = Pdf::loadView('report', compact( 'assessmentPeriodName', 'chart', 'teacherResults', 'labels', 'teacherName'));*/
+/*        return Pdf::loadView('report', compact( 'assessmentPeriodName', 'chart', 'teacherResults', 'labels', 'teacherName'))->download();*/
+
+        return view('report', compact( 'assessmentPeriodName', 'chart', 'teacherResults', 'labels', 'teacherName'));
+
+    }
+
+
+    public function downloadServiceAreasAssessment(Request $request){
+
+        $assessmentPeriodName = AssessmentPeriod::select(['name'])->where('active', '=', 1)->first()->name;
+
+        $teacherResults = $request->input('teacherResults');
+        $chartInfo = $request->input('chart');
+
+        $teacherResults = json_decode($teacherResults);
+
+        $chart = json_decode($chartInfo);
+        $labels = $chart->data->labels;
+
+        $teacherName = strtolower($teacherResults[0]->name);
+        $chart = urlencode(json_encode($chart));
+
+        if(isset($teacherResults[0]->group_id)){
+            /*dd($teacherResults);*/
+            return view('reportServiceAreaGroups', compact( 'assessmentPeriodName', 'chart', 'teacherResults', 'labels', 'teacherName'));
+
+        }
+        return view('reportServiceArea', compact( 'assessmentPeriodName', 'chart', 'teacherResults', 'labels', 'teacherName'));
+
+    }
 
 
 

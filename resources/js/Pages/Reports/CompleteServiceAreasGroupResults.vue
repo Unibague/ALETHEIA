@@ -3,8 +3,6 @@
         <Snackbar :timeout="snackbar.timeout" :text="snackbar.text" :type="snackbar.type"
                   :show="snackbar.status" @closeSnackbar="snackbar.status = false"></Snackbar>
 
-
-
         <v-container fluid>
             <div class="d-flex flex-column align-end mb-5">
                 <h2 class="align-self-start">Gestionar respuestas de evaluación por grupo</h2>
@@ -151,8 +149,6 @@
 
             <!--Seccion de dialogos-->
 
-            <!--Transferir docente entre unidades-->
-
             <v-dialog
                 v-model="showChartDialog"
                 persistent
@@ -166,18 +162,15 @@
 
                     </v-card-text>
 
-
                     <v-container style="position: relative; height:60vh; width:90vw; background: #FAF9F6">
                         <canvas id="MiGrafica"></canvas>
                     </v-container>
 
                     <v-card-actions>
-
-
                         <v-btn
                             color="primario"
                             class="white--text"
-                            @click="savePDFFile()"
+                            @click="savePDF()"
                             :disabled="!teacher || !serviceArea"
                         >
                             Descargar reporte en PDF
@@ -191,8 +184,6 @@
                         >
                             Salir
                         </v-btn>
-
-
                     </v-card-actions>
                 </v-card>
 
@@ -334,9 +325,9 @@ export default {
     },
 
     props: {
-        propsServiceAreas: Array
+        propsServiceAreas: Array,
+        token: String
     },
-
 
     async created() {
 
@@ -361,11 +352,6 @@ export default {
 
         },
 
-
-        updateResults: function (){
-
-
-        },
 
         matchProperty: function (array, propertyPath, reference) {
 
@@ -523,7 +509,6 @@ export default {
             let array = [roleArray.first_competence_average, roleArray.second_competence_average, roleArray.third_competence_average, roleArray.fourth_competence_average,
 
                 roleArray.fifth_competence_average, roleArray.sixth_competence_average]
-
 
             return array;
 
@@ -718,23 +703,41 @@ export default {
 
         },
 
-        async savePDFFile(){
+        async savePDF(){
 
             this.datasets.forEach(dataset =>{
 
                 dataset.fill = {target: 'origin',
                     above: 'rgb(255, 255, 255)',
                     below: 'rgb(255, 255, 255)'}
-
             })
 
-            let parameterChart = this.getChartAsObject().config._config;
+            var winName='MyWindow';
+            var winURL= route('reports.savePDFF');
+            var windowOption='resizable=yes,height=600,width=800,location=0,menubar=0,scrollbars=1';
+            var params = { _token: this.token,
+                chart: JSON.stringify(this.getChartAsObject()),
+                teacherResults: JSON.stringify(this.filteredItems)
+            };
 
-                window.open(route('reports.serviceArea.index.downloadPdf', {
-                    teacherResults: JSON.stringify(this.filteredItems),
-                    chartInfo: JSON.stringify(parameterChart),
-
-                }));
+            var form = document.createElement("form");
+            form.setAttribute("method", "post");
+            form.setAttribute("action", winURL);
+            form.setAttribute("target",winName);
+            for (var i in params) {
+                if (params.hasOwnProperty(i)) {
+                    var input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = i;
+                    input.value = params[i];
+                    form.appendChild(input);
+                }
+            }
+            document.body.appendChild(form);
+            window.open('', winName, windowOption);
+            form.target = winName;
+            form.submit();
+            document.body.removeChild(form);
 
         },
 
@@ -749,8 +752,6 @@ export default {
                     datasets: this.datasets,
                 },
                 options: {
-
-
                     legend: {
                         display: false
                     },
@@ -797,32 +798,8 @@ export default {
 
         getChartAsObject(){
 
-            return this.chart
-
+            return this.chart.config._config;
         },
-
-        randomInteger(max) {
-            return Math.floor(Math.random() * (max + 1));
-        },
-
-        randomRgbColor() {
-            let r = this.randomInteger(255);
-            let g = this.randomInteger(255);
-            let b = this.randomInteger(255);
-            return [r, g, b];
-        },
-
-        randomHexColor() {
-            let [r, g, b] = this.randomRgbColor();
-
-            let hr = r.toString(16).padStart(2, '0');
-            let hg = g.toString(16).padStart(2, '0');
-            let hb = b.toString(16).padStart(2, '0');
-
-            return "#" + hr + hg + hb;
-        }
-
-
 
     },
 
@@ -862,9 +839,6 @@ export default {
             this.addAllElementSelectionItem(finalTeachers, 'Todos los docentes');
 
             return finalTeachers;
-
-
-
 
         }
     }
