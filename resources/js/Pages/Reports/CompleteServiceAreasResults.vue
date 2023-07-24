@@ -917,7 +917,7 @@ export default {
 
         async getResponseIdealsCompetences(teachingLadder){
 
-            let url = route('responseIdeals.get');
+            let url = route('teacher.responseIdeals.get');
             let request = await axios.post(url, {teachingLadder: teachingLadder})
             if(request.data.length === 0){
                 return this.getPossibleInitialCompetences();

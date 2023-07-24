@@ -1,88 +1,30 @@
 <template>
     <AuthenticatedLayout>
 
-        <div class="d-flex flex-column align-end mb-8">
-            <h3 class="align-self-start">Definir ideales de respuesta por facultad</h3>
-        </div>
+        <v-container class="mt-5" style="max-width: 60%">
+            <v-card>
+                <v-card-title>
+                    <span class="text-h5 text-center">Ideales de respuesta por facultad </span>
+                </v-card-title>
+                <v-col cols="12">
+                        <h5 class="subtitle-1 mb-5">
+                            Por favor, selecciona los ideales de respuesta que deseas visualizar:
+                        </h5>
 
-            <v-container fluid v-for="faculty in faculties" :key="faculty.name">
-                <v-row class="mr-5">
-                    <v-col cols="8">
+                    <InertiaLink v-for="faculty in faculties"
+                                 :key="faculty.name" :href="route('unit.responseIdeals.index', {unitId: faculty.unit_identifier})">
+                        <v-btn
+                            color="primario"
+                            class="white--text mb-4 mr-5" >
+                            {{ capitalize(faculty.name) }}
+                        </v-btn>
 
-                    <div class="d-flex flex-column align-end mb-4">
-                        <h3 class="align-self-start">{{capitalize(faculty.name)}}</h3>
-                    </div>
+                    </InertiaLink>
 
-                    <!--Inicia tabla-->
-                    <v-card max-width="850%">
-                        <v-data-table
-                            loading-text="Cargando, por favor espere..."
-                            :loading="isLoading"
-                            :headers="headers"
-                            :items="faculties"
-                            :hide-default-footer="true"
-                        >
-
-                            <template v-slot:item.actions="{item}">
-
-
-                                {{item}}
-
-<!--                                <v-tooltip top>
-                                    <template v-slot:activator="{on,attrs}">
-
-                                        <InertiaLink :href="route('responseIdeals.edit.view', {teachingLadder:item.name})">
-
-                                            <v-icon
-                                                v-bind="attrs"
-                                                v-on="on"
-                                                class="mr-2 primario&#45;&#45;text"
-                                            >
-                                                mdi-pencil
-                                            </v-icon>
-
-                                        </InertiaLink>
-
-                                    </template>
-                                    <span>Editar ideales de respuesta</span>
-                                </v-tooltip>-->
-
-
-                            </template>
-
-
-                        </v-data-table>
-                    </v-card>
 
                 </v-col>
-<!--
-               <v-col cols="6" class="mt-6">
-
-                        <v-container style="position: relative; height:50vh; width:90vw; background: #FAF9F6">
-                            <canvas id="MiGrafica"></canvas>
-                        </v-container>
-
-                </v-col>-->
-
-               <v-col cols="2" style="align-self: center; margin-left: 10px">
-
-                           <InertiaLink :href="route('answers.index.view')">
-
-                               <v-btn
-                                   class="mr-2 white--text"
-                                   color="primario"
-                               >
-                                   Editar ideales de respuesta
-                               </v-btn>
-
-                           </InertiaLink>
-
-                </v-col>
-
-        </v-row>
+            </v-card>
         </v-container>
-
-
     </AuthenticatedLayout>
 </template>
 
@@ -105,16 +47,6 @@ export default {
     data: () => {
         return {
             //Table info
-            headers: [
-                {text: 'Escalafon', value: 'teaching_ladder', width:'15%'},
-                {text: 'C1', value: 'C1'},
-                {text: 'C2', value: 'C2'},
-                {text: 'C3', value: 'C3', sortable: false},
-                {text: 'C4', value: 'C4', sortable: false},
-                {text: 'C5', value: 'C5', sortable: false},
-                {text: 'C6', value: 'C6', sortable: false},
-                {text: 'Editar', value: 'actions', sortable: false},
-            ],
 
             faculties: [],
             finalTeachingLadders: [],
@@ -137,9 +69,9 @@ export default {
         }
     },
     async created() {
-        await this.getSuitableTeachingLadders()
+     /*   await this.getSuitableTeachingLadders()*/
         await this.getFaculties();
-        await this.getAllResponseIdeals()
+        /*await this.getAllResponseIdeals()*/
         /* this.getGraph()*/
         this.isLoading = false;
 

@@ -6,8 +6,7 @@
 <body class="mx-5 my-5">
 
 <img src="/images/realWhiteLogo.png"
-     style="max-height: 300px; max-width:300px; object-fit: contain">
-
+     style="max-height: 300px; max-width:300px; object-fit: contain" alt="Logo_universidad">
 
 <p  style="margin-top: 30px"> Sistema de Información para evaluación docente: <strong> ALETHEIA </strong></p>
 
@@ -40,33 +39,12 @@
     @endforeach
     </tbody>
 
-
-
 </table>
-
-<!--<div class="container" >
-
-</div>-->
-
 
 <div style="margin-top: 20px" >
     <img src="https://quickchart.io/chart?c={{$chart}}" style="max-width: 80%; margin-left: 5%; margin-top: 5%" >
 </div>
 
-<!--
-<div class="container" >
-    <img src="https://quickchart.io/chart?c={type:%27bar%27,data:{labels:[2012,2013,2014,2015,2016],datasets:[{label:%27Users%27,data:[120,60,50,180,120]}]}}" style="max-width: 500px">
-</div>
--->
-
-
-<!--    <img src="https://quickchart.io/chart?c={type:'line',data:{labels:['C1', 'C2', 'C3', 'C4', 'C5','C6'],datasets:[{label:'Desempeño del docente',data:[120,60,50,180,120,130]}],
-options:{legend:{display: false}, scales:{x:{title:{display:true, text:'competencias'}}}}}},
-" style="max-width: 500px">-->
-
-
 </body>
-
-
 
 </html>

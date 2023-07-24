@@ -106,7 +106,6 @@ class UpdateReportResultsCommand extends Command
 
                 }
 
-
                 $final_first_competence_average /= $studentsAmount;
                 $final_second_competence_average /= $studentsAmount;
                 $final_third_competence_average /= $studentsAmount;
@@ -347,8 +346,8 @@ class UpdateReportResultsCommand extends Command
                 ->where('t.id', '=', $uniqueTeacherId)
                 ->get();
 
-
-            /*        if($uniqueTeacherId == 92){
+/*
+                    if($uniqueTeacherId == 236){
 
                         dd(count($peerBossAutoAssessmentAnswers));
                     }*/
@@ -418,14 +417,6 @@ class UpdateReportResultsCommand extends Command
 
             }
 
-
-            /* if($uniqueTeacherId == 226){
-                 dd($firstCompetenceTotal,$secondCompetenceTotal,$thirdCompetenceTotal,$fourthCompetenceTotal,$fifthCompetenceTotal,$sixthCompetenceTotal);
-
-             }*/
-
-
-
             $firstCompetenceTotal = number_format($firstCompetenceTotal, 1);
             $secondCompetenceTotal = number_format($secondCompetenceTotal, 1);
             $thirdCompetenceTotal = number_format($thirdCompetenceTotal, 1);
@@ -434,8 +425,9 @@ class UpdateReportResultsCommand extends Command
             $sixthCompetenceTotal = number_format($sixthCompetenceTotal, 1);
 
 
-            DB::table('teachers_360_final_average')->updateOrInsert(['teacher_id' => $uniqueTeacherId,
-                'assessment_period_id' => $activeAssessmentPeriodId], ['first_final_aggregate_competence_average' => $firstCompetenceTotal,
+            DB::table('teachers_360_final_average')->updateOrInsert(
+                ['teacher_id' => $uniqueTeacherId, 'assessment_period_id' => $activeAssessmentPeriodId],
+                ['first_final_aggregate_competence_average' => $firstCompetenceTotal,
                 'second_final_aggregate_competence_average' => $secondCompetenceTotal,
                 'third_final_aggregate_competence_average' => $thirdCompetenceTotal,
                 'fourth_final_aggregate_competence_average' => $fourthCompetenceTotal,

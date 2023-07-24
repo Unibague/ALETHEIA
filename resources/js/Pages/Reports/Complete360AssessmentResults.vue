@@ -4,7 +4,7 @@
                   :show="snackbar.status" @closeSnackbar="snackbar.status = false"></Snackbar>
 
         <v-container fluid>
-            <div class="d-flex flex-column align-end mb-5">
+            <div class="d-flex flex-column align-end mb-5" id="malparido">
                 <h2 class="align-self-start">Gestionar respuestas de evaluación 360</h2>
             </div>
 
@@ -188,27 +188,25 @@
 
                         <h2 class="black--text pt-5" style="text-align: center"> Visualizando al docente: {{this.capitalize(this.selectedTeacherToGraph)}}</h2>
 
-
-
                     </v-card-text>
 
-
-
-
-                    <v-container style="position: relative; height:60vh; width:90vw; background: #FAF9F6">
+                    <v-container style="position: relative; height:60vh; width:90vw; background: #FAF9F6" id="malparido">
                         <canvas id="MiGrafica"></canvas>
+                        <div class="d-flex flex-column align-end mb-5" >
+                            <h2 class="align-self-start">Gestionar respuestas de evaluación 360</h2>
+                        </div>
+
                     </v-container>
 
 
                     <h5 class="gray--text" style="text-align: left; margin-left: 60px; margin-bottom: 5px"> Puedes dar click izquierdo sobre la leyenda de la linea de tendencia que desees ocultar </h5>
-
 
                     <v-card-actions>
 
                        <v-btn
                             color="primario"
                             class="white--text"
-                            @click="savePDFFile()"
+                            @click="jsPDFDownload()"
                             :disabled="!teacher"
                         >
                             Descargar reporte en PDF
@@ -221,8 +219,6 @@
                         >
                             Salir
                         </v-btn>
-
-
 
                     </v-card-actions>
                 </v-card>
@@ -262,8 +258,6 @@
 
                         </div>
 
-
-
                     </v-card-text>
 
 
@@ -298,6 +292,7 @@ import Snackbar from "@/Components/Snackbar";
 import Chart from "chart.js/auto";
 import Question from "@/models/Question";
 import Papa from 'papaparse';
+import jsPDF from "jspdf";
 
 
 export default {
@@ -387,6 +382,56 @@ export default {
     },
 
     methods: {
+
+
+        jsPDFDownload(src, options){
+
+
+            let source = document.getElementById('malparido').innerHTML;
+
+            let margins = {
+                top: 300,
+                bottom: 60,
+                left: 40,
+                width: 522
+            };
+
+            var canvas = document.getElementById('MiGrafica');
+            var imgData = canvas.toDataURL("image/jpeg", 1.0);
+
+            let pdf = new jsPDF();
+
+            pdf.addImage(imgData, 'JPEG', 15, 15, 275, 120);
+
+            pdf.html(source, function (dispose) {
+                pdf.save('Test.pdf');
+            });
+
+
+/*
+
+
+
+
+            const pdfChart = document.getElementById('MiGrafica');
+
+            const pdfChartImage = pdfChart.toDataURL('image/jpeg', 2.0)
+
+
+            let pdf = new jsPDF('landscape');
+            pdf.setFontSize(15);
+/!*            pdf.addImage(pdfChartImage, 'JPEG', 15, 15);*!/
+
+
+            let source = document.getElementById('malparido').innerHTML
+            pdf.html(source);
+            pdf.save("ffefe.pdf");
+            pdf.addImage(pdfChartImage, 'JPEG', 15, 15, 275, 120);
+            pdf.save('mychart.pdf');
+*/
+
+        },
+
 
         addAllElementSelectionItem(model, text) {
             model.unshift({id: '', name: text});
@@ -699,7 +744,7 @@ export default {
 
         async getResponseIdealsCompetences(teachingLadder, unitIdentifier){
 
-            let url = route('responseIdeals.get');
+            let url = route('teacher.responseIdeals.get');
             let request = await axios.post(url, {teachingLadder: teachingLadder, unitIdentifier: unitIdentifier})
             if(request.data.length === 0){
                 return this.getPossibleInitialCompetences();
@@ -757,8 +802,6 @@ export default {
 
             })
 
-            let hex = this.randomHexColor()
-
             this.datasets.unshift({
 
                 label: `Nivel Esperado (${teachingLadder == 'Ninguno' ? 'Auxiliar' : teachingLadder})`,
@@ -784,8 +827,6 @@ export default {
             /*console.log(colors.getLineChartColors(), 'colorssssss')*/
 
             teacherRolesArrays.forEach(roleArray => {
-
-                let hex = this.randomHexColor()
 
                 if(roleArray.unit_role == 'promedio final')
                 {
@@ -930,16 +971,35 @@ export default {
 
         },
 
+
+
+
+
         getGraph(){
 
 
-    /*           const legendMargin ={
+         const legendMargin ={
                        beforeInit: function(chart, options) {
                            chart.legend.afterFit = function() {
                                this.height += 10; // must use `function` and not => because of `this`
                            };
                        }
-               }*/
+               }
+
+
+            const bgColor ={
+
+                id:'bgColor',
+                beforeDraw: (chart,options) => {
+
+                    const { ctx, width, height} = chart;
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(0,0,width, height)
+                    ctx.restore();
+                }
+
+
+            }
 
         /*    Chart.legend.prototype.afterFit = function() {
                 this.height = this.height + 50;
@@ -987,7 +1047,6 @@ export default {
                             intersect: false
                         },
 
-
                         scales: {
                             x:
                                 {
@@ -1034,8 +1093,8 @@ export default {
                         }
 
 
-                    },/*
-                   plugins: [legendMargin]*/
+                    },
+                   plugins: [bgColor]
                 })
 
         },
@@ -1045,29 +1104,6 @@ export default {
             return this.chart
 
         },
-
-        randomInteger(max) {
-            return Math.floor(Math.random() * (max + 1));
-        },
-
-        randomRgbColor() {
-            let r = this.randomInteger(255);
-            let g = this.randomInteger(255);
-            let b = this.randomInteger(255);
-            return [r, g, b];
-        },
-
-        randomHexColor() {
-            let [r, g, b] = this.randomRgbColor();
-
-            let hr = r.toString(16).padStart(2, '0');
-            let hg = g.toString(16).padStart(2, '0');
-            let hb = b.toString(16).padStart(2, '0');
-
-            return "#" + hr + hg + hb;
-        }
-
-
 
     },
 

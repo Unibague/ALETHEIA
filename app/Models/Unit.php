@@ -204,6 +204,24 @@ class Unit extends Model
     }
 
 
+    public static function getFaculties (){
+
+         $faculties = DB::table('unit_hierarchy')
+             ->where('unit_hierarchy.assessment_period_id', '=', AssessmentPeriod::getActiveAssessmentPeriod()->id)
+            ->select(['unit_hierarchy.father_unit_identifier as unit_identifier','v2_units.name'])->distinct()
+             ->join('v2_units', 'unit_hierarchy.father_unit_identifier', '=', 'v2_units.identifier')->orderBy('v2_units.name', 'ASC')->get();
+
+
+         /*dd($faculties);*/
+
+         return $faculties;
+
+
+
+    }
+
+
+
     public static function assignStaffMemberAsUnitAdmin($unitId, $userId, $roleId){
 
         DB::table('v2_unit_user')

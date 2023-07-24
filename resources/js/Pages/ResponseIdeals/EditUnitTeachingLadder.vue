@@ -7,6 +7,9 @@
         <v-row>
             <v-col cols="6">
 
+                <h2> {{capitalize(unit.name)}}</h2>
+
+
                 <h3> Definir ideales de respuesta para el escalafón de docente: {{teachingLadder == 'Ninguno' ? 'Sin Escalafón' : teachingLadder}} </h3>
 
                 <v-card>
@@ -114,7 +117,6 @@ export default {
         AuthenticatedLayout,
         InertiaLink,
     },
-    props: ['teachingLadder'],
 
     data: () => {
         return {
@@ -148,12 +150,22 @@ export default {
 
 
     },
+
+
+    props: {
+        unit: Object
+    },
+
+
     async created() {
 
-        await this.getCompetences();
+/*
+
         this.fillArrayWithCompetencesValues(this.competences);
         this.getGraph();
         this.isLoading = false;
+*/
+        await this.getUnitResponseIdeals();
 
     },
 
@@ -167,13 +179,14 @@ export default {
 
         },
 
-        async getCompetences(){
+        async getUnitResponseIdeals(){
 
-            let url = route('responseIdeals.get');
+            let request = await axios.get(route('unit.responseIdeals.get', {unitId: this.unit.identifier}))
 
-            let request = await axios.post(url, {teachingLadder: this.teachingLadder})
+            console.log(request.data);
 
-            if(request.data.length === 0){
+
+          /*  if(request.data.length === 0){
 
                 this.competences = this.getPossibleInitialCompetences();
             }
@@ -182,7 +195,7 @@ export default {
 
                 this.competences = request.data;
 
-            }
+            }*/
 
         },
 
@@ -198,7 +211,7 @@ export default {
                     labels: ["C1", "C2", "C3", "C4", "C5", "C6"],
                     datasets:[
                         {
-                            label: `Ideales de respuesta para el escalafon:  ${this.teachingLadder == 'Ninguno' ? 'Sin Escalafón' : this.teachingLadder}`,
+                            label: `Nivel esperado para el escalafon:  ${this.teachingLadder == 'Ninguno' ? 'Sin Escalafón' : this.teachingLadder}`,
                             data: this.competencesValuesArray,
                             backgroundColor: hex,
                             borderColor: hex,
@@ -302,26 +315,12 @@ export default {
 
         },
 
-        randomInteger(max) {
-            return Math.floor(Math.random() * (max + 1));
+
+        capitalize($field){
+
+            return $field.toLowerCase().split(' ').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+
         },
-
-        randomRgbColor() {
-            let r = this.randomInteger(255);
-            let g = this.randomInteger(255);
-            let b = this.randomInteger(255);
-            return [r, g, b];
-        },
-
-        randomHexColor() {
-            let [r, g, b] = this.randomRgbColor();
-
-            let hr = r.toString(16).padStart(2, '0');
-            let hg = g.toString(16).padStart(2, '0');
-            let hb = b.toString(16).padStart(2, '0');
-
-            return "#" + hr + hg + hb;
-        }
 
     },
 
