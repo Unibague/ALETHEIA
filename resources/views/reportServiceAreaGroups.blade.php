@@ -36,7 +36,6 @@
         <td style="text-transform: capitalize">Estudiante</td>
         <td>{{$teacherResult->group_name}}</td>
         <td>{{$teacherResult->group_number}}</td>
-        <td>{{$teacherResult->service_area_name}}</td>
         <td>{{$teacherResult->first_competence_average}}</td>
         <td>{{$teacherResult->second_competence_average}}</td>
         <td>{{$teacherResult->third_competence_average}}</td>
@@ -57,8 +56,21 @@
 </div>
 
 
+<h5 style="margin-top: 100px" > Reporte generado en: {{$timestamp}}</h5>
+
+
+<script>
+
+    window.addEventListener('load', function (){
+
+        window.print();
+
+    })
+
+
+
+</script>
+
+
 </body>
-
-
-
 </html>

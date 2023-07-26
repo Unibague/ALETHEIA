@@ -253,7 +253,7 @@ Route::post('/reports/serviceAreasAssessment/downloadPdf', [\App\Http\Controller
 
 
 /* >>>>>>>>>>>>>>>>>>>>>>>>ResponseIdeals routes <<<<<<<<<<<<<<<<<<<<<<<<<<<< */
-Route::inertia('/responseIdeals', 'ResponseIdeals/IndexUnits')->middleware(['auth', 'isAdmin'])->name('responseIdeals.index.view');
+Route::inertia('/responseIdeals', 'ResponseIdeals/IndexAndEdit')->middleware(['auth', 'isAdmin'])->name('responseIdeals.index.view');
 
 Route::post('teacher/responseIdeals/get', [\App\Http\Controllers\ResponseIdealController::class, 'getTeacherResponseIdeals'])->middleware('auth')->name('teacher.responseIdeals.get');
 
@@ -270,6 +270,10 @@ Route::get('/responseIdeals/get', [\App\Http\Controllers\ResponseIdealController
 
 
 Route::post('/responseIdeals/update', [\App\Http\Controllers\ResponseIdealController::class, 'upsertData'])->middleware('auth')->name('responseIdeals.update');
+Route::post('/responseIdeals/delete', [\App\Http\Controllers\ResponseIdealController::class, 'delete'])->middleware('auth')->name('responseIdeals.delete');
+
+
+
 
 /* >>>>>>>>>>>>>>>>>>>>>>>>Roles routes <<<<<<<<<<<<<<<<<<<<<<<<<<<< */
 //Get all roles

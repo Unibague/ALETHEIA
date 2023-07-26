@@ -66,9 +66,23 @@
 options:{legend:{display: false}, scales:{x:{title:{display:true, text:'competencias'}}}}}},
 " style="max-width: 500px">-->
 
+<h5 style="margin-top: 100px" > Reporte generado en: {{$timestamp}}</h5>
+
 
 </body>
 
+
+<script>
+
+    window.addEventListener('load', function (){
+
+        window.print();
+
+    })
+
+
+
+</script>
 
 
 </html>

@@ -342,7 +342,6 @@ export default {
 
             this.editDialog = true
 
-
         },
 
         async updateResponseIdeals(competences) {

@@ -202,7 +202,7 @@
                        <v-btn
                             color="primario"
                             class="white--text"
-                            @click="savePDF()"
+                            @click="confirmSavePDF = true"
                             :disabled="!teacher"
                         >
                             Descargar reporte en PDF
@@ -274,6 +274,23 @@
 
         </v-container>
 
+
+        <!--Confirmar borrar rol-->
+        <confirm-dialog
+            :show="confirmSavePDF"
+            @confirmed-dialog="savePDF()"
+        >
+            <template v-slot:title>
+                Ahora serás redirigido a la pantalla para guardar el PDF
+            </template>
+
+            Una vez allí, lo único que debes hacer es darle click al botón de <strong class="black--text"> Guardar </strong> en la parte inferior derecha de tu pantalla y tendrás el archivo
+
+            <template v-slot:confirm-button-text>
+                Descargar PDF
+            </template>
+        </confirm-dialog>
+
     </AuthenticatedLayout>
 </template>
 
@@ -342,6 +359,7 @@ export default {
             responseIdealsCompetencesArray: [],
             openAnswersStudents: [],
             openAnswersColleagues: [],
+            confirmSavePDF: false,
             //Snackbars
             snackbar: {
                 text: "",
@@ -888,6 +906,8 @@ export default {
 
 
         async savePDF(){
+
+            this.confirmSavePDF = false;
 
             this.datasets.forEach(dataset =>{
 

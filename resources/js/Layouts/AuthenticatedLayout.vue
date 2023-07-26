@@ -332,6 +332,13 @@ export default {
                          role: 10,
                          icon: 'mdi-account-cog'
                      },*/
+
+                    {
+                        name: 'Notificaciones de Evaluación',
+                        href: route('enrolls.index.view'),
+                        role: 10,
+                        icon: 'mdi-account-cog'
+                    },
                     {
                         name: 'Formularios',
                         href: route('forms.index.view'),

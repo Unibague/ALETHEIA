@@ -6,6 +6,7 @@ use App\Models\AssessmentPeriod;
 use App\Models\Reports;
 use App\Models\ServiceArea;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -249,11 +250,30 @@ class ReportsController extends Controller
         $teacherName = strtolower($teacherResults[0]->name);
         $chart = urlencode(json_encode($chart));
 
+        $timestamp = Carbon::now('GMT-5');
+
+
         /*dd($chart);*/
 /*        $pdf = Pdf::loadView('report', compact( 'assessmentPeriodName', 'chart', 'teacherResults', 'labels', 'teacherName'));*/
-/*        return Pdf::loadView('report', compact( 'assessmentPeriodName', 'chart', 'teacherResults', 'labels', 'teacherName'))->download();*/
+/*        $pdf = app('dompdf.wrapper');*/
+/*
+        //############ Permitir ver imagenes si falla ################################
+        $contxt = stream_context_create([
+            'ssl' => [
+                'verify_peer' => FALSE,
+                'verify_peer_name' => FALSE,
+                'allow_self_signed' => TRUE,
+            ]
+        ]);
 
-        return view('report', compact( 'assessmentPeriodName', 'chart', 'teacherResults', 'labels', 'teacherName'));
+        $pdf = Pdf::setOptions(['isHTML5ParserEnabled' => true, 'isRemoteEnabled' => true]);
+        $pdf->getDomPDF()->setHttpContext($contxt);
+        //#################################################################################*/
+
+
+/*        return Pdf::loadView('report', compact( 'assessmentPeriodName', 'chart', 'teacherResults', 'labels', 'teacherName'));*/
+
+        return view('report', compact( 'assessmentPeriodName', 'chart', 'teacherResults', 'labels', 'teacherName', 'timestamp'));
 
     }
 
@@ -273,12 +293,14 @@ class ReportsController extends Controller
         $teacherName = strtolower($teacherResults[0]->name);
         $chart = urlencode(json_encode($chart));
 
+        $timestamp = Carbon::now('GMT-5');
+
         if(isset($teacherResults[0]->group_id)){
             /*dd($teacherResults);*/
-            return view('reportServiceAreaGroups', compact( 'assessmentPeriodName', 'chart', 'teacherResults', 'labels', 'teacherName'));
+            return view('reportServiceAreaGroups', compact( 'assessmentPeriodName', 'chart', 'teacherResults', 'labels', 'teacherName', 'timestamp'));
 
         }
-        return view('reportServiceArea', compact( 'assessmentPeriodName', 'chart', 'teacherResults', 'labels', 'teacherName'));
+        return view('reportServiceArea', compact( 'assessmentPeriodName', 'chart', 'teacherResults', 'labels', 'teacherName', 'timestamp'));
 
     }
 
