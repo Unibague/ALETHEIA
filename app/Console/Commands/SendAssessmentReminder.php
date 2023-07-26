@@ -53,8 +53,6 @@ class SendAssessmentReminder extends Command
             'periods' =>  AcademicPeriod::getCurrentAcademicPeriodsByCommas()
         ], true);
 
-        dd($groups);
-
 
         $todayDate = new \DateTime("today");
 
