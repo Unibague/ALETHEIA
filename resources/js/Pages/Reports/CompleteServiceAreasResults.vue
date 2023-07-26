@@ -174,7 +174,7 @@
                         <v-btn
                             color="primario"
                             class="white--text"
-                            @click="savePDF()"
+                            @click="confirmSavePDF = true"
                             :disabled="!teacher"
                         >
                             Descargar reporte en PDF
@@ -402,7 +402,7 @@
                         <v-btn
                             color="primario"
                             class="white--text"
-                            @click="savePDF()"
+                            @click="confirmSavePDF = true"
                             :disabled="!teacher && !serviceArea"
                         >
                             Descargar reporte en PDF
@@ -470,11 +470,24 @@
 
                     </v-card-actions>
                 </v-card>
-
             </v-dialog>
-
-
         </v-container>
+
+
+        <confirm-dialog
+            :show="confirmSavePDF"
+            @confirmed-dialog="savePDF()"
+        >
+            <template v-slot:title>
+                Ahora serás redirigido a la pantalla para guardar el PDF
+            </template>
+
+            Una vez allí, lo único que debes hacer es darle click al botón de <strong class="black--text"> Guardar </strong> en la parte inferior derecha de tu pantalla y tendrás el archivo
+
+            <template v-slot:confirm-button-text>
+                Descargar PDF
+            </template>
+        </confirm-dialog>
 
     </AuthenticatedLayout>
 </template>
@@ -563,6 +576,7 @@ export default {
             selectedGroupNameOpenAnswers: '',
             individualView: false,
             resultsPerGroup: false,
+            confirmSavePDF: false,
             //Snackbars
             snackbar: {
                 text: "",
@@ -987,7 +1001,7 @@ export default {
                 teacherServiceAreaArray.forEach((serviceArea, index) => {
 
                     this.datasets.push({
-                        label: `${this.capitalize(serviceArea.group_name)} - Gr. ${serviceArea.group_number} - P.A: ${serviceArea.academic_period_name}`,
+                        label: `P.A: ${serviceArea.academic_period_name} - ${this.capitalize(serviceArea.group_name)} - Gr. ${serviceArea.group_number}`,
                         data: this.fillCompetencesArray(serviceArea),
                         backgroundColor: colorsArray[index],
                         borderColor: colorsArray[index],
@@ -1089,6 +1103,9 @@ export default {
 
         async savePDF(){
 
+
+            this.confirmSavePDF = false;
+
             this.datasets.forEach(dataset =>{
 
                 dataset.fill = {target: 'origin',
@@ -1122,6 +1139,7 @@ export default {
             form.target = winName;
             form.submit();
             document.body.removeChild(form);
+
 
         },
 

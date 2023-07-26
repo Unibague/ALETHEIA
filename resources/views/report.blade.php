@@ -38,13 +38,30 @@
     </tr>
     @endforeach
     </tbody>
-
 </table>
 
-<div style="margin-top: 20px" >
+<div style="margin-top: 20px">
     <img src="https://quickchart.io/chart?c={{$chart}}" style="max-width: 80%; margin-left: 5%; margin-top: 5%" >
 </div>
 
+
+<h5 style="margin-top: 100px" > Reporte generado en: {{$timestamp}}</h5>
+
+
+
 </body>
+
+
+<script>
+
+    window.addEventListener('load', function (){
+
+            window.print();
+
+    })
+
+
+
+</script>
 
 </html>

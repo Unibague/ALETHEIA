@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AssessmentPeriod;
 use App\Models\Unit;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Models\ResponseIdeal;
@@ -128,15 +129,72 @@ class ResponseIdealController extends Controller
 
     }
 
+
+    public function delete(Request $request): JsonResponse{
+
+        try {
+
+            $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+            $teachingLadder = strtolower($request->input('teachingLadder'));
+            $unitIdentifier = $request->input('unit');
+
+            DB::table('response_ideals')->where('unit_identifier' , '=',  $unitIdentifier)
+                ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->where('teaching_ladder', '=', $teachingLadder)->delete();
+
+        } catch (JsonException $e) {
+
+            return response()->json(['message' => 'Ha ocurrido un error guardando la información']);
+        }
+
+        return response()->json(['message' => 'Ideales de respuesta borrados exitosamente']);
+
+    }
+
+
     public function upsertData(Request $request): JsonResponse{
 
         try {
 
-            $teachingLadder = $request->input('teachingLadder');
+            $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+            $teachingLadder = strtolower($request->input('teachingLadder'));
             $unitIdentifier = $request->input('unit');
             $competences = json_encode($request->input('competences'));
+            $confirmation = $request->input('confirmation');
 
-            ResponseIdeal::saveResponseIdeals($teachingLadder,$competences,$unitIdentifier);
+
+/*            dd($teachingLadder, $unitIdentifier, $confirmation);*/
+
+            if ($confirmation){
+
+                DB::table('response_ideals')->updateOrInsert
+                (['unit_identifier' => $unitIdentifier,'assessment_period_id'  =>   $activeAssessmentPeriodId, 'teaching_ladder' => $teachingLadder],
+                    ['response' => $competences,
+                        'created_at' => Carbon::now()->toDateTimeString(),
+                        'updated_at' => Carbon::now()->toDateTimeString()]);
+
+
+                return response()->json(['message' => 'Ideales de respuesta guardados exitosamente']);
+
+            }
+
+/*            dd($teachingLadder, $unitIdentifier, $competences);*/
+
+            $existingTeachingLadder =  DB::table('response_ideals')->where('unit_identifier' , '=',  $unitIdentifier)
+                ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->where('teaching_ladder', '=', $teachingLadder)->first();
+
+            if($existingTeachingLadder){
+
+                return response()->json(['message' => 'Ya existe un ideal de respuesta asociado a este escalafón en esta unidad, ¿deseas sobreescribirlo?:'] , 500);
+
+            }
+
+            DB::table('response_ideals')->updateOrInsert
+            (['unit_identifier' => $unitIdentifier,'assessment_period_id'  =>   $activeAssessmentPeriodId, 'teaching_ladder' => $teachingLadder],
+                ['response' => $competences,
+                    'created_at' => Carbon::now()->toDateTimeString(),
+                    'updated_at' => Carbon::now()->toDateTimeString()]
+            );
+
 
         } catch (JsonException $e) {
 
