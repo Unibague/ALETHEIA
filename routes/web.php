@@ -5,6 +5,7 @@ use App\Models\AcademicPeriod;
 use App\Models\AssessmentPeriod;
 use App\Models\Enroll;
 
+use App\Models\Group;
 use App\Models\Role;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -719,6 +720,32 @@ Route::get('/fulfillFinalAverageCompetences360Teachers', function () {
 
 });
 
+
+Route::get('sendEmail', function (){
+
+    $email = new \App\Mail\SendReminderMailable();
+
+    $todayDate = new DateTime("today");
+    $todayDate = $todayDate->format('d/m/Y');
+
+    $studentsDates = DB::table('academic_periods as acp')->select('students_start_date as ssd', 'students_end_date as sed')->first();
+
+    $firstEmailDate = Carbon::parse($studentsDates->ssd)->toDate()->modify('-1 day')->format('d/m/Y');
+
+    $secondEmailDate = Carbon::parse($studentsDates->ssd)->toDate()->modify('-2 days')->format('d/m/Y');
+
+
+    if($todayDate === "26/07/2023"){
+
+        Mail::bcc(['juan.gonzalez10@unibague.edu.co'])->send($email);
+
+        return "Correo enviado exitosamente";
+
+    }
+
+/*    dd($todayDate, $firstEmailDate);*/
+
+});
 
 /*
 Route::get('/migrateToV2', function () {
