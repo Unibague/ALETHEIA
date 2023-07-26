@@ -2,7 +2,9 @@
 
 namespace App\Console\Commands;
 
+use App\Helpers\AtlanteProvider;
 use App\Mail\SendReminderMailable;
+use App\Models\AcademicPeriod;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -46,6 +48,12 @@ class SendAssessmentReminder extends Command
 
         $email = new SendReminderMailable();
         Mail::bcc(['juan.gonzalez10@unibague.edu.co'])->send($email);
+
+        $groups = AtlanteProvider::get('enrolls', [
+            'periods' =>  AcademicPeriod::getCurrentAcademicPeriodsByCommas()
+        ], true);
+
+        dd($groups);
 
 
         $todayDate = new \DateTime("today");
