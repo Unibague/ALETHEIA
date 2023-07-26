@@ -725,6 +725,14 @@ Route::get('sendEmail', function (){
 
     $email = new \App\Mail\SendReminderMailable();
 
+
+    $groups = AtlanteProvider::get('enrolls', [
+        'periods' =>  AcademicPeriod::getCurrentAcademicPeriodsByCommas()
+    ], true);
+
+
+    dd($groups);
+
     $todayDate = new DateTime("today");
     $todayDate = $todayDate->format('d/m/Y');
 
