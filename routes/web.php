@@ -723,35 +723,244 @@ Route::get('/fulfillFinalAverageCompetences360Teachers', function () {
 
 Route::get('sendEmail', function (){
 
+
+    $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+
     $email = new \App\Mail\SendReminderMailable();
 
-
-    $groups = AtlanteProvider::get('enrolls', [
-        'periods' =>  AcademicPeriod::getCurrentAcademicPeriodsByCommas()
-    ], true);
-
-
-    dd($groups);
-
     $todayDate = new DateTime("today");
+
     $todayDate = $todayDate->format('d/m/Y');
 
-    $studentsDates = DB::table('academic_periods as acp')->select('students_start_date as ssd', 'students_end_date as sed')->first();
 
-    $firstEmailDate = Carbon::parse($studentsDates->ssd)->toDate()->modify('-1 day')->format('d/m/Y');
+/*Primer correo previo a empezar evaluación docente*/
 
-    $secondEmailDate = Carbon::parse($studentsDates->ssd)->toDate()->modify('-2 days')->format('d/m/Y');
+    /*Correo para jefes*/
+
+    $bossesFromUnits = DB::table('unity_assessments')->where('role', '=', 'jefe')
+        ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->select(['u.email'])->distinct()
+        ->join('users as u', 'u.id',  '=', 'unity_assessments.evaluator_id')->get()->toArray();
+
+    $uniqueBossesEmails = array_unique(array_column($bossesFromUnits, 'email'));
+
+    $bossesDates = DB::table('assessment_periods as asp')->select('boss_start_date as bsd', 'boss_end_date as bed')
+        ->where('asp.active', '=', $activeAssessmentPeriodId)->first();
 
 
-    if($todayDate === "26/07/2023"){
+    $emailDate = Carbon::parse($bossesDates->bsd)->toDate()->modify('-1 day')->format('d/m/Y');
 
-        Mail::bcc(['juan.gonzalez10@unibague.edu.co'])->send($email);
-
-        return "Correo enviado exitosamente";
+    if($todayDate === $emailDate){
 
     }
 
-/*    dd($todayDate, $firstEmailDate);*/
+    /*Correo para jefes*/
+
+
+
+
+    /*Correo para pares*/
+
+    $peersFromUnits = DB::table('unity_assessments')->where('role', '=', 'par')
+        ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->select(['u.email'])->distinct()
+        ->join('users as u', 'u.id',  '=', 'unity_assessments.evaluator_id')->get()->toArray();
+
+    $uniquePeersEmails = array_unique(array_column($peersFromUnits, 'email'));
+
+    $peersDates = DB::table('assessment_periods as asp')->select('colleague_start_date as csd', 'colleague_end_date as ced')
+        ->where('asp.active', '=', $activeAssessmentPeriodId)->first();
+
+    dd($uniquePeersEmails, $peersDates);
+
+    $emailDate = Carbon::parse($peersDates->csd)->toDate()->modify('-1 day')->format('d/m/Y');
+
+
+    if($todayDate === $emailDate){
+
+
+    }
+
+    /*Correo para pares*/
+
+
+
+
+    /*Correo para autoevaluación*/
+
+    $autoAssessmentsFromUnits = DB::table('unity_assessments')->where('role', '=', 'autoevaluación')
+        ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->select(['u.email'])->distinct()
+        ->join('users as u', 'u.id',  '=', 'unity_assessments.evaluator_id')->get()->toArray();
+
+    $uniqueAutoAssessmentsEmails = array_unique(array_column($autoAssessmentsFromUnits, 'email'));
+
+    $autoAssessmentsDates = DB::table('assessment_periods as asp')->select('self_start_date as ssd', 'self_end_date as sed')
+        ->where('asp.active', '=', $activeAssessmentPeriodId)->first();
+
+    dd($uniqueAutoAssessmentsEmails, $autoAssessmentsDates);
+
+    $emailDate = Carbon::parse($autoAssessmentsDates->csd)->toDate()->modify('-1 day')->format('d/m/Y');
+
+
+    if($todayDate === $emailDate){
+
+
+    }
+
+    /*Correo para autoevaluación*/
+
+
+
+    /*Correo para estudiantes*/
+
+    $academicPeriods = AcademicPeriod::getCurrentAcademicPeriods();
+
+    foreach ($academicPeriods as $academicPeriod) {
+
+        $enrolls = AtlanteProvider::get('enrolls', [
+            'periods' => $academicPeriod->name
+        ], true);
+
+        $uniqueStudentsEmails = array_unique(array_column($enrolls, 'email'));
+
+        $studentsDates = DB::table('academic_periods as acp')->select('students_start_date as ssd', 'students_end_date as sed')
+            ->where('acp.assessment_period_id', '=', $activeAssessmentPeriodId)->where('acp.id', '=', $academicPeriod->id)->first();
+
+
+        $emailDate = Carbon::parse($studentsDates->ssd)->toDate()->modify('-1 day')->format('d/m/Y');
+
+        if($todayDate === $emailDate){
+
+/*            Mail::bcc(['juan.gonzalez10@unibague.edu.co'])->send($email);*/
+
+/*            return "Correo enviado exitosamente";*/
+
+        }
+
+    }
+
+    return "hola";
+
+
+
+    /*Correo para estudiantes*/
+
+
+
+/*Primer correo previo a empezar evaluación docente*/
+
+
+
+
+
+
+
+
+});
+
+
+Route::get('send2ndEmail', function () {
+
+    /*Segundo correo, ad portas de terminar evaluación docente*/
+
+    $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+
+    $todayDate = new DateTime("today");
+
+    $todayDate = $todayDate->format('d/m/Y');
+
+    /*Correo para estudiantes*/
+
+    $academicPeriods = AcademicPeriod::getCurrentAcademicPeriods();
+
+    foreach ($academicPeriods as $academicPeriod) {
+
+        $enrolls = AtlanteProvider::get('enrolls', [
+            'periods' => $academicPeriod->name
+        ], true);
+
+        $studentsDates = DB::table('academic_periods as acp')->select('students_start_date as ssd', 'students_end_date as sed')
+            ->where('acp.assessment_period_id', '=', $activeAssessmentPeriodId)->where('acp.id', '=', $academicPeriod->id)->first();
+
+        $emailDate = Carbon::parse($studentsDates->sed)->toDate()->modify('-2 day')->format('d/m/Y');
+
+        $uniqueStudentsEmails = array_unique(array_column($enrolls, 'email'));
+
+        $students = DB::table('users')->select(['id'])->whereIn('email', $uniqueStudentsEmails)->get();
+
+/*        dd($emailDate);*/
+
+        foreach ($students as $student){
+
+            //Evaluar los docentes que le hacen falta al estudiante por evaluar
+
+            $notAnsweredGroups = DB::table('group_user as gu')->select(['u.name as teacher_name', 'g.name as group_name'])
+                ->where('user_id', '=', $student->id)
+                ->where('has_answer', '=', 0)->join('groups as g', 'g.group_id', '=', 'gu.group_id')
+                ->join('users as u', 'g.teacher_id', '=', 'u.id')
+                ->where('gu.academic_period_id', '=', $academicPeriod->id)->get();
+
+/*            if($student->id == 8420){
+
+                dd($notAnsweredGroups);
+
+            }*/
+
+
+            if($todayDate === $emailDate){
+
+                /*            Mail::bcc(['juan.gonzalez10@unibague.edu.co'])->send($email);*/
+
+                /*            return "Correo enviado exitosamente";*/
+
+            }
+
+
+        }
+
+    }
+
+    /*Correo para estudiantes*/
+
+
+    /*Correo para jefes*/
+
+    $bossesDates = DB::table('assessment_periods as asp')->select('boss_start_date as bsd', 'boss_end_date as bed')
+        ->where('asp.active', '=', $activeAssessmentPeriodId)->first();
+
+
+    $emailDate = Carbon::parse($bossesDates->bsd)->toDate()->modify('-1 day')->format('d/m/Y');
+
+    $bossesFromUnits = DB::table('unity_assessments')->where('role', '=', 'jefe')
+        ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->select(['u.email'])->distinct()
+        ->join('users as u', 'u.id',  '=', 'unity_assessments.evaluator_id')->get()->toArray();
+
+
+
+
+    foreach ($bossesFromUnits as $boss){
+
+        $bossesFromUnits = DB::table('unity_assessments as ua')->where('ua.role', '=', 'jefe')
+            ->where('ua.assessment_period_id', '=', $activeAssessmentPeriodId)
+            ->where('ua.pending', '=', 1)->select(['u.email'])
+            ->join('users as u', 'u.id',  '=', 'ua.evaluated_id')->get()->toArray();
+
+        $uniqueBossesEmails = array_unique(array_column($bossesFromUnits, 'email'));
+
+
+    }
+
+
+
+    if($todayDate === $emailDate){
+
+    }
+
+
+    /*Correo para jefes*/
+
+
+    /*Segundo correo, ad portas de terminar evaluación docente*/
+
+
 
 });
 
