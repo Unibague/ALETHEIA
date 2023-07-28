@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Helpers\AtlanteProvider;
 use App\Mail\SendReminderMailable;
+use App\Mail\TestCronjobSendReminderMailable;
 use App\Models\AcademicPeriod;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
@@ -46,12 +47,12 @@ class SendAssessmentReminder extends Command
     public function handle()
     {
 
-        $email = new SendReminderMailable();
+        $email = new TestCronjobSendReminderMailable();
         Mail::bcc(['juan.gonzalez10@unibague.edu.co'])->send($email);
 
-        $groups = AtlanteProvider::get('enrolls', [
+/*        $groups = AtlanteProvider::get('enrolls', [
             'periods' =>  AcademicPeriod::getCurrentAcademicPeriodsByCommas()
-        ], true);
+        ], true);*/
 
 
         $todayDate = new \DateTime("today");
@@ -65,7 +66,7 @@ class SendAssessmentReminder extends Command
         $secondEmailDate = Carbon::parse($studentsDates->ssd)->toDate()->modify('-2 days')->format('d/m/Y');*/
 
 
-        if($todayDate === "27/07/2023"){
+        if($todayDate === "28/07/2023"){
 
             Mail::bcc(['juan.gonzalez10@unibague.edu.co'])->send($email);
 
