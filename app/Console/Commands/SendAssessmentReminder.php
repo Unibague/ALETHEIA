@@ -48,7 +48,8 @@ class SendAssessmentReminder extends Command
     {
 
         $email = new TestCronjobSendReminderMailable();
-        Mail::bcc(['juan.gonzalez10@unibague.edu.co'])->send($email);
+
+/*        Mail::bcc(['juan.gonzalez10@unibague.edu.co'])->send($email);*/
 
 /*        $groups = AtlanteProvider::get('enrolls', [
             'periods' =>  AcademicPeriod::getCurrentAcademicPeriodsByCommas()
