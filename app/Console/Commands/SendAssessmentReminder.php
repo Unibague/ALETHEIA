@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Helpers\AtlanteProvider;
+use App\Mail\FirstReminderMailable;
 use App\Mail\SendReminderMailable;
 use App\Mail\TestCronjobSendReminderMailable;
 use App\Models\AcademicPeriod;
@@ -47,7 +48,17 @@ class SendAssessmentReminder extends Command
     public function handle()
     {
 
-        $email = new TestCronjobSendReminderMailable();
+
+        $data = [
+            'role'=>'Estudiante',
+            'name'=> 'fkwkfwekfkwefe',
+            'teachers_to_evaluate' => [],
+            'start_date' => 'kwekfwkefkwe',
+            'end_date' => 'rglereglreglreglre',
+            'assessment_period_name' => 'fwekfkwefkwfkwekfwekfek'
+        ];
+
+        $email = new FirstReminderMailable($data);
 
 /*        Mail::bcc(['juan.gonzalez10@unibague.edu.co'])->send($email);*/
 
