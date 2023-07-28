@@ -26,7 +26,7 @@ class Kernel extends ConsoleKernel
     {
         // $schedule->command('inspire')->hourly();
         $schedule->command('reports:update')->everyThirtyMinutes();
-        $schedule->command('reminder:send')->dailyAt('19:44');
+        $schedule->command('reminder:send')->dailyAt('20:00');
     }
 
     /**
