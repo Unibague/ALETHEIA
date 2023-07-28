@@ -7,14 +7,11 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class SendReminderMailable extends Mailable
+class SecondReminderMailable extends Mailable
 {
     use Queueable, SerializesModels;
-
-
-    public $subject = "Recordatorio: Comienzo de Evaluación docente - Jefe de docente";
+    public $subject = "Recordatorio: Finalización de Evaluación docente";
     public $data;
-
     /**
      * Create a new message instance.
      *
@@ -22,7 +19,7 @@ class SendReminderMailable extends Mailable
      */
     public function __construct($data)
     {
-       $this->data = $data;
+        $this->data = $data;
     }
 
     /**
@@ -32,6 +29,6 @@ class SendReminderMailable extends Mailable
      */
     public function build()
     {
-        return $this->view('peerBossReminder')->with('data', $this->data);
+        return $this->view('secondEmailReminder')->with('data', $this->data);
     }
 }

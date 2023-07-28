@@ -735,6 +735,80 @@ Route::get('sendEmail', function (){
 /*Primer correo previo a empezar evaluación docente*/
 
 
+    /*Correo para estudiantes*/
+
+    $academicPeriods = AcademicPeriod::getCurrentAcademicPeriods();
+
+    if($todayDate === "28/07/2023") {
+
+        foreach ($academicPeriods as $academicPeriod) {
+
+            $studentsDates = DB::table('academic_periods as acp')->select('students_start_date as ssd', 'students_end_date as sed')
+                ->where('acp.assessment_period_id', '=', $activeAssessmentPeriodId)->where('acp.id', '=', $academicPeriod->id)->first();
+
+            $emailDate = Carbon::parse($studentsDates->ssd)->toDate()->modify('-1 day')->format('d/m/Y');
+
+/*            $enrolls = AtlanteProvider::get('enrolls', [
+                'periods' => $academicPeriod->name
+            ], true);
+            $uniqueStudentsEmails = array_unique(array_column($enrolls, 'email'));
+            $students = DB::table('users as u')->select(['u.id', 'u.name as student_name'])->whereIn('u.email', $uniqueStudentsEmails)->get();*/
+
+            $students = DB::table('group_user as gu')->select(['gu.user_id as id', 'u.name'])
+                ->join('users as u', 'u.id', '=', 'gu.user_id')
+                ->where('gu.academic_period_id', '=', $academicPeriod->id)->distinct()->get();
+
+
+            foreach ($students as $student){
+
+                $studentTeachersToEvaluate = [];
+
+                $studentTeachers = DB::table('group_user as gu')->select(['gu.user_id', 'u.name as teacher_name' , 'g.name as group_name'])
+                    ->join('groups as g' , 'gu.group_id', '=', 'g.group_id')
+                    ->join('users as u', 'g.teacher_id', '=', 'u.id')
+                    ->where('gu.academic_period_id', '=', $academicPeriod->id)->where('user_id', '=', $student->id)
+                    ->get();
+
+/*                dd($studentTeachers);*/
+
+
+                foreach ($studentTeachers as $studentTeacher){
+
+                    $teacherInfo = (object) ['teacher_name' => $studentTeacher->teacher_name,
+                                            'group_name' => $studentTeacher->group_name];
+
+
+                    $studentTeachersToEvaluate [] =  $teacherInfo;
+
+                }
+
+
+                $data = [
+                    'role'=>'Estudiante',
+                    'name'=> $student->name,
+                    'teachers_to_evaluate'=> $studentTeachersToEvaluate,
+                    'start_date' => $studentsDates->ssd,
+                    'end_date' => $studentsDates->sed,
+                    'assessment_period_name' => AssessmentPeriod::getActiveAssessmentPeriod()->name
+                ];
+
+                $email = new \App\Mail\FirstReminderMailable($data);
+
+                Mail::bcc(['juanes01.gonzalez@gmail.com'])->send($email);
+
+                return "Correo enviado exitosamente";
+
+
+            }
+
+
+
+        }
+
+    }
+    /*Correo para estudiantes*/
+
+
 
 
     /*Correo para jefes*/
@@ -745,13 +819,13 @@ Route::get('sendEmail', function (){
     $emailDate = Carbon::parse($bossesDates->bsd)->toDate()->modify('-1 day')->format('d/m/Y');
 
 
-    if($todayDate === "27/07/2023"){
+    if($todayDate === "28/07/2023"){
 
         $bossesFromUnits = DB::table('unity_assessments as ua')->where('role', '=', 'jefe')
             ->where('ua.assessment_period_id', '=', $activeAssessmentPeriodId)->select(['u.id','u.email', 'u.name'])->distinct()
             ->join('users as u', 'u.id',  '=', 'ua.evaluator_id')->get()->toArray();
 
-/*        dd($bossesFromUnits);*/
+        /*        dd($bossesFromUnits);*/
 
         foreach ($bossesFromUnits as $boss){
 
@@ -765,11 +839,11 @@ Route::get('sendEmail', function (){
 
             $bossTeachersToEvaluate = array_unique(array_column($bossTeachersToEvaluate, 'evaluated_teacher_name'));
 
-/*            dd($bossTeachersToEvaluate);*/
+            /*            dd($bossTeachersToEvaluate);*/
 
             $data = [
                 'role'=>'Jefe de Evaluación 360°',
-                'boss_name'=> $boss->name,
+                'name'=> $boss->name,
                 'teachers_to_evaluate'=> $bossTeachersToEvaluate,
                 'start_date' => $bossesDates->bsd,
                 'end_date' => $bossesDates->bed,
@@ -777,7 +851,7 @@ Route::get('sendEmail', function (){
             ];
 
 
-            $email = new \App\Mail\SendReminderMailable($data);
+            $email = new \App\Mail\FirstReminderMailable($data);
 
             Mail::bcc(['juanes01.gonzalez@gmail.com'])->send($email);
 
@@ -787,6 +861,52 @@ Route::get('sendEmail', function (){
 
     }
     /*Correo para jefes*/
+
+
+    /*Correo para autoevaluación*/
+
+    $autoAssessmentsDates = DB::table('assessment_periods as asp')->select('self_start_date as ssd', 'self_end_date as sed')
+        ->where('asp.active', '=', $activeAssessmentPeriodId)->first();
+
+    $emailDate = Carbon::parse($autoAssessmentsDates->ssd)->toDate()->modify('-1 day')->format('d/m/Y');
+
+    if($todayDate === "28/07/2023"){
+
+        $autoAssessmentsFromUnits = DB::table('unity_assessments')->where('role', '=', 'autoevaluación')
+            ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->select(['u.id','u.email', 'u.name'])
+            ->join('users as u', 'u.id',  '=', 'unity_assessments.evaluator_id')->get()->toArray();
+
+
+        foreach ($autoAssessmentsFromUnits as $teacher){
+
+/*            dd($teacher);*/
+
+            $data = [
+                'role'=>'Autoevaluación',
+                'name'=> $teacher->name,
+                'start_date' => $autoAssessmentsDates->ssd,
+                'end_date' => $autoAssessmentsDates->sed,
+                'assessment_period_name' => AssessmentPeriod::getActiveAssessmentPeriod()->name
+            ];
+
+
+            $email = new \App\Mail\FirstReminderMailable($data);
+
+            Mail::bcc(['juanes01.gonzalez@gmail.com'])->send($email);
+
+            return "done";
+
+
+        }
+        dd($autoAssessmentsFromUnits);
+
+    }
+
+    return "hola";
+
+
+
+    /*Correo para autoevaluación*/
 
 
 
@@ -815,14 +935,13 @@ Route::get('sendEmail', function (){
                 ->orderBy('evaluated_teacher_name', 'asc')->get()->toArray();
 
 
-
             $peerTeachersToEvaluate = array_unique(array_column($peerTeachersToEvaluate, 'evaluated_teacher_name'));
 
             /*            dd($bossTeachersToEvaluate);*/
 
             $data = [
                 'role'=>'Par de Evaluación 360°',
-                'boss_name'=> $peer->name,
+                'name'=> $peer->name,
                 'teachers_to_evaluate'=> $peerTeachersToEvaluate,
                 'start_date' => $peersDates->csd,
                 'end_date' => $peersDates->ced,
@@ -830,7 +949,7 @@ Route::get('sendEmail', function (){
             ];
 
 
-            $email = new \App\Mail\SendReminderMailable($data);
+            $email = new \App\Mail\FirstReminderMailable($data);
 
             Mail::bcc(['juanes01.gonzalez@gmail.com'])->send($email);
 
@@ -840,82 +959,11 @@ Route::get('sendEmail', function (){
 
     }
 
-
     /*Correo para pares*/
 
 
 
-
-
-    /*Correo para autoevaluación*/
-
-    $autoAssessmentsFromUnits = DB::table('unity_assessments')->where('role', '=', 'autoevaluación')
-        ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->select(['u.email'])->distinct()
-        ->join('users as u', 'u.id',  '=', 'unity_assessments.evaluator_id')->get()->toArray();
-
-    $uniqueAutoAssessmentsEmails = array_unique(array_column($autoAssessmentsFromUnits, 'email'));
-
-    $autoAssessmentsDates = DB::table('assessment_periods as asp')->select('self_start_date as ssd', 'self_end_date as sed')
-        ->where('asp.active', '=', $activeAssessmentPeriodId)->first();
-
-    dd($uniqueAutoAssessmentsEmails, $autoAssessmentsDates);
-
-    $emailDate = Carbon::parse($autoAssessmentsDates->csd)->toDate()->modify('-1 day')->format('d/m/Y');
-
-
-    if($todayDate === $emailDate){
-
-
-    }
-
-    /*Correo para autoevaluación*/
-
-
-
-    /*Correo para estudiantes*/
-
-    $academicPeriods = AcademicPeriod::getCurrentAcademicPeriods();
-
-    foreach ($academicPeriods as $academicPeriod) {
-
-        $enrolls = AtlanteProvider::get('enrolls', [
-            'periods' => $academicPeriod->name
-        ], true);
-
-        $uniqueStudentsEmails = array_unique(array_column($enrolls, 'email'));
-
-        $studentsDates = DB::table('academic_periods as acp')->select('students_start_date as ssd', 'students_end_date as sed')
-            ->where('acp.assessment_period_id', '=', $activeAssessmentPeriodId)->where('acp.id', '=', $academicPeriod->id)->first();
-
-
-        $emailDate = Carbon::parse($studentsDates->ssd)->toDate()->modify('-1 day')->format('d/m/Y');
-
-        if($todayDate === $emailDate){
-
-/*            Mail::bcc(['juan.gonzalez10@unibague.edu.co'])->send($email);*/
-
-/*            return "Correo enviado exitosamente";*/
-
-        }
-
-    }
-
-    return "hola";
-
-
-
-    /*Correo para estudiantes*/
-
-
-
 /*Primer correo previo a empezar evaluación docente*/
-
-
-
-
-
-
-
 
 });
 
@@ -924,173 +972,73 @@ Route::get('send2ndEmail', function () {
 
     /*Segundo correo, ad portas de terminar evaluación docente*/
 
-
     $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
 
     $todayDate = new DateTime("today");
 
     $todayDate = $todayDate->format('d/m/Y');
 
-
-
-
-    /*Correo para autoevaluación*/
-
-    $autoAssessmentDates = DB::table('assessment_periods as asp')->select('self_start_date as ssd', 'self_end_date as sed')
-        ->where('asp.active', '=', $activeAssessmentPeriodId)->first();
-
-    $emailDate = Carbon::parse($autoAssessmentDates->ssd)->toDate()->modify('-1 day')->format('d/m/Y');
-
-    $autoAssessmentsFromUnits = DB::table('unity_assessments')->where('role', '=', 'autoevaluación')
-        ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->select(['u.email', 'u.id'])->distinct()
-        ->join('users as u', 'u.id',  '=', 'unity_assessments.evaluator_id')->get()->toArray();
-
-    /*    dd($bossesFromUnits);*/
-
-    foreach ($autoAssessmentsFromUnits as $teacher){
-
-        $notAnsweredAutoAssessment = DB::table('unity_assessments as ua')->where('ua.role', '=', 'autoevaluación')
-            ->where('ua.evaluator_id', '=', $teacher->id)
-            ->where('ua.assessment_period_id', '=', $activeAssessmentPeriodId)
-            ->where('ua.pending', '=', 1)->select(['u.name'])
-            ->join('users as u', 'u.id',  '=', 'ua.evaluated_id')->first();
-
-        if (!$notAnsweredAutoAssessment){
-
-            continue;
-
-        }
-
-        dd($notAnsweredAutoAssessment, $teacher->email);
-
-
-        if($todayDate === $emailDate){
-
-        }
-
-    }
-
-
-
-    /*Correo para autoevaluación*/
-
-
-
-
-    /*Correo para pares*/
-
-
-    $peersDates = DB::table('assessment_periods as asp')->select('colleague_start_date as csd', 'colleague_end_date as ced')
-        ->where('asp.active', '=', $activeAssessmentPeriodId)->first();
-
-    $emailDate = Carbon::parse($peersDates->csd)->toDate()->modify('-1 day')->format('d/m/Y');
-
-    $peersFromUnits = DB::table('unity_assessments')->where('role', '=', 'par')
-        ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->select(['u.email', 'u.id'])->distinct()
-        ->join('users as u', 'u.id',  '=', 'unity_assessments.evaluator_id')->get()->toArray();
-
-    /*    dd($bossesFromUnits);*/
-
-    foreach ($peersFromUnits as $peer){
-
-        $notAnsweredTeachers = DB::table('unity_assessments as ua')->where('ua.role', '=', 'par')
-            ->where('ua.evaluator_id', '=', $peer->id)
-            ->where('ua.assessment_period_id', '=', $activeAssessmentPeriodId)
-            ->where('ua.pending', '=', 1)->select(['u.name'])
-            ->join('users as u', 'u.id',  '=', 'ua.evaluated_id')->get()->toArray();
-
-        if (count($notAnsweredTeachers) == 0){
-
-            continue;
-
-        }
-
-        $notAnsweredTeachersNamesArray = array_unique(array_column($notAnsweredTeachers, 'name'));
-
-        dd($notAnsweredTeachers, $peer->email, $notAnsweredTeachersNamesArray);
-
-        if($todayDate === $emailDate){
-
-        }
-
-    }
-
-    /*Correo para pares*/
-
-
-
-    /*Correo para jefes*/
-
-    $bossesDates = DB::table('assessment_periods as asp')->select('boss_start_date as bsd', 'boss_end_date as bed')
-        ->where('asp.active', '=', $activeAssessmentPeriodId)->first();
-
-    $emailDate = Carbon::parse($bossesDates->bsd)->toDate()->modify('-1 day')->format('d/m/Y');
-
-    $bossesFromUnits = DB::table('unity_assessments')->where('role', '=', 'jefe')
-        ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->select(['u.email', 'u.id'])->distinct()
-        ->join('users as u', 'u.id',  '=', 'unity_assessments.evaluator_id')->get()->toArray();
-
-/*    dd($bossesFromUnits);*/
-
-    foreach ($bossesFromUnits as $boss){
-
-        $notAnsweredTeachers = DB::table('unity_assessments as ua')->where('ua.role', '=', 'jefe')
-            ->where('ua.evaluator_id', '=', $boss->id)
-            ->where('ua.assessment_period_id', '=', $activeAssessmentPeriodId)
-            ->where('ua.pending', '=', 1)->select(['u.name'])
-            ->join('users as u', 'u.id',  '=', 'ua.evaluated_id')->get()->toArray();
-
-        if (count($notAnsweredTeachers) == 0){
-
-            continue;
-
-        }
-
-
-        $notAnsweredTeachersNamesArray = array_unique(array_column($notAnsweredTeachers, 'name'));
-
-        dd($notAnsweredTeachers, $boss->email, $notAnsweredTeachersNamesArray);
-
-
-
-        if($todayDate === $emailDate){
-
-        }
-
-    }
-
-
-
-
-
-
-    /*Correo para jefes*/
-
-
-
-
     /*Correo para estudiantes*/
+
 
     $academicPeriods = AcademicPeriod::getCurrentAcademicPeriods();
 
     foreach ($academicPeriods as $academicPeriod) {
-
-        $enrolls = AtlanteProvider::get('enrolls', [
-            'periods' => $academicPeriod->name
-        ], true);
 
         $studentsDates = DB::table('academic_periods as acp')->select('students_start_date as ssd', 'students_end_date as sed')
             ->where('acp.assessment_period_id', '=', $activeAssessmentPeriodId)->where('acp.id', '=', $academicPeriod->id)->first();
 
         $emailDate = Carbon::parse($studentsDates->sed)->toDate()->modify('-2 day')->format('d/m/Y');
 
-        $uniqueStudentsEmails = array_unique(array_column($enrolls, 'email'));
-
-        $students = DB::table('users')->select(['id'])->whereIn('email', $uniqueStudentsEmails)->get();
-
-/*        dd($emailDate);*/
+        $students = DB::table('group_user as gu')->select(['gu.user_id as id', 'u.name'])
+            ->join('users as u', 'u.id', '=', 'gu.user_id')
+            ->where('gu.academic_period_id', '=', $academicPeriod->id)->distinct()->get();
 
         foreach ($students as $student){
+
+            $studentTeachersLeftToEvaluate = [];
+
+            $studentTeachers = DB::table('group_user as gu')->select(['gu.user_id', 'u.name as teacher_name' , 'g.name as group_name'])
+                ->join('groups as g' , 'gu.group_id', '=', 'g.group_id')
+                ->join('users as u', 'g.teacher_id', '=', 'u.id')
+                ->where('gu.academic_period_id', '=', $academicPeriod->id)->where('user_id', '=', $student->id)
+                ->where('gu.has_answer', '=', 0)->get();
+
+            /*                dd($studentTeachers);*/
+
+
+            foreach ($studentTeachers as $studentTeacher){
+
+                $teacherInfo = (object) ['teacher_name' => $studentTeacher->teacher_name,
+                    'group_name' => $studentTeacher->group_name];
+
+                $studentTeachersLeftToEvaluate [] =  $teacherInfo;
+
+            }
+
+/*            dd($studentTeachersLeftToEvaluate);*/
+
+            $data = [
+                'role'=>'Estudiante',
+                'name'=> $student->name,
+                'teachers_to_evaluate'=> $studentTeachersLeftToEvaluate,
+                'start_date' => $studentsDates->ssd,
+                'end_date' => $studentsDates->sed,
+                'assessment_period_name' => AssessmentPeriod::getActiveAssessmentPeriod()->name
+            ];
+
+            $email = new \App\Mail\SecondReminderMailable($data);
+
+            Mail::bcc(['juanes01.gonzalez@gmail.com'])->send($email);
+
+            return "Correo enviado exitosamente";
+
+
+        }
+
+
+
+        foreach ($students as $student) {
 
             //Evaluar los docentes que le hacen falta al estudiante por evaluar
 
@@ -1100,14 +1048,14 @@ Route::get('send2ndEmail', function () {
                 ->join('users as u', 'g.teacher_id', '=', 'u.id')
                 ->where('gu.academic_period_id', '=', $academicPeriod->id)->get();
 
-/*            if($student->id == 8420){
+            /*            if($student->id == 8420){
 
-                dd($notAnsweredGroups);
+                            dd($notAnsweredGroups);
 
-            }*/
+                        }*/
 
 
-            if($todayDate === $emailDate){
+            if ($todayDate === $emailDate) {
 
                 /*            Mail::bcc(['juan.gonzalez10@unibague.edu.co'])->send($email);*/
 
@@ -1123,14 +1071,144 @@ Route::get('send2ndEmail', function () {
     /*Correo para estudiantes*/
 
 
+    $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+
+    $todayDate = new DateTime("today");
+
+    $todayDate = $todayDate->format('d/m/Y');
 
 
+    /*Correo para autoevaluación*/
 
-    /*Segundo correo, ad portas de terminar evaluación docente*/
+    $autoAssessmentDates = DB::table('assessment_periods as asp')->select('self_start_date as ssd', 'self_end_date as sed')
+        ->where('asp.active', '=', $activeAssessmentPeriodId)->first();
+
+    $emailDate = Carbon::parse($autoAssessmentDates->ssd)->toDate()->modify('-1 day')->format('d/m/Y');
+
+    $autoAssessmentsFromUnits = DB::table('unity_assessments')->where('role', '=', 'autoevaluación')
+        ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->select(['u.email', 'u.id'])->distinct()
+        ->join('users as u', 'u.id', '=', 'unity_assessments.evaluator_id')->get()->toArray();
+
+    /*    dd($bossesFromUnits);*/
+
+    foreach ($autoAssessmentsFromUnits as $teacher) {
+
+        $notAnsweredAutoAssessment = DB::table('unity_assessments as ua')->where('ua.role', '=', 'autoevaluación')
+            ->where('ua.evaluator_id', '=', $teacher->id)
+            ->where('ua.assessment_period_id', '=', $activeAssessmentPeriodId)
+            ->where('ua.pending', '=', 1)->select(['u.name'])
+            ->join('users as u', 'u.id', '=', 'ua.evaluated_id')->first();
+
+        if (!$notAnsweredAutoAssessment) {
+
+            continue;
+
+        }
+
+        dd($notAnsweredAutoAssessment, $teacher->email);
+
+
+        if ($todayDate === $emailDate) {
+
+        }
+
+    }
+
+
+    /*Correo para autoevaluación*/
+
+
+    /*Correo para pares*/
+
+
+    $peersDates = DB::table('assessment_periods as asp')->select('colleague_start_date as csd', 'colleague_end_date as ced')
+        ->where('asp.active', '=', $activeAssessmentPeriodId)->first();
+
+    $emailDate = Carbon::parse($peersDates->csd)->toDate()->modify('-1 day')->format('d/m/Y');
+
+    $peersFromUnits = DB::table('unity_assessments')->where('role', '=', 'par')
+        ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->select(['u.email', 'u.id'])->distinct()
+        ->join('users as u', 'u.id', '=', 'unity_assessments.evaluator_id')->get()->toArray();
+
+    /*    dd($bossesFromUnits);*/
+
+    foreach ($peersFromUnits as $peer) {
+
+        $notAnsweredTeachers = DB::table('unity_assessments as ua')->where('ua.role', '=', 'par')
+            ->where('ua.evaluator_id', '=', $peer->id)
+            ->where('ua.assessment_period_id', '=', $activeAssessmentPeriodId)
+            ->where('ua.pending', '=', 1)->select(['u.name'])
+            ->join('users as u', 'u.id', '=', 'ua.evaluated_id')->get()->toArray();
+
+        if (count($notAnsweredTeachers) == 0) {
+
+            continue;
+
+        }
+
+        $notAnsweredTeachersNamesArray = array_unique(array_column($notAnsweredTeachers, 'name'));
+
+        dd($notAnsweredTeachers, $peer->email, $notAnsweredTeachersNamesArray);
+
+        if ($todayDate === $emailDate) {
+
+        }
+
+    }
+
+    /*Correo para pares*/
+
+
+    /*Correo para jefes*/
+
+    $bossesDates = DB::table('assessment_periods as asp')->select('boss_start_date as bsd', 'boss_end_date as bed')
+        ->where('asp.active', '=', $activeAssessmentPeriodId)->first();
+
+    $emailDate = Carbon::parse($bossesDates->bsd)->toDate()->modify('-1 day')->format('d/m/Y');
+
+    $bossesFromUnits = DB::table('unity_assessments')->where('role', '=', 'jefe')
+        ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->select(['u.email', 'u.id'])->distinct()
+        ->join('users as u', 'u.id', '=', 'unity_assessments.evaluator_id')->get()->toArray();
+
+    /*    dd($bossesFromUnits);*/
+
+    foreach ($bossesFromUnits as $boss) {
+
+        $notAnsweredTeachers = DB::table('unity_assessments as ua')->where('ua.role', '=', 'jefe')
+            ->where('ua.evaluator_id', '=', $boss->id)
+            ->where('ua.assessment_period_id', '=', $activeAssessmentPeriodId)
+            ->where('ua.pending', '=', 1)->select(['u.name'])
+            ->join('users as u', 'u.id', '=', 'ua.evaluated_id')->get()->toArray();
+
+        if (count($notAnsweredTeachers) == 0) {
+
+            continue;
+
+        }
+
+
+        $notAnsweredTeachersNamesArray = array_unique(array_column($notAnsweredTeachers, 'name'));
+
+        dd($notAnsweredTeachers, $boss->email, $notAnsweredTeachersNamesArray);
+
+
+        if ($todayDate === $emailDate) {
+
+        }
+
+    }
+
+
+    /*Correo para jefes*/
 
 
 
 });
+
+
+
+
+    /*Segundo correo, ad portas de terminar evaluación docente*/
 
 /*
 Route::get('/migrateToV2', function () {
