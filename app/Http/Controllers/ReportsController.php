@@ -115,8 +115,9 @@ class ReportsController extends Controller
                 $units = ['011-1', '110-1', '111-1'];
             }
 
+
             //Torrente
-            if($user->id == 46){
+            if($user->id == 46 || $user->id == 213){
                 $units = ['110-1'];
             }
 

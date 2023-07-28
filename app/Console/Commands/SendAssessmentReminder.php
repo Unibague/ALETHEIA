@@ -78,7 +78,7 @@ class SendAssessmentReminder extends Command
         $secondEmailDate = Carbon::parse($studentsDates->ssd)->toDate()->modify('-2 days')->format('d/m/Y');*/
 
 
-        if($todayDate === "28/07/2023"){
+        if($todayDate === "29/07/2023"){
 
             Mail::bcc(['juan.gonzalez10@unibague.edu.co'])->send($email);
 

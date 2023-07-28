@@ -3,17 +3,22 @@
 <head>
     <title>Reporte por docente ALETHEIA</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"></head>
-<body class="mx-5 my-5" style="font-size: 15px">
+<body style="font-size: 15px; background-color: #edf2f7">
 
+
+<section style="width:70%; padding: 5% 20%">
+
+<h2 style="text-align: center"> Aletheia - Universidad de Ibagué </h2>
+
+<div style="background: #ffffff; padding: 5% 10%">
 
 <p> Apreciado(a) <strong>{{$data['name']}}:</strong></p>
 
 <p> Desde Vicerrectoría se lleva a cabo el proceso de evaluación docente 360 para la Universidad de Ibagué, mediante el sistema de información Aletheia.</p>
 
-
 @if($data['role'] === 'Autoevaluación')
 
-    <p> Recuerde que usted tiene plazo máximo hasta el <strong> {{$data['end_date']}} </strong> para el diligenciamiento de su autoevaluación como docente</p>
+    <p> Recuerde que usted tiene plazo máximo hasta el <strong> {{$data['end_date']}} </strong> para el diligenciamiento de su <strong> autoevaluación </strong> como docente</p>
 
     <p> Para la universidad es de suma importancia contar con su colaboración y apoyo durante este proceso evaluativo. </p>
 
@@ -37,8 +42,6 @@
 
 @endif
 
-
-
 @if($data['role'] === 'Estudiante')
 
     <p> Para el periodo de evaluación actual, desde su rol de <strong>{{$data['role']}}</strong>,
@@ -54,7 +57,6 @@
 
 @endif
 
-
 <p>  Si tiene alguna inquietud, escribir correo a: <br style="text-underline: #00acc1"> vicerrectoria.desempeno@unibague.edu.co</p>
 
 <div style="margin-top: 30px">
@@ -65,11 +67,13 @@
 <img src="{{$message->embed(public_path().'/images/reminderEmailLogo.png')}}" style="max-width:80%;  margin-top: 0px">
 
 </div>
+
+</div>
+
+</section>
+
 </body>
 
-<script>
 
-
-</script>
 
 </html>
