@@ -30,6 +30,6 @@ class TestCronjobSendReminderMailable extends Mailable
      */
     public function build()
     {
-        return $this->view('reminder.name');
+        return $this->view('reminder');
     }
 }
