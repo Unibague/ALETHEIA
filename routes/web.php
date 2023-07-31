@@ -254,6 +254,18 @@ Route::post('/reports/360Assessment/downloadPdf', [\App\Http\Controllers\Reports
 Route::post('/reports/serviceAreasAssessment/downloadPdf', [\App\Http\Controllers\ReportsController::class, 'downloadServiceAreasAssessment'])->middleware(['auth'])->name('reports.serviceAreas.savePDF');
 
 
+/* >>>>>>>>>>>>>>>>>>>>>>>>Reminders routes <<<<<<<<<<<<<<<<<<<<<<<<<<<< */
+Route::inertia('/reminders', 'Reminders/Index')->middleware(['auth', 'isAdmin'])->name('reminders.index');
+Route::get('/reminders/get', [\App\Http\Controllers\ReportsController::class, 'getReminders'])->middleware(['auth'])->name('reminders.get');
+Route::post('/reminders/update', [\App\Http\Controllers\ReportsController::class, 'updateReminder'])->middleware(['auth'])->name('reminders.update');
+
+
+
+
+
+
+
+
 /* >>>>>>>>>>>>>>>>>>>>>>>>ResponseIdeals routes <<<<<<<<<<<<<<<<<<<<<<<<<<<< */
 Route::inertia('/responseIdeals', 'ResponseIdeals/IndexAndEdit')->middleware(['auth', 'isAdmin'])->name('responseIdeals.index.view');
 
@@ -733,92 +745,110 @@ Route::get('/fulfillFinalAverageCompetences360Teachers', function () {
 
 Route::get('sendEmail', function () {
 
+
+
     $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
 
     $todayDate = new DateTime("today");
 
     $todayDate = $todayDate->format('d/m/Y');
 
-    set_time_limit(100000);
-
     /*Primer correo previo a empezar evaluación docente*/
-
 
     /*Correo para estudiantes*/
 
     $academicPeriods = AcademicPeriod::getCurrentAcademicPeriods();
 
-    if ($todayDate === "28/07/2023") {
+
+    set_time_limit(10000);
+
+    if ($todayDate === "31/07/2023") {
 
         foreach ($academicPeriods as $academicPeriod) {
 
-            $studentsDates = DB::table('academic_periods as acp')->select('students_start_date as ssd', 'students_end_date as sed')
-                ->where('acp.assessment_period_id', '=', $activeAssessmentPeriodId)->where('acp.id', '=', $academicPeriod->id)->first();
+            if ($academicPeriod->id ==1){
 
-            $emailDate = Carbon::parse($studentsDates->ssd)->toDate()->modify('-1 day')->format('d/m/Y');
+                $studentsDates = DB::table('academic_periods as acp')->select('students_start_date as ssd', 'students_end_date as sed')
+                    ->where('acp.assessment_period_id', '=', $activeAssessmentPeriodId)->where('acp.id', '=', $academicPeriod->id)->first();
 
-            /*            $enrolls = AtlanteProvider::get('enrolls', [
-                            'periods' => $academicPeriod->name
-                        ], true);
-                        $uniqueStudentsEmails = array_unique(array_column($enrolls, 'email'));
-                        $students = DB::table('users as u')->select(['u.id', 'u.name as student_name'])->whereIn('u.email', $uniqueStudentsEmails)->get();*/
+                $emailDate = Carbon::parse($studentsDates->ssd)->toDate()->modify('-1 day')->format('d/m/Y');
 
-            $students = DB::table('group_user as gu')->select(['gu.user_id as id', 'u.name'])
-                ->join('users as u', 'u.id', '=', 'gu.user_id')
-                ->where('gu.academic_period_id', '=', $academicPeriod->id)->distinct()->get();
+                /*            $enrolls = AtlanteProvider::get('enrolls', [
+                                'periods' => $academicPeriod->name
+                            ], true);
+                            $uniqueStudentsEmails = array_unique(array_column($enrolls, 'email'));
+                            $students = DB::table('users as u')->select(['u.id', 'u.name as student_name'])->whereIn('u.email', $uniqueStudentsEmails)->get();*/
 
+                $students = DB::table('group_user as gu')->select(['gu.user_id as id', 'u.name'])
+                    ->join('users as u', 'u.id', '=', 'gu.user_id')
+                    ->where('gu.academic_period_id', '=', $academicPeriod->id)->distinct()->get();
 
-            foreach ($students as $student) {
+                foreach ($students as $student ) {
 
-                $studentTeachersToEvaluate = [];
+                    $studentTeachersToEvaluate = [];
 
-                $studentTeachers = DB::table('group_user as gu')->select(['gu.user_id', 'u.name as teacher_name', 'g.name as group_name'])
-                    ->join('groups as g', 'gu.group_id', '=', 'g.group_id')
-                    ->join('users as u', 'g.teacher_id', '=', 'u.id')
-                    ->where('gu.academic_period_id', '=', $academicPeriod->id)->where('user_id', '=', $student->id)
-                    ->get();
+                    $studentTeachers = DB::table('group_user as gu')->select(['gu.user_id', 'u.name as teacher_name', 'g.name as group_name'])
+                        ->join('groups as g', 'gu.group_id', '=', 'g.group_id')
+                        ->join('users as u', 'g.teacher_id', '=', 'u.id')
+                        ->where('gu.academic_period_id', '=', $academicPeriod->id)->where('user_id', '=', $student->id)
+                        ->get();
 
-                /*                dd($studentTeachers);*/
+                    /*                dd($studentTeachers);*/
 
+                    if (count($studentTeachers) == 0){
 
-                foreach ($studentTeachers as $studentTeacher) {
-
-                    $teacherInfo = (object)['teacher_name' => $studentTeacher->teacher_name,
-                        'group_name' => $studentTeacher->group_name];
-
-
-                    $studentTeachersToEvaluate [] = $teacherInfo;
-
-                }
+                        continue;
+                    }
 
 
-                $data = [
-                    'role' => 'Estudiante',
-                    'name' => $student->name,
-                    'teachers_to_evaluate' => $studentTeachersToEvaluate,
-                    'start_date' => $studentsDates->ssd,
-                    'end_date' => $studentsDates->sed,
-                    'assessment_period_name' => AssessmentPeriod::getActiveAssessmentPeriod()->name
-                ];
+                    foreach ($studentTeachers as $studentTeacher) {
 
-                $email = new \App\Mail\FirstReminderMailable($data);
+                        $teacherInfo = (object)['teacher_name' => $studentTeacher->teacher_name,
+                            'group_name' => $studentTeacher->group_name];
 
-                Mail::bcc(['benitorodriguez141@gmail.com'])->send($email);
+                        $studentTeachersToEvaluate [] = $teacherInfo;
 
+                    }
+
+
+                    $data = [
+                        'role' => 'Estudiante',
+                        'name' => $student->name,
+                        'teachers_to_evaluate' => $studentTeachersToEvaluate,
+                        'start_date' => $studentsDates->ssd,
+                        'end_date' => $studentsDates->sed,
+                        'assessment_period_name' => AssessmentPeriod::getActiveAssessmentPeriod()->name
+                    ];
+
+                        $email = new \App\Mail\FirstReminderMailable($data);
+
+                        Mail::bcc(['juanes01.gonzalez@gmail.com'])->send($email);
+
+
+
+            }
+
+                return "Por fin terminaffdsfsdfsdfsde";
             }
 
         }
 
-        return "Por fin terminó";
+
 
     }
     /*Correo para estudiantes*/
+
+
+
+
+
 
 });
 
 
 
     Route::get('sendEmaill', function (){
+
         $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
 
         $todayDate = new DateTime("today");
@@ -833,13 +863,14 @@ Route::get('sendEmail', function () {
         $emailDate = Carbon::parse($bossesDates->bsd)->toDate()->modify('-1 day')->format('d/m/Y');
 
 
-        if($todayDate === "28/07/2023"){
+        if($todayDate === "31/07/2023"){
 
             $bossesFromUnits = DB::table('unity_assessments as ua')->where('role', '=', 'jefe')
                 ->where('ua.assessment_period_id', '=', $activeAssessmentPeriodId)->select(['u.id','u.email', 'u.name'])->distinct()
                 ->join('users as u', 'u.id',  '=', 'ua.evaluator_id')->get()->toArray();
 
             /*        dd($bossesFromUnits);*/
+
 
             foreach ($bossesFromUnits as $boss){
 
@@ -869,12 +900,14 @@ Route::get('sendEmail', function () {
 
                 Mail::bcc(['juanes01.gonzalez@gmail.com'])->send($email);
 
-                return "done";
-
             }
 
         }
         /*Correo para jefes*/
+
+
+
+
 
 
         /*Correo para autoevaluación*/

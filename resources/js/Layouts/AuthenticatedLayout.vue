@@ -332,6 +332,12 @@ export default {
                          icon: 'mdi-account-cog'
                      },*/
                     {
+                        name: 'Notificaciones de Evaluación',
+                        href: route('reminders.index'),
+                        role: 10,
+                        icon: 'mdi-account-cog'
+                    },
+                    {
                         name: 'Formularios',
                         href: route('forms.index.view'),
                         role: 10,

@@ -306,6 +306,38 @@ class ReportsController extends Controller
     }
 
 
+    public function getReminders(){
 
+
+        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+
+
+        $reminders = DB::table('assessment_reminder')->where('assessment_period_id', '=', $activeAssessmentPeriodId)->get();
+
+
+        return response()->json($reminders);
+
+    }
+
+
+
+    public function updateReminder(Request $request){
+
+
+        $reminderToEdit = $request->input('reminderToEdit');
+
+        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+
+
+        DB::table('assessment_reminder')->updateOrInsert(
+            ['assessment_period_id' => $activeAssessmentPeriodId,
+            'send_reminder_before' => $reminderToEdit['send_reminder_before']],
+            ['reminder_name' => $reminderToEdit['reminder_name'],
+                'roles' => $reminderToEdit['roles'],
+                'days_in_advance' => $reminderToEdit['days_in_advance']]);
+
+        return response()->json(['message' => 'Recordatorio actualizado correctamente']);
+
+    }
 
 }
