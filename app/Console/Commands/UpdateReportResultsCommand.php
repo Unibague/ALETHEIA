@@ -2,6 +2,8 @@
 
 namespace App\Console\Commands;
 
+use App\Models\AssessmentPeriod;
+use App\Models\Role;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
