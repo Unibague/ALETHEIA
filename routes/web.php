@@ -618,6 +618,13 @@ Route::get('/fulfillFinalAverageCompetences360Teachers', function () {
             ->get();
 
 
+/*        if ($uniqueTeacherId == 213){
+
+
+            dd($peerBossAutoAssessmentAnswers);
+
+        }*/
+
 /*        if($uniqueTeacherId == 236){
 
             dd($peerBossAutoAssessmentAnswers);
@@ -689,9 +696,8 @@ Route::get('/fulfillFinalAverageCompetences360Teachers', function () {
         }
 
 
-/*       if($uniqueTeacherId == 236){
-            dd($firstCompetenceTotal,$secondCompetenceTotal,$thirdCompetenceTotal,$fourthCompetenceTotal,$fifthCompetenceTotal,$sixthCompetenceTotal);
-        }*/
+
+
 
 
         $firstCompetenceTotal = number_format($firstCompetenceTotal, 1);
@@ -700,6 +706,9 @@ Route::get('/fulfillFinalAverageCompetences360Teachers', function () {
         $fourthCompetenceTotal = number_format($fourthCompetenceTotal, 1);
         $fifthCompetenceTotal = number_format($fifthCompetenceTotal, 1);
         $sixthCompetenceTotal = number_format($sixthCompetenceTotal, 1);
+
+
+
 
 
         DB::table('teachers_360_final_average')->updateOrInsert(['teacher_id' => $uniqueTeacherId,
