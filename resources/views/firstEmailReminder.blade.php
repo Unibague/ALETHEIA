@@ -58,7 +58,7 @@
         y de acuerdo con sus asignaturas matriculadas, usted debe evaluar a los siguientes docentes:</p>
 
     @foreach($data['teachers_to_evaluate'] as $teacher)
-        <p style="line-height: 70%"> Asignatura: <strong> {{$teacher->group_name}} </strong> -  Docente:  <strong>{{$teacher->teacher_name}}</strong></p>
+        <p style="line-height: 90%"> Asignatura: <strong> {{$teacher->group_name}} </strong> -  Docente:  <strong>{{$teacher->teacher_name}}</strong></p>
     @endforeach
 
     <p> Para la Universidad es de suma importancia contar con su colaboración y apoyo durante este proceso evaluativo. </p>
