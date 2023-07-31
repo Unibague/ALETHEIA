@@ -476,7 +476,9 @@
 
         <confirm-dialog
             :show="confirmSavePDF"
+            @canceled-dialog="confirmSavePDF = false"
             @confirmed-dialog="savePDF()"
+
         >
             <template v-slot:title>
                 Ahora serás redirigido a la pantalla para guardar el PDF

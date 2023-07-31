@@ -278,6 +278,7 @@
         <!--Confirmar borrar rol-->
         <confirm-dialog
             :show="confirmSavePDF"
+            @canceled-dialog="confirmSavePDF = false"
             @confirmed-dialog="savePDF()"
         >
             <template v-slot:title>
