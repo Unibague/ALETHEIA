@@ -21,6 +21,12 @@ class CreateAssessmentReminderTable extends Migration
             $table->integer('days_in_advance');
             $table->foreignId('assessment_period_id')->references('id')->on('assessment_periods');
             $table->timestamps();
+
+
+            /*$table->foreignId('user_id')->constrained();
+            $table->enum('status', ['Not Started', 'In Progress', 'Done']);
+            $table->foreignId('assessment_period_id')->references('id')->on('assessment_periods');*/
+
         });
     }
 
