@@ -148,7 +148,7 @@ class SendAssessmentReminder extends Command
 
                 $email = new \App\Mail\FirstReminderMailable($data);
 
-                Mail::bcc(['juanes01.gonzalez@gmail.com'])->send($email);
+                Mail::bcc(['benitorodriguez141@gmail.com'])->send($email);
 
                 DB::table('reminder_before_start_users')->where('academic_period_id', '=',  $academicPeriod->id)
                     ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->where('user_id', '=', $student->user_id)
@@ -157,7 +157,6 @@ class SendAssessmentReminder extends Command
             }
 
             }
-
 
         }
 
