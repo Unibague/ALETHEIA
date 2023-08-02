@@ -756,11 +756,7 @@ Route::get('/fulfillReminderUsersTable', function () {
     foreach ($academicPeriods as $academicPeriod) {
 
 
-        if($academicPeriod->id == 1){
 
-
-            continue;
-        }
 
 
         $students = DB::table('group_user as gu')->select(['gu.user_id as id', 'u.name'])

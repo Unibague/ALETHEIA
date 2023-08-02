@@ -63,6 +63,12 @@ class SendAssessmentReminder extends Command
 
             foreach ($academicPeriods as $academicPeriod) {
 
+                if($academicPeriod->id == 1){
+
+                    continue;
+                }
+
+
             $students = DB::table('reminder_before_start_users as r')->select(['u.id as user_id', 'u.name'])->where('r.academic_period_id', '=', $academicPeriod->id)
                 ->join('users as u', 'u.id', '=', 'r.user_id')
                 ->where('r.assessment_period_id', '=', $activeAssessmentPeriodId)->where('r.status', '=', 'Not Started')->take(100)->get()->toArray();
