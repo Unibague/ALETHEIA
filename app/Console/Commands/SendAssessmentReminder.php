@@ -61,40 +61,59 @@ class SendAssessmentReminder extends Command
 
             set_time_limit(10000);
 
-            /*    foreach ($academicPeriods as $academicPeriod) {*/
+            foreach ($academicPeriods as $academicPeriod) {
 
-            $students = DB::table('reminder_before_start_users as r')->select(['u.id as user_id', 'u.name'])->where('r.academic_period_id', '=', 1)
+            $students = DB::table('reminder_before_start_users as r')->select(['u.id as user_id', 'u.name'])->where('r.academic_period_id', '=', $academicPeriod->id)
                 ->join('users as u', 'u.id', '=', 'r.user_id')
                 ->where('r.assessment_period_id', '=', $activeAssessmentPeriodId)->where('r.status', '=', 'Not Started')->take(100)->get()->toArray();
 
-            $studentsDates = DB::table('academic_periods as acp')->select('students_start_date as ssd', 'students_end_date as sed')
-                ->where('acp.assessment_period_id', '=', $activeAssessmentPeriodId)->where('acp.id', '=', 1)->first();
+            if(count($students) == 0){
 
-            $referenceToOriginalStudents = $students;
+                $students = DB::table('reminder_before_start_users as r')->select(['u.id as user_id', 'u.name'])->where('r.academic_period_id', '=',  $academicPeriod->id)
+                    ->join('users as u', 'u.id', '=', 'r.user_id')
+                    ->where('r.assessment_period_id', '=', $activeAssessmentPeriodId)->where('r.status', '=', 'In Progress')->take(100)->get()->toArray();
 
-            $selectedStudentsIds = array_unique(array_column($students, 'user_id'));
 
-            //Set users with status In Progress
-            DB::table('reminder_before_start_users')->where('academic_period_id', '=', 1)
-                ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->whereIn('user_id', $selectedStudentsIds)->update(['status' => 'In Progress']);
+                if(count($students) == 0){
+                    continue;
+                }
 
+                $referenceToOriginalStudents = $students;
+
+            }
+
+
+            else {
+
+                $referenceToOriginalStudents = $students;
+
+                $selectedStudentsIds = array_unique(array_column($students, 'user_id'));
+
+                //Set users with status In Progress
+                DB::table('reminder_before_start_users')->where('academic_period_id', '=',  $academicPeriod->id)
+                    ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->whereIn('user_id', $selectedStudentsIds)->update(['status' => 'In Progress']);
+
+            }
+
+                $studentsDates = DB::table('academic_periods as acp')->select('students_start_date as ssd', 'students_end_date as sed')
+                    ->where('acp.assessment_period_id', '=', $activeAssessmentPeriodId)->where('acp.id', '=',  $academicPeriod->id)->first();
             /*        dd($students);*/
 
-            foreach ($referenceToOriginalStudents as $student){
+            foreach ($referenceToOriginalStudents as $student) {
 
                 $studentTeachersToEvaluate = [];
 
                 $studentTeachers = DB::table('group_user as gu')->select(['gu.user_id', 'u.name as teacher_name', 'g.name as group_name'])
                     ->join('groups as g', 'gu.group_id', '=', 'g.group_id')
                     ->join('users as u', 'g.teacher_id', '=', 'u.id')
-                    ->where('gu.academic_period_id', '=', 1)->where('user_id', '=', $student->user_id)
+                    ->where('gu.academic_period_id', '=',  $academicPeriod->id)->where('user_id', '=', $student->user_id)
                     ->get();
 
                 /*                dd($studentTeachers);*/
 
                 foreach ($studentTeachers as $studentTeacher) {
 
-                    if ($studentTeacher->group_name == 'ADULTOS--EXAMEN DE CLASIFICACION' || $studentTeacher->group_name == 'NI?OS--EXAMEN DE CLASIFICACION'){
+                    if ($studentTeacher->group_name == 'ADULTOS--EXAMEN DE CLASIFICACION' || $studentTeacher->group_name == 'NI?OS--EXAMEN DE CLASIFICACION') {
 
                         continue;
 
@@ -107,7 +126,7 @@ class SendAssessmentReminder extends Command
 
                 }
 
-                if(count($studentTeachersToEvaluate) == 0){
+                if (count($studentTeachersToEvaluate) == 0) {
 
 
                     continue;
@@ -128,9 +147,11 @@ class SendAssessmentReminder extends Command
 
                 Mail::bcc(['juanes01.gonzalez@gmail.com'])->send($email);
 
-                DB::table('reminder_before_start_users')->where('academic_period_id', '=', 1)
+                DB::table('reminder_before_start_users')->where('academic_period_id', '=',  $academicPeriod->id)
                     ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->where('user_id', '=', $student->user_id)
                     ->update(['status' => 'Done']);
+
+            }
 
             }
 
