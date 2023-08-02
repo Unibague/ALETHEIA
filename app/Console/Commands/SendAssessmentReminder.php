@@ -128,6 +128,9 @@ class SendAssessmentReminder extends Command
 
                 if (count($studentTeachersToEvaluate) == 0) {
 
+                    DB::table('reminder_before_start_users')->where('academic_period_id', '=',  $academicPeriod->id)
+                        ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->where('user_id', '=', $student->user_id)
+                        ->update(['status' => 'Done']);
 
                     continue;
 
@@ -154,6 +157,7 @@ class SendAssessmentReminder extends Command
             }
 
             }
+
 
         }
 
