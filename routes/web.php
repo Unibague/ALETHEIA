@@ -816,6 +816,82 @@ Route::get('/fulfillReminderUsersTable', function () {
 });
 
 
+
+Route::get('/fulfillSecondReminderUsersTable', function () {
+
+
+    $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+
+    $academicPeriods = AcademicPeriod::getCurrentAcademicPeriods();
+
+
+    foreach ($academicPeriods as $academicPeriod) {
+
+        $students = DB::table('group_user as gu')->select(['gu.user_id as id', 'u.name'])
+            ->join('users as u', 'u.id', '=', 'gu.user_id')
+            ->where('gu.academic_period_id', '=', $academicPeriod->id)->distinct()->get();
+
+
+        dd($students);
+
+
+        if(count($students) == 0){
+            continue;
+        }
+
+        foreach ($students as $student) {
+
+            $studentTeachersToEvaluate = [];
+
+            $studentTeachers = DB::table('group_user as gu')->select(['gu.user_id', 'u.name as teacher_name', 'g.name as group_name'])
+                ->join('groups as g', 'gu.group_id', '=', 'g.group_id')
+                ->join('users as u', 'g.teacher_id', '=', 'u.id')
+                ->where('gu.academic_period_id', '=', $academicPeriod->id)->where('user_id', '=', $student->id)
+                ->get();
+
+            if (count($studentTeachers) == 0){
+
+                //Si no hay docentes pues no se agrega a la lista de correspondencia
+                continue;
+
+            }
+
+            foreach ($studentTeachers as $studentTeacher) {
+
+                if ($studentTeacher->group_name == 'ADULTOS--EXAMEN DE CLASIFICACION' || $studentTeacher->group_name == 'NI?OS--EXAMEN DE CLASIFICACION'
+                    || $studentTeacher->group_name == 'EXAMEN DE SUFICIENCIA') {
+
+                    continue;
+
+                }
+
+                $teacherInfo = (object)['teacher_name' => $studentTeacher->teacher_name,
+                    'group_name' => $studentTeacher->group_name];
+
+
+                $studentTeachersToEvaluate [] = $teacherInfo;
+
+            }
+
+            if(count($studentTeachersToEvaluate) == 0){
+
+                continue;
+
+            }
+
+            DB::table('reminder_before_start_users')->updateOrInsert(['user_id' => $student->id,
+                'academic_period_id' => $academicPeriod->id,
+                'assessment_period_id' => $activeAssessmentPeriodId], ['status' => 'Not Started']);
+
+        }
+
+    }
+
+    dd("Tarea terminada");
+
+});
+
+
 Route::get('testEmail', function () {
 
     $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
@@ -831,6 +907,22 @@ Route::get('testEmail', function () {
 
         $studentsDates = DB::table('academic_periods as acp')->select('students_start_date as ssd', 'students_end_date as sed')
             ->where('acp.assessment_period_id', '=', $activeAssessmentPeriodId)->where('acp.id', '=', 1)->first();
+
+
+        $anticipationDays = DB::table('assessment_reminder')->select(['days_in_advance'])->where('assessment_period_id', '=', $activeAssessmentPeriodId)
+        ->where('send_reminder_before', '=', 'start')->first()->days_in_advance;
+
+
+
+    $todayDate = new \DateTime("today");
+
+    $todayDate = $todayDate->format('d/m/Y');
+
+/*    $parsedAnticipation = "-."*/
+
+    $emailDate = Carbon::parse($studentsDates->ssd)->toDate()->modify("-" . $anticipationDays . "days")->format('d/m/Y');
+
+    dd($studentsDates->ssd, $emailDate);
 
         $referenceToOriginalStudents = $students;
 
@@ -1323,7 +1415,6 @@ Route::get('send2ndEmail', function () {
 
             Mail::bcc(['juanes01.gonzalez@gmail.com'])->send($email);
 
-            return "done";
         }
 
     }

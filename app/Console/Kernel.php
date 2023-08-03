@@ -26,7 +26,10 @@ class Kernel extends ConsoleKernel
     {
         // $schedule->command('inspire')->hourly();
         $schedule->command('reports:update')->everyFifteenMinutes();
-        $schedule->command('reminder:send')->everyFourMinutes();
+/*        $schedule->command('firstReminderStudent:send')->everyFourMinutes();
+        $schedule->command('secondReminderStudent:send')->everyFourMinutes();*/
+/*        $schedule->command('firstReminderTeacher:send')->everyFourMinutes();
+        $schedule->command('secondReminderTeacher:send')->everyFourMinutes();*/
     }
 
     /**
