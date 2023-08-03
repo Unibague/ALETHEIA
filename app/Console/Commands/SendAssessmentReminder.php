@@ -54,7 +54,7 @@ class SendAssessmentReminder extends Command
         $todayDate = $todayDate->format('d/m/Y');
 
 
-        if ($todayDate == "02/08/2023"){
+        if ($todayDate == "03/08/2023"){
 
             $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
             $academicPeriods = AcademicPeriod::getCurrentAcademicPeriods();
