@@ -68,7 +68,6 @@ class SendAssessmentReminder extends Command
                     continue;
                 }
 
-
             $students = DB::table('reminder_before_start_users as r')->select(['u.id as user_id', 'u.name'])->where('r.academic_period_id', '=', $academicPeriod->id)
                 ->join('users as u', 'u.id', '=', 'r.user_id')
                 ->where('r.assessment_period_id', '=', $activeAssessmentPeriodId)->where('r.status', '=', 'Not Started')->take(100)->get()->toArray();
@@ -119,29 +118,12 @@ class SendAssessmentReminder extends Command
 
                 foreach ($studentTeachers as $studentTeacher) {
 
-                    if ($studentTeacher->group_name == 'ADULTOS--EXAMEN DE CLASIFICACION' || $studentTeacher->group_name == 'NI?OS--EXAMEN DE CLASIFICACION') {
-
-                        continue;
-
-                    }
-
                     $teacherInfo = (object)['teacher_name' => $studentTeacher->teacher_name,
                         'group_name' => $studentTeacher->group_name];
 
                     $studentTeachersToEvaluate [] = $teacherInfo;
 
                 }
-
-                if (count($studentTeachersToEvaluate) == 0) {
-
-                    DB::table('reminder_before_start_users')->where('academic_period_id', '=',  $academicPeriod->id)
-                        ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->where('user_id', '=', $student->user_id)
-                        ->update(['status' => 'Done']);
-
-                    return 0;
-
-                }
-
 
                 $data = [
                     'role' => 'Estudiante',
