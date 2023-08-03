@@ -138,7 +138,7 @@ class SendAssessmentReminder extends Command
                         ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->where('user_id', '=', $student->user_id)
                         ->update(['status' => 'Done']);
 
-                    continue;
+                    return 0;
 
                 }
 

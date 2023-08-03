@@ -755,7 +755,6 @@ Route::get('/fulfillReminderUsersTable', function () {
 
     foreach ($academicPeriods as $academicPeriod) {
 
-
         $students = DB::table('group_user as gu')->select(['gu.user_id as id', 'u.name'])
             ->join('users as u', 'u.id', '=', 'gu.user_id')
             ->where('gu.academic_period_id', '=', $academicPeriod->id)->distinct()->get();
@@ -763,8 +762,6 @@ Route::get('/fulfillReminderUsersTable', function () {
         if(count($students) == 0){
             continue;
         }
-
-
 
         foreach ($students as $student) {
 
@@ -776,33 +773,43 @@ Route::get('/fulfillReminderUsersTable', function () {
                 ->where('gu.academic_period_id', '=', $academicPeriod->id)->where('user_id', '=', $student->id)
                 ->get();
 
-            /*                dd($studentTeachers);*/
+            if (count($studentTeachers) == 0){
 
-            if (count($studentTeachers) == 0) {
-
+                //Si no hay docentes pues no se agrega a la lista de correspondencia
                 continue;
+
             }
 
-/*            foreach ($studentTeachers as $studentTeacher) {
+            foreach ($studentTeachers as $studentTeacher) {
+
+                if ($studentTeacher->group_name == 'ADULTOS--EXAMEN DE CLASIFICACION' || $studentTeacher->group_name == 'NI?OS--EXAMEN DE CLASIFICACION'
+                    || $studentTeacher->group_name == 'EXAMEN DE SUFICIENCIA') {
+
+                    continue;
+
+                }
 
                 $teacherInfo = (object)['teacher_name' => $studentTeacher->teacher_name,
                     'group_name' => $studentTeacher->group_name];
 
+
                 $studentTeachersToEvaluate [] = $teacherInfo;
 
-            }*/
+            }
+
+            if(count($studentTeachersToEvaluate) == 0){
+
+                    continue;
+
+            }
 
             DB::table('reminder_before_start_users')->updateOrInsert(['user_id' => $student->id,
                 'academic_period_id' => $academicPeriod->id,
                 'assessment_period_id' => $activeAssessmentPeriodId], ['status' => 'Not Started']);
 
-
         }
 
-
     }
-
-
 
     dd("Tarea terminada");
 
