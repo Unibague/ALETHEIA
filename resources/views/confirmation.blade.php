@@ -8,7 +8,7 @@
 
 <section style="width:70%; padding: 5% 20%">
 
-    <h3> Sí funcionó </h3>
+    <h3> Sí funcionó el envío de {{$issue}} :)</h3>
 
 
 </section>

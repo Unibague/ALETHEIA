@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateReminderAfterStartUsersTable extends Migration
+class CreateAssessmentReminderUsersTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,12 +13,14 @@ class CreateReminderAfterStartUsersTable extends Migration
      */
     public function up()
     {
-        Schema::create('reminder_after_start_users', function (Blueprint $table) {
+        Schema::create('assessment_reminder_users', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained();
-            $table->enum('status', ['Not Started', 'In Progress', 'Done']);
+            $table->string('email');
             $table->foreignId('academic_period_id')->constrained();
             $table->foreignId('assessment_period_id')->references('id')->on('assessment_periods');
+            $table->json('email_parameters');
+            $table->enum('status', ['Not Started', 'In Progress', 'Done']);
+            $table->enum('before_start_or_finish_assessment', ['Start', 'Finish']);
             $table->timestamps();
         });
     }
@@ -30,6 +32,6 @@ class CreateReminderAfterStartUsersTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('reminder_after_start_users');
+        Schema::dropIfExists('assessment_reminder_users');
     }
 }

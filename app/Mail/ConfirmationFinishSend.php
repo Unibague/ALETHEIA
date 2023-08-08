@@ -13,14 +13,15 @@ class ConfirmationFinishSend extends Mailable
 
 
     public $subject = "Confirmación envío correcto de correos";
+    public $data;
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct()
+    public function __construct($data)
     {
-        //
+        $this->data = $data;
     }
 
     /**
@@ -30,6 +31,6 @@ class ConfirmationFinishSend extends Mailable
      */
     public function build()
     {
-        return $this->view('confirmation');
+        return $this->view('confirmation')->with('issue', $this->data);
     }
 }
