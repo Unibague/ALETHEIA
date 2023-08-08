@@ -35,7 +35,6 @@ class Kernel extends ConsoleKernel
         $schedule->command('reminder_student:send_b_finish')->everyFiveMinutes();
         //Send the emails to the teachers when it's the due date (this cronjob will only execute once a day
         $schedule->command('reminder_teachers:send')->daily()->at('14:00');
-
     }
 
     /**

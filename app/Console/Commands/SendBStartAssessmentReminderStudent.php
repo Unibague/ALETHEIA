@@ -89,11 +89,14 @@ class SendBStartAssessmentReminderStudent extends Command
         }
 
 
-        $issue = 'Lote de Estudiantes previos a empezar evaluación docente';
+        if (count($emailsToSent) > 0){
 
-        $confirmationEmail = new \App\Mail\ConfirmationFinishSend($issue);
+            $issue = 'Lote de Estudiantes previos a empezar evaluación docente';
 
-        Mail::bcc(['juanes01.gonzalez@gmail.com'])->send($confirmationEmail);
+            $confirmationEmail = new \App\Mail\ConfirmationFinishSend($issue);
+
+            Mail::bcc(['juanes01.gonzalez@gmail.com'])->send($confirmationEmail);
+        }
 
         return 0;
     }
