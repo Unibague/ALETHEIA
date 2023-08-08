@@ -47,13 +47,13 @@ class SendBFinishAssessmentReminderStudent extends Command
 
         $emailsToSent = DB::table('assessment_reminder_users')->where('status', '=', 'Not Started')
             ->where('before_start_or_finish_assessment', '=', 'Finish')
-            ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->get();
+            ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->take(100)->get();
 
         if (count($emailsToSent) == 0) {
 
             $emailsToSent = DB::table('assessment_reminder_users')->where('status', '=', 'In Progress')
                 ->where('before_start_or_finish_assessment', '=', 'Finish')
-                ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->get();
+                ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->take(100)->get();
         }
 //    dd($emailsToSent);
 
