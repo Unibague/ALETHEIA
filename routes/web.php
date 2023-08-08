@@ -895,105 +895,69 @@ Route::get('/fulfillSecondReminderUsersTable', function () {
 Route::get('testEmail', function () {
 
     $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
-    $academicPeriods = AcademicPeriod::getCurrentAcademicPeriods();
 
-    set_time_limit(10000);
-
-/*    foreach ($academicPeriods as $academicPeriod) {*/
-
-       $students = DB::table('reminder_before_start_users as r')->select(['u.id as user_id', 'u.name'])->where('r.academic_period_id', '=', 1)
-           ->join('users as u', 'u.id', '=', 'r.user_id')
-            ->where('r.assessment_period_id', '=', $activeAssessmentPeriodId)->where('r.status', '=', 'Not Started')->take(100)->get()->toArray();
-
-        $studentsDates = DB::table('academic_periods as acp')->select('students_start_date as ssd', 'students_end_date as sed')
-            ->where('acp.assessment_period_id', '=', $activeAssessmentPeriodId)->where('acp.id', '=', 1)->first();
-
-
-        $anticipationDays = DB::table('assessment_reminder')->select(['days_in_advance'])->where('assessment_period_id', '=', $activeAssessmentPeriodId)
+    /*Correo para pares*/
+    $anticipationDays = DB::table('assessment_reminder')->select(['days_in_advance'])->where('assessment_period_id', '=', $activeAssessmentPeriodId)
         ->where('send_reminder_before', '=', 'start')->first()->days_in_advance;
 
+    $emailDate = Carbon::now()->addDays($anticipationDays)->toDateString();
+
+    $peersDates = DB::table('assessment_periods as asp')->select('colleague_start_date as csd', 'colleague_end_date as ced')
+        ->where('asp.active', '=', $activeAssessmentPeriodId)->where('colleague_start_date', '=', $emailDate)->first();
+
+    if ($peersDates) {
+
+        $peersFromUnits = DB::table('unity_assessments as ua')->where('role', '=', 'par')
+            ->where('ua.assessment_period_id', '=', $activeAssessmentPeriodId)->select(['u.id', 'u.email', 'u.name'])->distinct()
+            ->join('users as u', 'u.id', '=', 'ua.evaluator_id')->take(3)->get()->toArray();
+
+        /*        dd($bossesFromUnits);*/
+
+        foreach ($peersFromUnits as $peer) {
+
+            $peerTeachersToEvaluate = DB::table('unity_assessments as ua')->select(['u.name as evaluated_teacher_name'])
+                ->where('role', '=', 'par')
+                ->where('ua.assessment_period_id', '=', $activeAssessmentPeriodId)
+                ->where('ua.evaluator_id', '=', $peer->id)
+                ->join('users as u', 'u.id', '=', 'ua.evaluated_id')
+                ->orderBy('evaluated_teacher_name', 'asc')->get()->toArray();
 
 
-    $todayDate = new \DateTime("today");
+            $peerTeachersToEvaluate = array_unique(array_column($peerTeachersToEvaluate, 'evaluated_teacher_name'));
 
-    $todayDate = $todayDate->format('d/m/Y');
-
-/*    $parsedAnticipation = "-."*/
-
-    $emailDate = Carbon::parse($studentsDates->ssd)->toDate()->modify("-" . $anticipationDays . "days")->format('d/m/Y');
-
-    dd($studentsDates->ssd, $emailDate);
-
-        $referenceToOriginalStudents = $students;
-
-        $selectedStudentsIds = array_unique(array_column($students, 'user_id'));
-
-        //Set users with status In Progress
-        DB::table('reminder_before_start_users')->where('academic_period_id', '=', 1)
-            ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->whereIn('user_id', $selectedStudentsIds)->update(['status' => 'In Progress']);
-
-/*        dd($students);*/
-
-        foreach ($referenceToOriginalStudents as $student){
-
-            $studentTeachersToEvaluate = [];
-
-            $studentTeachers = DB::table('group_user as gu')->select(['gu.user_id', 'u.name as teacher_name', 'g.name as group_name'])
-                ->join('groups as g', 'gu.group_id', '=', 'g.group_id')
-                ->join('users as u', 'g.teacher_id', '=', 'u.id')
-                ->where('gu.academic_period_id', '=', 1)->where('user_id', '=', $student->user_id)
-                ->get();
-
-            /*                dd($studentTeachers);*/
-
-            foreach ($studentTeachers as $studentTeacher) {
-
-                if ($studentTeacher->group_name == 'ADULTOS--EXAMEN DE CLASIFICACION' || $studentTeacher->group_name == 'NI?OS--EXAMEN DE CLASIFICACION'){
-
-                    continue;
-
-                }
-
-                $teacherInfo = (object)['teacher_name' => $studentTeacher->teacher_name,
-                    'group_name' => $studentTeacher->group_name];
-
-                $studentTeachersToEvaluate [] = $teacherInfo;
-
-            }
-
-            if(count($studentTeachersToEvaluate) == 0){
-
-
-                continue;
-
-            }
-
+            /*            dd($bossTeachersToEvaluate);*/
 
             $data = [
-                'role' => 'Estudiante',
-                'name' => $student->name,
-                'teachers_to_evaluate' => $studentTeachersToEvaluate,
-                'start_date' => $studentsDates->ssd,
-                'end_date' => $studentsDates->sed,
+                'role' => 'Par de Evaluación 360°',
+                'name' => $peer->name,
+                'teachers_to_evaluate' => $peerTeachersToEvaluate,
+                'start_date' => $peersDates->csd,
+                'end_date' => $peersDates->ced,
                 'assessment_period_name' => AssessmentPeriod::getActiveAssessmentPeriod()->name
             ];
 
+
             $email = new \App\Mail\FirstReminderMailable($data);
 
-            Mail::bcc(['benitorodriguez141@gmail.com'])->send($email);
-
-            DB::table('reminder_before_start_users')->where('academic_period_id', '=', 1)
-                ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->where('user_id', '=', $student->user_id)
-                ->update(['status' => 'Done']);
+            Mail::bcc(['juanes01.gonzalez@gmail.com'])->send($email);
 
         }
+
+        $issue = "Pares antes de empezar periodo de evaluación";
+
+
+        $confirmationEmail = new \App\Mail\ConfirmationFinishSend($issue);
+
+        Mail::bcc(['juanes01.gonzalez@gmail.com'])->send($confirmationEmail);
+
+        return "Listo";
+
+    }
 
 });
 
 
 Route::get('sendEmail', function () {
-
-
 
     $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
 
@@ -1492,6 +1456,25 @@ Route::get('send2ndEmail', function () {
 });
 
 
+Route::get('checkForDueAcademicPeriodsBeforeStartAssessment', function () {
+
+
+});
+
+Route::get('checkForDueAcademicPeriodsBeforeEndAssessment', function () {
+
+
+
+});
+
+Route::get('sendEmailForDueAcademicPeriodsBeforeStartAssessment', function () {
+
+});
+
+Route::get('sendEmailForDueAcademicPeriodsBeforeEndAssessment', function () {
+
+
+});
 
 
     /*Segundo correo, ad portas de terminar evaluación docente*/

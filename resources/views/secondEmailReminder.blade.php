@@ -6,11 +6,11 @@
 <body style="font-size: 15px; background-color: #edf2f7">
 
 
-<section style="width:70%; padding: 5% 20%">
+<section style="width:75%; padding: 5% 10%">
 
 <h2 style="text-align: center"> Aletheia - Universidad de Ibagué </h2>
 
-<div style="background: #ffffff; padding: 5% 10%">
+<div style="background: #ffffff; padding: 5% 5%">
 
 <p> Apreciado(a) <strong>{{$data['name']}}:</strong></p>
 
@@ -48,7 +48,7 @@
         y de acuerdo con sus asignaturas matriculadas, usted aún falta por realizar las evaluaciones de los siguientes docentes:</p>
 
     @foreach($data['teachers_to_evaluate'] as $teacher)
-        <p style="line-height: 70%"> Asignatura: <strong> {{$teacher->group_name}} </strong> -  Profesor:  <strong>{{$teacher->teacher_name}}</strong></p>
+        <p style="line-height: 90%"> Asignatura: <strong> {{$teacher->group_name}} </strong> -  Profesor:  <strong>{{$teacher->teacher_name}}</strong></p>
     @endforeach
 
     <p> Para la universidad es de suma importancia contar con su colaboración y apoyo durante este proceso evaluativo. </p>
