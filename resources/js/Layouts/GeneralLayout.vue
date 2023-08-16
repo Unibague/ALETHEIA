@@ -48,7 +48,6 @@
         </v-footer>
     </v-app>
 
-</template>
 <script>
 import {Link} from '@inertiajs/inertia-vue';
 

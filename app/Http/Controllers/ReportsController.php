@@ -28,21 +28,26 @@ class ReportsController extends Controller
         if ($user->role()->name == "Resultados Evaluación"){
 
             //Ingenierías
+
+            //Decano y Vicedecano respectivamente
             //Meisel y William
             if($user->id == 240 || $user->id == 270){
                 $units = ['025-1', '014-1','028-1', '018-1', '022-1', '105-1','104-1'];
             }
 
+            //Dpto. Desarrollo Tecnológico
             //Luisa Gallo
             if($user->id == 159){
                 $units = ['025-1', '014-1'];
             }
 
+            //Dpto. Logistica y Ciencias
             //Carolina Saavedra
             if($user->id == 144){
                 $units = ['018-1', '022-1'];
             }
 
+            //Dpto Civil
             //Del Rio
             if($user->id == 31){
                 $units = ['028-1'];
@@ -52,11 +57,14 @@ class ReportsController extends Controller
 
 
 //Facultad Ciencias Naturales
+
+            //Decana
             //Nyckyertt
             if($user->id == 183){
                 $units = ['083-1', '007-1'];
             }
 
+            //Biología Ambiental
             //Bilma
             if($user->id == 155){
                 $units = ['083-1'];
@@ -67,19 +75,22 @@ class ReportsController extends Controller
 
 //Facultad Ciencias Económicas
 
+
+            //Decana facultad
             //Paola Henoe
             if($user->id == 192){
                 $units = ['103-1', '106-1', '021-1', '027-1', '013-1' ,'017-1', '092-1', '024-1'];
             }
 
-            //Alejandro Gutiérrez
 
-            if($user->id == 215){
+            //Departamento Administración
+            //Eliana Fernanda Granada
+            if($user->id == 41){
                 $units = ['092-1', '024-1', '013-1', '017-1', '103-1'];
             }
 
+            //Departamento de Negocios Internacionales y Economía
             //Paula Lorena Rodríguez
-
             if($user->id == 154){
                 $units = ['021-1', '027-1', '106-1'];
             }
@@ -89,11 +100,14 @@ class ReportsController extends Controller
 
 //Facultad Derecho
 
+            //Facultad de Dercho y programa de Derecho
             //Alexander Cruz
             if($user->id == 122957){
                 $units = ['008-1', '012-1'];
             }
 
+
+            //Programa de Derecho
             //Cesar Barrera
             if($user->id == 98){
                 $units = ['012-1'];
@@ -105,24 +119,29 @@ class ReportsController extends Controller
 
 //Facultad Humanidades
 
+
+
+            //Decano
             //Daniel Lopera
             if($user->id == 218){
                 $units = ['011-1', '110-1', '111-1'];
             }
 
+            //Vicedecana
             //Sandra Abella
             if($user->id == 164){
                 $units = ['011-1', '110-1', '111-1'];
             }
 
-
-            //Torrente
-            if($user->id == 46 || $user->id == 213){
+            //Comprension Social y Humana
+            //Isidro
+            if($user->id == 213){
                 $units = ['110-1'];
             }
 
-            //Tatiana Ávila
-            if($user->id == 40){
+            //Creacion Colectiva
+            //Angela Lopera Molano
+            if($user->id == 165){
                 $units = ['111-1'];
             }
 
