@@ -51,8 +51,6 @@
                 </v-btn>
             </template>
 
-
-
             <template v-for="menuItem in menu2"
                       v-if="currentRoleName == 'estudiante'" >
 
