@@ -50,7 +50,6 @@ class UpdateReportResultsCommand extends Command
             ->where('f.type', '=', 'estudiantes')
             ->where('fa.assessment_period_id', '=', $activeAssessmentPeriodId)->get()->toArray();
 
-
         //First, we insert the student assessments for each teacher on each group on group_results table
         if(count($teachers) > 0){
 
@@ -195,7 +194,6 @@ class UpdateReportResultsCommand extends Command
                         dd($aggregateTotalStudentsReviewersOnGroups);
 
                     }*/
-
                 $final_first_aggregate_competence_average /= $groupsAmount;
                 $final_second_aggregate_competence_average /= $groupsAmount;
                 $final_third_aggregate_competence_average /= $groupsAmount;
@@ -223,7 +221,6 @@ class UpdateReportResultsCommand extends Command
                         'aggregate_students_amount_on_360_groups' => $aggregateTotalStudentsEnrolledOnGroups,
                         'created_at' => Carbon::now('GMT-5')->toDateTimeString(),
                         'updated_at' => Carbon::now('GMT-5')->toDateTimeString() ]);
-
             }
 
             //Now, we are going to calculate the final results on groups for the teacher regarding only students assessments. This is, the results for the service_area report
@@ -266,7 +263,6 @@ class UpdateReportResultsCommand extends Command
                         $final_fourth_aggregate_competence_average +=$groupFromServiceAreaCode->fourth_final_competence_average;
                         $final_fifth_aggregate_competence_average += $groupFromServiceAreaCode->fifth_final_competence_average;
                         $final_sixth_aggregate_competence_average += $groupFromServiceAreaCode->sixth_final_competence_average;
-
                     }
 
                     $final_first_aggregate_competence_average /= $groupsAmountFromServiceAreaCode;
@@ -297,8 +293,6 @@ class UpdateReportResultsCommand extends Command
                 }
 
             }
-
-
             $teacherRoleId = Role::getTeacherRoleId();
             $teachersFrom360 = DB::table('teachers_students_perspectives as tsp')->select(['teacher_id'])
                 ->join('v2_unit_user','tsp.teacher_id', '=', 'v2_unit_user.user_id')
@@ -357,7 +351,8 @@ class UpdateReportResultsCommand extends Command
                         'tsp.third_final_aggregate_competence_average as third_competence_average',
                         'tsp.fourth_final_aggregate_competence_average as fourth_competence_average',
                         'tsp.fifth_final_aggregate_competence_average as fifth_competence_average',
-                        'tsp.sixth_final_aggregate_competence_average as sixth_competence_average'])
+                        'tsp.sixth_final_aggregate_competence_average as sixth_competence_average',
+                        'aggregate_students_amount_reviewers', 'aggregate_students_amount_on_360_groups'])
                     ->where('teacher_id', '=', $uniqueTeacherId)->where('assessment_period_id', '=', $activeAssessmentPeriodId)->get()->first();
 
                 $studentsAnswers->unit_role = "estudiante";
@@ -395,6 +390,10 @@ class UpdateReportResultsCommand extends Command
                         $fourthCompetenceTotal += $assessment->fourth_competence_average*$studentsPercentage;
                         $fifthCompetenceTotal += $assessment->fifth_competence_average*$studentsPercentage;
                         $sixthCompetenceTotal += $assessment->sixth_competence_average*$studentsPercentage;
+
+                        $involvedActors = $assessment->aggregate_students_amount_reviewers + count($allAssessments) - 1;
+                        $totalActors = $assessment->aggregate_students_amount_on_360_groups + count($allAssessments) - 1;
+
                     }
 
                     if($assessment->unit_role === "autoevaluación"){
@@ -416,7 +415,6 @@ class UpdateReportResultsCommand extends Command
                 $fifthCompetenceTotal = number_format($fifthCompetenceTotal, 1);
                 $sixthCompetenceTotal = number_format($sixthCompetenceTotal, 1);
 
-
                 DB::table('teachers_360_final_average')->updateOrInsert(
                     ['teacher_id' => $uniqueTeacherId, 'assessment_period_id' => $activeAssessmentPeriodId],
                     ['first_final_aggregate_competence_average' => $firstCompetenceTotal,
@@ -424,15 +422,15 @@ class UpdateReportResultsCommand extends Command
                         'third_final_aggregate_competence_average' => $thirdCompetenceTotal,
                         'fourth_final_aggregate_competence_average' => $fourthCompetenceTotal,
                         'fifth_final_aggregate_competence_average' => $fifthCompetenceTotal,
-                        'sixth_final_aggregate_competence_average' => $sixthCompetenceTotal]);
+                        'sixth_final_aggregate_competence_average' => $sixthCompetenceTotal,
+                        'involved_actors' => $involvedActors,
+                        'total_actors'=>$totalActors]);
 
                 /*       dd($firstCompetenceTotal,$secondCompetenceTotal,$thirdCompetenceTotal,$fourthCompetenceTotal,$fifthCompetenceTotal,$sixthCompetenceTotal);*/
 
                 /*        dd($allAssessments);*/
             }
         }
-
         return 0;
-
     }
 }
