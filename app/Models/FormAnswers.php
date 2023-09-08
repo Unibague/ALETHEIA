@@ -150,8 +150,8 @@ class FormAnswers extends Model
             't360.fourth_final_aggregate_competence_average as fourth_competence_average',
             't360.fifth_final_aggregate_competence_average as fifth_competence_average',
             't360.sixth_final_aggregate_competence_average as sixth_competence_average',
-            't.name as name', 't.id as teacherId', 'v2_unit_user.unit_identifier',
-            'v2_units.name as unitName', 'tsp.updated_at as submitted_at', 'tsp.aggregate_students_amount_reviewers', 'tsp.aggregate_students_amount_on_360_groups'])
+            't360.involved_actors', 't360.total_actors', 't.name as name', 't.id as teacherId', 'v2_unit_user.unit_identifier',
+            'v2_units.name as unitName', 'tsp.updated_at as submitted_at'])
             ->join('teachers_students_perspectives as tsp', 'tsp.teacher_id','=','t360.teacher_id')
             ->join('users as t', 'tsp.teacher_id', '=', 't.id')
             ->join('v2_unit_user','t.id', '=', 'v2_unit_user.user_id')
@@ -283,8 +283,6 @@ class FormAnswers extends Model
 
            foreach ($allAnswers as $singleAnswer) {
 
-
-
                if ($singleAnswer->type == 'abierta') {
 
                    $openAnswersFromColleagues [] = (object)[
@@ -294,10 +292,7 @@ class FormAnswers extends Model
                        'name' => $colleagueName];
 
                }
-
            }
-
-
        }
 
        return $openAnswersFromColleagues;
@@ -307,8 +302,6 @@ class FormAnswers extends Model
 
 
 /*        dd($answers);*/
-
-
 
 
     /**

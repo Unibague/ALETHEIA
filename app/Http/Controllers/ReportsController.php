@@ -198,9 +198,7 @@ class ReportsController extends Controller
             if(count($serviceAreas) > 0){
 
                 foreach ($serviceAreas as $serviceArea){
-
                     $serviceAreasArray [] = $serviceArea->service_area_code;
-
                 }
 
                 return Inertia::render('Reports/CompleteServiceAreasResults', ['propsServiceAreas' => $serviceAreasArray]);

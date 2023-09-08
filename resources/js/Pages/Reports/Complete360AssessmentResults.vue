@@ -29,7 +29,6 @@
                 >
                     <v-row class="py-3">
                         <v-col cols="4" >
-
                             <v-autocomplete
                                 v-model="unit"
                                 flat
@@ -41,7 +40,6 @@
                                 prepend-inner-icon="mdi-home-search"
                                 label="Unidades"
                             ></v-autocomplete>
-
                         </v-col>
 
                         <v-col cols="4">
@@ -59,7 +57,6 @@
                             ></v-autocomplete>
 
                         </v-col>
-
 
                         <v-col cols="3">
                             <v-select
@@ -95,14 +92,8 @@
                             <span>Exportar resultados actuales a Excel</span>
                             </v-tooltip>
                         </v-col>
-
-
                     </v-row>
-
-
             </v-toolbar>
-
-
 
             <!--Inicia tabla-->
             <v-card>
@@ -118,13 +109,12 @@
                     }"
                     class="elevation-1"
                 >
-
-
                     <template v-slot:item.unit_role="{ item }">
 
                         {{capitalize(item.unit_role)}}
 
                     </template>
+
 
 
                     <template v-slot:item.graph="{ item }">
@@ -181,13 +171,10 @@
                 v-model="showChartDialog"
                 persistent
             >
-
                 <v-card>
 
                     <v-card-text>
-
                         <h2 class="black--text pt-5" style="text-align: center"> Visualizando al docente: {{this.capitalize(this.selectedTeacherToGraph)}}</h2>
-
                     </v-card-text>
 
                     <v-container style="position: relative; height:60vh; width:90vw; background: #FAF9F6" id="malparido">
@@ -198,7 +185,6 @@
                     <h5 class="gray--text" style="text-align: left; margin-left: 60px; margin-bottom: 5px"> Puedes dar click izquierdo sobre la leyenda de la linea de tendencia que desees ocultar </h5>
 
                     <v-card-actions>
-
                        <v-btn
                             color="primario"
                             class="white--text"
@@ -215,10 +201,7 @@
                         >
                             Salir
                         </v-btn>
-
-
                     </v-card-actions>
-
                 </v-card>
             </v-dialog>
 
@@ -228,7 +211,6 @@
             >
 
                 <v-card>
-
                     <v-card-text>
                         <h2 class="black--text pt-5" style="text-align: center"> Visualizando comentarios hacia el
                             docente: {{ this.capitalize(this.selectedTeacherOpenAnswers) }}</h2>
@@ -238,26 +220,18 @@
                         <h3 class="black--text pt-5"> Comentarios por parte de profesores:</h3>
 
                         <div v-for="colleagueAnswer in openAnswersColleagues" class="mt-3">
-
-
                             <h4> {{colleagueAnswer.name}} ({{colleagueAnswer.unit_role}}): {{ colleagueAnswer.answer }}</h4>
-
                         </div>
-
 
                         <h3 class="black--text pt-5 mt-4"> Comentarios por parte de estudiantes:</h3>
 
                         <div v-for="studentAnswer in openAnswersStudents" class="mt-3">
-
                             <h4> {{ studentAnswer.answer }}</h4>
-
                         </div>
 
                     </v-card-text>
 
-
                     <v-card-actions>
-
                         <v-btn
                             color="primario"
                             class="grey--text text--lighten-4"
@@ -275,7 +249,7 @@
         </v-container>
 
 
-        <!--Confirmar borrar rol-->
+        <!--Confirmar guardar PDF-->
         <confirm-dialog
             :show="confirmSavePDF"
             @canceled-dialog="confirmSavePDF = false"
@@ -305,8 +279,6 @@ import Snackbar from "@/Components/Snackbar";
 import Chart from "chart.js/auto";
 import Question from "@/models/Question";
 import Papa from 'papaparse';
-import jsPDF from "jspdf";
-
 
 export default {
     components: {
@@ -382,8 +354,6 @@ export default {
 
     },
 
-
-
     async created() {
 
         await this.checkUser();
@@ -399,7 +369,6 @@ export default {
 
     methods: {
 
-
         addAllElementSelectionItem(model, text) {
             model.unshift({id: '', name: text});
         },
@@ -407,9 +376,7 @@ export default {
         checkUser: function (){
 
             if (this.propsUnits === undefined){
-
                 this.individualView = false;
-
             }
 
         },
@@ -417,13 +384,10 @@ export default {
         matchProperty: function (array, propertyPath, reference) {
 
             return array.filter((item) => {
-
                 const propertyArr = propertyPath.split(".");
-
                 const propertyValue = propertyArr.reduce((obj, key) => {
 
                     return obj && obj[key];
-
                 }, item);
 
                 return propertyValue === reference;
@@ -446,13 +410,10 @@ export default {
             if (this.individualView){
 
                 this.units = this.units.filter (unit => {
-
                     return this.propsUnits.includes(unit.identifier)
-
                 })
 
                 return this.units
-
             }
 
             this.units.unshift({name: 'Todas las unidades', identifier:''})
@@ -463,17 +424,11 @@ export default {
         getTeachers: async function (){
 
             let request = await axios.get(route('unit.getTeachersThatBelongToAnUnit'));
-
             this.teachers = request.data
-
             this.teachers.forEach(teacher =>{
-
                 teacher.name = this.capitalize(teacher.name)
 
             })
-
-      /*      this.teachers = this.sortArrayAlphabetically(this.teachers);*/
-
         },
 
 
@@ -481,20 +436,13 @@ export default {
 
             this.roles = [{id:  'Todos los roles', name: ''},{id: 'jefe', name: 'jefe'},
                 {id: 'par', name: 'par'}, {id: 'autoevaluación', name: 'autoevaluación'}, {id: 'estudiante', name: 'estudiante'}, {id: 'promedio final', name:'promedio final'}]
-
-            console.log(this.roles);
-
-
         },
 
         getAnswersFromTeachers: async function (){
 
             let url = route('formAnswers.teachers.show');
-
             let request = await axios.get(url);
-
             this.assessments = request.data
-
             console.log(request.data);
 
             this.assessments.forEach(assessment =>{
@@ -502,8 +450,6 @@ export default {
                 assessment.aggregate_students_amount_reviewers = 1;
                 assessment.aggregate_students_amount_on_360_groups = 1;
             })
-
-
             console.log(this.assessments, 'assessments totales')
 
         },
@@ -527,49 +473,54 @@ export default {
             });
 
            this.assessments.sort(this.orderData);
-
-
-
         },
 
+
+        async getFinalGrades(){
+
+            let url = route('formAnswers.teachers.finalGrades');
+
+            let request = await axios.get(url);
+
+            let finalGrades = request.data;
+
+            console.log(finalGrades, 'answers from students');
+
+            finalGrades.forEach(answer =>{
+                answer.unit_role = 'promedio final'
+                answer.aggregate_students_amount_reviewers = answer.involved_actors
+                answer.aggregate_students_amount_on_360_groups = answer.total_actors
+                this.assessments.push(answer)
+
+
+            });
+
+            this.assessments.sort(this.orderData);
+
+        },
 
         getOpenAnswersFromStudents: async function (teacherId){
 
             let url = route('formAnswers.teachers.openAnswersStudents');
-
             let request = await axios.post(url, {teacherId: teacherId});
-
             this.openAnswersStudents = request.data;
-
-
         },
-
 
         getOpenAnswersFromColleagues: async function (teacherId){
 
             let url = route('formAnswers.teachers.openAnswersColleagues');
-
             let request = await axios.post(url, {teacherId: teacherId});
-
             this.openAnswersColleagues = request.data;
-
-
-
         },
 
-
         capitalize($field){
-
             return $field.toLowerCase().split(' ').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-
         },
 
 
         sortArrayAlphabetically(array){
-
             return array.sort( (p1, p2) =>
                 (p1.name > p2.name) ? 1 : (p1.name > p2.name) ? -1 : 0);
-
         },
 
         getFilteredAssessmentsByUnit(assessments = null) {
@@ -612,34 +563,19 @@ export default {
 
         async setDialogToShowChart(teacher){
 
-
             this.showChartDialog = true
-
-            console.log(teacher, 'malparidooooooooooo')
-
             await this.getResponseIdealsDataset(teacher);
-
             this.getRolesDatasets(teacher);
-
             this.getGraph();
-
             this.getChartAsObject()
-
-            console.log(this.chart);
-
 
         },
 
         async setDialogToShowOpenAnswers(teacher){
-
             this.selectedTeacherOpenAnswers = teacher.name;
-
             this.showOpenAnswersDialog = true
-
             await this.getOpenAnswersFromStudents(teacher.teacherId)
-
             await this.getOpenAnswersFromColleagues(teacher.teacherId);
-
         },
 
 
@@ -648,8 +584,6 @@ export default {
             let array = [roleArray.first_competence_average, roleArray.second_competence_average, roleArray.third_competence_average, roleArray.fourth_competence_average,
 
                 roleArray.fifth_competence_average, roleArray.sixth_competence_average]
-
-
             return array;
 
         },
@@ -657,9 +591,7 @@ export default {
         getTeachingLadderNameByParameter: async function (teachingLadderCode){
 
             let request = await axios.get(route('api.assessmentPeriods.teachingLadders'));
-
             let teachingLadders = request.data
-
             teachingLadders.forEach(teachingLadder =>{
 
                 if(teachingLadder == 'NIN'){
@@ -692,15 +624,11 @@ export default {
             })
 
             let teachingLadder = this.finalTeachingLadders.find(teachingLadder =>{
-
                 return teachingLadder.identifier == teachingLadderCode
-
             })
 
             if (teachingLadder === undefined){
-
                 return 'Ninguno'
-
             }
 
             return teachingLadder.name
@@ -721,44 +649,18 @@ export default {
             return request.data;
         },
 
-        async getFinalGrades(){
-
-            let url = route('formAnswers.teachers.finalGrades');
-
-            let request = await axios.get(url);
-
-            let finalGrades = request.data;
-
-            console.log(finalGrades, 'answers from students');
-
-            finalGrades.forEach(answer =>{
-
-                answer.unit_role = 'promedio final'
-                this.assessments.push(answer)
-
-            });
-
-            this.assessments.sort(this.orderData);
-
-        },
 
 
         async getResponseIdealsDataset(teacher){
 
             console.log(teacher, 'teacher');
-
             this.selectedTeacherToGraph = teacher.name
-
             let unitIdentifier = teacher.unit_identifier
 
             console.log(unitIdentifier, 'unitIdentifier');
-
             let teacherId = teacher.teacherId;
-
             let info = {userId : teacherId}
-
             let request = await axios.post(route('teachers.getTeachingLadder'), info)
-
             let teachingLadder= await this.getTeachingLadderNameByParameter(request.data)
 
             console.log(teachingLadder, 'teachingLadder');
@@ -766,9 +668,7 @@ export default {
             let responseIdealsCompetences = await this.getResponseIdealsCompetences(teachingLadder, unitIdentifier);
 
             responseIdealsCompetences.forEach(competence =>{
-
                 this.responseIdealsCompetencesArray.push(competence.value);
-
             })
 
             this.datasets.unshift({
@@ -793,8 +693,6 @@ export default {
 
             let colors = new Question().getLineChartColors();
 
-            /*console.log(colors.getLineChartColors(), 'colorssssss')*/
-
             teacherRolesArrays.forEach(roleArray => {
 
                 if(roleArray.unit_role == 'promedio final')
@@ -808,15 +706,12 @@ export default {
                         borderColor: 'black',
                         borderWidth: 5
                     })
-
                 }
 
                 else{
 
                     colors.forEach(color => {
-
                         if(color.role === roleArray.unit_role){
-
                             this.datasets.push({
 
                                 label: this.capitalize(roleArray.unit_role),
@@ -846,25 +741,19 @@ export default {
 
 
         setDialogToCancelChart (){
-
             this.showChartDialog = false
             this.chart.destroy();
             this.responseIdealsCompetencesArray.length = 0;
             this.finalTeachingLadders.length= 0;
             this.datasets = [];
-
-
         },
 
         setDialogToCancelOpenAnswers (){
-
             this.showOpenAnswersDialog = false;
             this.openAnswersStudents= [];
-
         },
 
         downloadResults (){
-
                 console.log(this.filteredItems);
 
                 let excelInfo = this.filteredItems.map(item =>{
@@ -911,11 +800,9 @@ export default {
             this.confirmSavePDF = false;
 
             this.datasets.forEach(dataset =>{
-
                 dataset.fill = {target: 'origin',
                     above: 'rgb(255, 255, 255)',
                     below: 'rgb(255, 255, 255)'}
-
             })
 
             var winName='MyWindow';
@@ -948,10 +835,7 @@ export default {
 
         },
 
-
-
         getGraph(){
-
 
          const legendMargin ={
                        beforeInit: function(chart, options) {
@@ -960,7 +844,6 @@ export default {
                            };
                        }
                }
-
 
                 let miCanvas = document.getElementById("MiGrafica").getContext("2d");
                 this.chart = new Chart(miCanvas, {
@@ -1041,9 +924,7 @@ export default {
                                     },
 
                                     ticks:{
-
                                         callback: (value, index, values) => (index == (values.length-1)) ? undefined : value,
-
                                     },
                                 }
                         }
@@ -1053,9 +934,7 @@ export default {
         },
 
         getChartAsObject(){
-
             return this.chart.config._config;
-
         },
 
     },
@@ -1068,13 +947,10 @@ export default {
             let finalAssessments = this.assessments;
 
             if (this.individualView){
-
                 finalAssessments = this.getFilteredAssessmentsByUnit(finalAssessments);
-
             }
 
             else {
-
                 if (this.unit !== '') {
                     finalAssessments = this.getFilteredAssessmentsByUnit(finalAssessments);
                 }
@@ -1108,7 +984,6 @@ export default {
             this.addAllElementSelectionItem(finalTeachers, 'Todos los docentes');
 
             return finalTeachers;
-
         }
     }
 }
