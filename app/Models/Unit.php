@@ -82,7 +82,6 @@ class Unit extends Model
 
     public static function transferTeacherToSelectedUnit($unit, $userId): void{
 
-
         $activeAssessmentPeriod = AssessmentPeriod::getActiveAssessmentPeriod()->id;
         $teacherRole = Role::getTeacherRoleId();
 
