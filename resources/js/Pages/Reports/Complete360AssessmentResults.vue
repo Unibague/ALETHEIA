@@ -172,7 +172,6 @@
                 persistent
             >
                 <v-card>
-
                     <v-card-text>
                         <h2 class="black--text pt-5" style="text-align: center"> Visualizando al docente: {{this.capitalize(this.selectedTeacherToGraph)}}</h2>
                     </v-card-text>
@@ -180,7 +179,6 @@
                     <v-container style="position: relative; height:60vh; width:90vw; background: #FAF9F6" id="malparido">
                         <canvas id="MiGrafica"></canvas>
                     </v-container>
-
 
                     <h5 class="gray--text" style="text-align: left; margin-left: 60px; margin-bottom: 5px"> Puedes dar click izquierdo sobre la leyenda de la linea de tendencia que desees ocultar </h5>
 
@@ -209,7 +207,6 @@
                 v-model="showOpenAnswersDialog"
                 persistent
             >
-
                 <v-card>
                     <v-card-text>
                         <h2 class="black--text pt-5" style="text-align: center"> Visualizando comentarios hacia el
@@ -239,8 +236,6 @@
                         >
                             Salir
                         </v-btn>
-
-
                     </v-card-actions>
                 </v-card>
 

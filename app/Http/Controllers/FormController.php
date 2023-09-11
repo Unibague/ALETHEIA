@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\CopyFormRequest;
 use App\Http\Requests\DestroyFormRequest;
+use App\Models\AssessmentPeriod;
 use App\Models\Form;
 use App\Http\Requests\StoreFormRequest;
 use App\Http\Requests\UpdateFormRequest;
@@ -17,6 +18,11 @@ class FormController extends Controller
     public static function getWithoutQuestions(array $academicPeriodsIds = null): JsonResponse
     {
         return response()->json(Form::withoutQuestions());
+    }
+
+    public static function copyFromPeriod(AssessmentPeriod $assessmentPeriod): JsonResponse
+    {
+       return Form::migrateForms($assessmentPeriod);
     }
 
     /**
