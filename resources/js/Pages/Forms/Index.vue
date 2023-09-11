@@ -22,7 +22,7 @@
                         <v-list>
                             <v-subheader>Menú de otras opciones</v-subheader>
                             <v-list-item
-                                @click="getFormsWithoutQuestions"
+                                @click="openMigrateFormsDialog"
                             >
                                 <v-list-item-avatar>
 
@@ -31,7 +31,7 @@
                                     </v-icon>
 
                                 </v-list-item-avatar>
-                                <v-list-item-title>Migrar formularios del periodo pasado</v-list-item-title>
+                                <v-list-item-title>Migrar formularios de periodos anteriores</v-list-item-title>
                             </v-list-item>
                             <v-list-item
                                 @click="getFormsWithoutQuestions"
@@ -463,6 +463,46 @@
                     </v-card-actions>
                 </v-card>
             </v-dialog>
+
+            <v-dialog
+                v-model="migrateFormsDialog"
+                persistent
+                max-width="700"
+            >
+                <v-card>
+                    <v-card-title class="text-h5">
+                        Migrar formularios anteriores
+                    </v-card-title>
+                    <v-card-text>Selecciona el periodo de evaluación del que quieres migrar los formularios
+                    </v-card-text>
+                    <v-select
+                        color="primario"
+                        v-model="selectedAssessmentPeriod"
+                        :items="assessmentPeriodsMigrateList"
+                        label="Selecciona un periodo de evaluación"
+                        :item-value="(role)=>role"
+                        :item-text="(role)=>role.name"
+                        class="pa-6"
+                    ></v-select>
+                    <v-card-actions>
+                        <v-spacer></v-spacer>
+                        <v-btn
+                            color="primario"
+                            text
+                            @click="migrateForms(selectedAssessmentPeriod)"
+                        >
+                            Aceptar
+                        </v-btn>
+                        <v-btn
+                            color="primario"
+                            text
+                            @click="migrateFormsDialog = false"
+                        >
+                            Cancelar
+                        </v-btn>
+                    </v-card-actions>
+                </v-card>
+            </v-dialog>
             <!--Confirmar borrar rol-->
             <confirm-dialog
                 :show="deleteFormDialog"
@@ -479,6 +519,7 @@
                     Borrar
                 </template>
             </confirm-dialog>
+
         </v-container>
     </AuthenticatedLayout>
 </template>
@@ -555,8 +596,11 @@ export default {
             editStudentFormDialog: false,
             createOthersFormDialog: false,
             editOthersFormDialog: false,
-
+            migrateFormsDialog: false,
+            assessmentPeriodsMigrateList : [],
+            selectedAssessmentPeriod: [],
             isLoading: true,
+
         }
     },
     async created() {
@@ -583,6 +627,7 @@ export default {
             }
             return selectedAcademicPeriod.name;
         },
+
         getFormsWithoutQuestions: async function () {
             let request = await axios.get(route('api.forms.withoutQuestions'));
             this.forms = Form.createFormsFromArray(request.data);
@@ -590,6 +635,15 @@ export default {
             showSnackbar(this.snackbar, 'Se han cargado los formularios sin preguntas', 'success');
             this.sheet = false;
         },
+
+        migrateForms: async function (assessmentPeriod) {
+            let request = await axios.get(route('api.forms.copyFromPeriod', {assessmentPeriod}));
+            await this.getAllForms();
+            this.migrateFormsDialog = false;
+            showSnackbar(this.snackbar, 'Se han cargado los formularios del periodo de evaluación seleccionado', 'success');
+            this.sheet = false;
+        },
+
         getTableServiceAreas: function (formServiceAreas) {
             if (!Array.isArray(formServiceAreas)) {
                 return 'Ninguna';
@@ -601,7 +655,6 @@ export default {
             for (const serviceArea of formServiceAreas) {
                 names.push(serviceArea === null ? 'Todas' : (serviceAreas.find(pServiceArea => pServiceArea.code === serviceArea)?.name || ''));
             }
-
             return names.join(', ');
         },
 
@@ -668,6 +721,18 @@ export default {
             if (model === 'othersForm') {
                 this.createOthersFormDialog = true;
             }
+        },
+
+        async openMigrateFormsDialog(){
+
+            this.migrateFormsDialog = true
+            let request = await axios.get(route('api.assessmentPeriods.index'));
+            let assessmentPeriods = request.data;
+            this.assessmentPeriodsMigrateList = assessmentPeriods.filter(assessmentPeriod => {
+                return assessmentPeriod.active === 0;
+            });
+            console.log(this.assessmentPeriodsMigrateList);
+
         },
 
         getAllForms: async function (notify = false) {
@@ -757,15 +822,10 @@ export default {
             if (formModel === 'othersForm') {
                 this[formModel].type = 'otros';
             }
-
             const endpoint = route('api.forms.store', {form: this[formModel].id});
             const axiosMethod = 'post';
             let data = this[formModel].toObjectRequest();
-
-
             console.log(data);
-
-
             try {
                 let request = await axios[axiosMethod](endpoint, data);
                 if (formModel === 'studentForm') {

@@ -107,7 +107,6 @@ class AssessmentPeriod extends Model
     {
         $teachingLadders = ['done_by_none' => 'NIN', 'done_by_auxiliary' => 'AUX', 'done_by_assistant' => 'ASI', 'done_by_associated' => 'ASO', 'done_by_head_teacher' => 'TIT'];
 
-
         $suitableTeachingLadders = [];
 
         foreach ($teachingLadders as $key => $teachingLadder) {
@@ -118,20 +117,15 @@ class AssessmentPeriod extends Model
             }
         }
 
-
         if (in_array('TIT', $suitableTeachingLadders )){
 
             $suitableTeachingLadders [] = 'DOCENTE';
         }
 
-
-
         return $suitableTeachingLadders;
     }
 
     public function getSuitableTeachingLaddersWithNames(){
-
-
         $teachingLadders = ['done_by_none' => 'NIN', 'done_by_auxiliary' => 'AUX', 'done_by_assistant' => 'ASI', 'done_by_associated' => 'ASO', 'done_by_head_teacher' => 'TIT'];
 
         $suitableTeachingLadders = [];
@@ -143,7 +137,6 @@ class AssessmentPeriod extends Model
                 $suitableTeachingLadders [] = $teachingLadder;
             }
         }
-
 
         return $suitableTeachingLadders;
 

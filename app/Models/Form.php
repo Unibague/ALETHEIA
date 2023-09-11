@@ -73,6 +73,27 @@ class Form extends Model
             ->get();
     }
 
+    public static function migrateForms(AssessmentPeriod $assessmentPeriod): \Illuminate\Http\JsonResponse
+    {
+        $activeAssessmentPeriod = AssessmentPeriod::getActiveAssessmentPeriod();
+        $selectedAssessmentPeriodForms = self::where('creation_assessment_period_id', '=', $assessmentPeriod->id)
+            ->with(['academicPeriod', 'assessmentPeriod'])->get();
+
+        if (count($selectedAssessmentPeriodForms) === 0){
+            return response()->json(['message' => 'El periodo de evaluación seleccionado no posee formularios creados'], 400);
+        }
+
+        foreach ($selectedAssessmentPeriodForms as $form){
+            $newForm = $form->replicate(['name', 'assessment_period_id', 'creation_assessment_period_id', 'academic_period_id']);
+            $newForm->name = 'Copia de ' . $form->name;
+            $newForm->assessment_period_id = $activeAssessmentPeriod->id;
+            $newForm->creation_assessment_period_id = $activeAssessmentPeriod->id;
+            $newForm->academic_period_id = null;
+            $newForm->save();
+        }
+        return response()->json(['message' => 'Formularios copiados exitosamente']);
+    }
+
     public static function getCurrentForms()
     {
         $assessmentPeriodId = (int)AssessmentPeriod::getActiveAssessmentPeriod()->id;

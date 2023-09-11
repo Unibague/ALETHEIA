@@ -30,6 +30,7 @@ class  AssessmentPeriodController extends Controller
         try {
             $active = AssessmentPeriod::getActiveAssessmentPeriod();
             $active->active = false;
+            $active->timestamps = false;
             $active->save();
         } catch (\Exception $e) {
         } finally {
