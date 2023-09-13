@@ -656,13 +656,14 @@ export default {
         getOpenAnswersFromStudents: async function (teacherId, serviceArea){
             let url = route('formAnswers.teachers.openAnswersStudents', {assessmentPeriodId: this.assessmentPeriod});
             let request = await axios.post(url, {teacherId: teacherId, serviceArea:serviceArea});
+            console.log(request.data, 'Open Answers from Service Area');
             this.openAnswersStudents = request.data;
         },
 
         getOpenAnswersFromStudentsFromGroup: async function (teacherId, serviceArea, groupId){
             let url = route('formAnswers.teachers.openAnswersStudentsFromGroup', {assessmentPeriodId: this.assessmentPeriod});
             let request = await axios.post(url, {teacherId: teacherId, serviceArea:serviceArea, groupId: groupId});
-            console.log(request.data);
+            console.log(request.data, 'Open Answers from group');
             this.openAnswersStudents = request.data;
         },
 
@@ -687,7 +688,6 @@ export default {
             }
         },
 
-
         async setDialogToShowOpenAnswersFromGroups(teacher){
 
             this.selectedTeacherOpenAnswers = teacher.name;
@@ -698,8 +698,6 @@ export default {
             await this.getOpenAnswersFromStudentsFromGroup(teacher.teacherId, teacher.service_area_code, teacher.group_id);
 
         },
-
-
 
         capitalize($field){
             return $field.toLowerCase().split(' ').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
@@ -788,21 +786,15 @@ export default {
                     this.finalTeachingLadders.unshift({name : 'Titular',
                         identifier:teachingLadder})
                 }
-
             })
 
             let teachingLadder = this.finalTeachingLadders.find(teachingLadder =>{
-
                 return teachingLadder.identifier == teachingLadderCode
-
             })
 
             if (teachingLadder === undefined){
-
                 return 'Ninguno'
-
             }
-
             return teachingLadder.name
 
         },
@@ -824,9 +816,7 @@ export default {
         async getResponseIdealsDataset(teacher){
 
             this.selectedTeacherToGraph = teacher.name
-
             let info = {userId : teacher.teacherId}
-
         },
 
 
@@ -837,7 +827,6 @@ export default {
             })
 
             let colorsArray = ['blue', 'red', 'green', 'purple', 'black', 'orange']
-
             console.log(teacherServiceAreaArray, 'array of serviceareas');
 
             if (this.resultsPerGroup == false){
@@ -872,7 +861,6 @@ export default {
 
 
         setDialogToCancelChart (){
-
             this.showChartDialog = false
             this.chart.destroy();
             this.responseIdealsCompetencesArray.length = 0;
@@ -882,19 +870,14 @@ export default {
         },
 
         setDialogToCancelOpenAnswers (){
-
             this.showOpenAnswersDialog = false;
             this.openAnswersStudents= [];
-
         },
 
         downloadResults (){
-
             let excelInfo = [];
             if(this.resultsPerGroup == false){
-
                 excelInfo = this.filteredItems.map(item =>{
-
                     return {
                         Nombre :item.name,
                         AreaDeServicio: item.service_area_name,
@@ -910,8 +893,6 @@ export default {
 
                 })
             }
-
-
             else{
 
                 excelInfo = this.filteredItems.map(item =>{
@@ -987,8 +968,6 @@ export default {
             form.target = winName;
             form.submit();
             document.body.removeChild(form);
-
-
         },
 
 
@@ -1003,8 +982,6 @@ export default {
                     datasets: this.datasets,
                 },
                 options: {
-
-
                     legend: {
                         display: true,
                         position: 'bottom'
