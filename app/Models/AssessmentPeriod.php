@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
+use phpDocumentor\Reflection\Types\This;
 
 /**
  * App\Models\AssessmentPeriod
@@ -137,8 +139,19 @@ class AssessmentPeriod extends Model
                 $suitableTeachingLadders [] = $teachingLadder;
             }
         }
-
         return $suitableTeachingLadders;
+    }
+
+    public static function importResponseIdeals($assessmentPeriodId){
+
+        $previousResponseIdeals = DB::table('response_ideals')->where('assessment_period_id', '=', self::getActiveAssessmentPeriod()->id)->get();
+
+        foreach ($previousResponseIdeals as $responseIdeal){
+            $responseIdeal = ResponseIdeal::find($responseIdeal->id);
+            $newResponseIdeal = $responseIdeal->replicate(['assessment_period_id']);
+            $newResponseIdeal->assessment_period_id = $assessmentPeriodId;
+            $newResponseIdeal->save();
+        }
 
     }
 

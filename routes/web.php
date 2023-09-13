@@ -27,6 +27,12 @@ Route::resource('api/assessmentPeriods', \App\Http\Controllers\AssessmentPeriodC
 Route::post('/api/assessmentPeriods/{assessmentPeriod}/setActive', [\App\Http\Controllers\AssessmentPeriodController::class, 'setActive'])->middleware(['auth', 'isAdmin'])->name('api.assessmentPeriods.setActive');
 Route::get('/assessmentPeriods/suitableTeachingLadders', [\App\Http\Controllers\AssessmentPeriodController::class, 'getSuitableTeachingLadders'])->middleware(['auth'])->name('api.assessmentPeriods.teachingLadders');
 
+/* >>>>>>>>>>>>>>>>>>>>>>>  Assessment Ponderations >>>>>>>><<<<<< */
+Route::inertia('/assessmentWeights', 'AssessmentWeights/Index')->middleware(['auth', 'isAdmin'])->name('assessmentWeights.index.view');
+Route::resource('api/assessmentWeights', \App\Http\Controllers\AssessmentWeightController::class, [
+    'as' => 'api'
+])->middleware('auth');
+
 /* >>>>>>>>>>>>>>>>>>>>> Forms routes <<<<<<<<<<<<<<<<<<<< */
 Route::get('api/forms/withoutQuestions', [\App\Http\Controllers\FormController::class, 'getWithoutQuestions'])->name('api.forms.withoutQuestions')->middleware(['auth', 'isAdmin']);
 Route::get('api/forms/copyFromPeriod/{assessmentPeriod}', [\App\Http\Controllers\FormController::class, 'copyFromPeriod'])->name('api.forms.copyFromPeriod')->middleware(['auth', 'isAdmin']);
@@ -48,15 +54,10 @@ Route::resource('api/answers', \App\Http\Controllers\FormAnswersController::clas
     'as' => 'api'
 ])->middleware('auth');
 Route::get('formAnswers/teachers', [\App\Http\Controllers\FormAnswersController::class, 'getTeacherAnswers'])->name('formAnswers.teachers.show')->middleware(['auth']);
-
-Route::get('formAnswers/teachers/studentPerspective', [\App\Http\Controllers\FormAnswersController::class, 'getStudentPerspectiveAnswers'])->name('formAnswers.teachers.studentPerspective')->middleware(['auth']);
-
-Route::get('formAnswers/teachers/finalGrades', [\App\Http\Controllers\FormAnswersController::class, 'getFinalGrades'])->name('formAnswers.teachers.finalGrades')->middleware(['auth']);
-
+Route::get('formAnswers/studentPerspective', [\App\Http\Controllers\FormAnswersController::class, 'getStudentAnswers'])->name('formAnswers.studentPerspective')->middleware(['auth']);
+Route::get('formAnswers/teachers/finalGrades', [\App\Http\Controllers\FormAnswersController::class, 'getFinalGrades'])->name('formAnswers.finalGrades')->middleware(['auth']);
 Route::post('formAnswers/teachers/openAnswersStudents', [\App\Http\Controllers\FormAnswersController::class, 'getOpenAnswersStudents'])->name('formAnswers.teachers.openAnswersStudents')->middleware(['auth']);
-
 Route::post('formAnswers/teachers/openAnswersStudentsGroup', [\App\Http\Controllers\FormAnswersController::class, 'getOpenAnswersStudentsFromGroup'])->name('formAnswers.teachers.openAnswersStudentsFromGroup')->middleware(['auth']);
-
 Route::post('formAnswers/teachers/openAnswersColleagues', [\App\Http\Controllers\FormAnswersController::class, 'getOpenAnswersColleagues'])->name('formAnswers.teachers.openAnswersColleagues')->middleware(['auth']);
 
 
@@ -113,7 +114,7 @@ Route::get('unit/{unitId}/unitAdmins', [\App\Http\Controllers\UnitController::cl
 Route::get('/units/{unitId}/manage', [\App\Http\Controllers\UnitController::class, 'manageRoles'])->middleware(['auth', 'isAdminOrUnitAdmin'])->name('units.roles.manage');
 Route::get('/units/{unitId}/assessmentStatus', [\App\Http\Controllers\UnitController::class, 'assessmentStatus'])->middleware(['auth', 'isAdminOrUnitAdmin'])->name('units.assessment.status');
 Route::get('/api/suitableTeachers', [\App\Http\Controllers\UnitController::class, 'getSuitableTeachers'])->middleware(['auth'])->name('api.suitableTeachers');
-Route::get('unit/getTeachersThatBelongToAnUnit', [\App\Http\Controllers\UnitController::class, 'getTeachersThatBelongToAnUnit'])->middleware(['auth', 'isAdminOrUnitAdmin'])->name('unit.getTeachersThatBelongToAnUnit');
+Route::get('units/teachers/assigned', [\App\Http\Controllers\UnitController::class, 'getAssignedTeachers'])->middleware(['auth', 'isAdminOrUnitAdmin'])->name('units.teachers.assigned');
 Route::get('unit/faculties', [\App\Http\Controllers\UnitController::class, 'getAllFaculties'])->middleware(['auth', 'isAdminOrUnitAdmin'])->name('unit.getFaculties');
 
 

@@ -49,11 +49,13 @@ class Unit extends Model
     protected $keyType = 'string';
     use HasFactory;
 
-    public static function getCurrentUnits(){
+    public static function getCurrentUnits(int $assessmentPeriodId = null){
 
-        return self::where('assessment_period_id','=', AssessmentPeriod::getActiveAssessmentPeriod()
-            ->id)->with('teachersFromUnit')->get();
+        if ($assessmentPeriodId === null){
+            $assessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        }
 
+        return self::where('assessment_period_id','=', $assessmentPeriodId)->with('teachersFromUnit')->get();
     }
 
     public static function createOrUpdateFromArray(array $units): void
@@ -110,7 +112,6 @@ class Unit extends Model
         return self::where('identifier', $unitIdentifier)->with('teachersFromUnit.teacherProfile')->first();
 
     }
-
 
     public static function getUnitAdminsAndBosses($unitIdentifier){
 
@@ -190,48 +191,40 @@ class Unit extends Model
         return DB::table('role_user')->where('role_id', $staffMemberRole )
             ->join('users','users.id','=', 'role_user.user_id')
             ->select('users.email','users.name','users.id')->get();
-
     }
 
-    public static function getTeachersThatBelongToAnUnit(){
+    public static function getAssignedTeachers(int $assessmentPeriodId = null){
 
         $roleId= Role::getRoleIdByName('docente');
+        if ($assessmentPeriodId === null) {
+                $assessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        }
 
         return DB::table('v2_unit_user as uu')->select(['users.id','users.name'])
-            ->where('role_id', $roleId)->join('users', 'uu.user_id', '=','users.id')->orderBy('users.name', 'ASC')->get();
+            ->where('role_id', $roleId)->join('users', 'uu.user_id', '=','users.id')
+            ->join('v2_units as units', 'uu.unit_identifier','=', 'units.identifier')
+            ->where('units.assessment_period_id', '=', $assessmentPeriodId)->orderBy('users.name', 'ASC')->get();
 
     }
 
-
     public static function getFaculties (){
-
          $faculties = DB::table('unit_hierarchy')
              ->where('unit_hierarchy.assessment_period_id', '=', AssessmentPeriod::getActiveAssessmentPeriod()->id)
             ->select(['unit_hierarchy.father_unit_identifier as unit_identifier','v2_units.name'])->distinct()
              ->join('v2_units', 'unit_hierarchy.father_unit_identifier', '=', 'v2_units.identifier')->orderBy('v2_units.name', 'ASC')->get();
 
-
-         /*dd($faculties);*/
-
          return $faculties;
-
-
-
     }
-
-
 
     public static function assignStaffMemberAsUnitAdmin($unitId, $userId, $roleId){
 
         DB::table('v2_unit_user')
             ->updateOrInsert(['unit_identifier' => $unitId, 'role_id' => $roleId, 'user_id' => $userId]);
-
     }
 
 
     public static function assignTeacherAsUnitBoss($unitId, $userId, $roleId)
     {
-
         DB::table('v2_unit_user')
             ->updateOrInsert(['unit_identifier' => $unitId, 'role_id' => $roleId, 'user_id' => $userId]);
     }
@@ -243,8 +236,6 @@ class Unit extends Model
        return DB::table('v2_unit_user')->where('unit_identifier',$unitIdentifier)
            ->where('role_id',$unitAdminRole)
            ->join('users','users.id','=','v2_unit_user.user_id')->select('name', 'user_id')->get();
-
-
     }
 
 
@@ -264,7 +255,6 @@ class Unit extends Model
 
     public function adminsAndBosses(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
-
         $unitAdminRole = Role::getRoleIdByName('administrador de unidad');
         $unitBossRole= Role::getRoleIdByName('jefe de profesor');
 

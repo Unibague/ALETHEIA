@@ -49,7 +49,9 @@ class  AssessmentPeriodController extends Controller
     public function store(StoreAssessmentPeriodRequest $request): JsonResponse
     {
         AssessmentPeriod::create($request->all());
-        return response()->json(['message' => 'Periodo de evaluación se ha creado exitosamente']);
+        $assessmentPeriod = AssessmentPeriod::whereName($request->input('name'))->first();
+        AssessmentPeriod::importResponseIdeals($assessmentPeriod->id);
+        return response()->json(['message' => 'Periodo de evaluación creado exitosamente']);
     }
 
     /**
@@ -63,7 +65,6 @@ class  AssessmentPeriodController extends Controller
     {
         $assessmentPeriod->update($request->all());
         return response()->json(['message' => 'Periodo de evaluación actualizado exitosamente']);
-
     }
 
     /**

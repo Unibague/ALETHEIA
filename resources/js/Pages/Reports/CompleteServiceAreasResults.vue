@@ -6,12 +6,11 @@
 
         <!--Inicia tabla resultados por áreas de servicio-->
         <v-container fluid v-if="!resultsPerGroup">
-            <div class="d-flex flex-column align-end mb-5">
+            <div class="d-flex flex-column align-end">
                 <h2 class="align-self-start">Gestionar respuestas de evaluación por área de servicio</h2>
             </div>
 
             <v-container class="d-flex flex-column align-end mr-5">
-
                     <v-btn
                         color="primario"
                         class="white--text"
@@ -19,8 +18,6 @@
                     >
                         Visualizar resultados por grupo
                     </v-btn>
-
-
             </v-container>
 
             <v-toolbar
@@ -30,7 +27,23 @@
                 height="auto"
             >
                 <v-row class="py-3">
-                    <v-col cols="6" >
+
+                    <v-col cols="3" >
+                        <v-autocomplete
+                            v-model="assessmentPeriod"
+                            flat
+                            solo-inverted
+                            hide-details
+                            :items="assessmentPeriods"
+                            :item-text="(pStatus)=> capitalize(pStatus.name)"
+                            :item-value="(assessmentPeriod)=> (assessmentPeriod.id)"
+                            prepend-inner-icon="mdi-home-search"
+                            label="Periodo de evaluación"
+                        ></v-autocomplete>
+                    </v-col>
+
+
+                    <v-col cols="4" >
                         <v-autocomplete
                             v-model="serviceArea"
                             flat
@@ -44,7 +57,7 @@
                         ></v-autocomplete>
                     </v-col>
 
-                    <v-col cols="5">
+                    <v-col cols="4">
                         <v-autocomplete
                             v-model="teacher"
                             flat
@@ -78,11 +91,7 @@
                             <span>Exportar resultados actuales a Excel</span>
                         </v-tooltip>
                     </v-col>
-
-
                 </v-row>
-
-
             </v-toolbar>
 
 
@@ -123,8 +132,6 @@
 
                     </template>
 
-
-
                     <template v-slot:item.op_answers="{ item }">
 
                         <v-tooltip top
@@ -160,9 +167,7 @@
             >
                 <v-card>
                     <v-card-text class="py-3">
-
                         <h2 class="black--text ma-2" style="text-align: center"> Visualizando al docente: {{this.capitalize(this.selectedTeacherToGraph)}}</h2>
-
                     </v-card-text>
 
                     <v-container style="position: relative; height:60vh; width:90vw; background: #FAF9F6">
@@ -198,24 +203,15 @@
                 v-model="showOpenAnswersDialog"
                 persistent
             >
-
                 <v-card>
-
                     <v-card-text>
                         <h2 class="black--text pt-5" style="text-align: center"> Visualizando comentarios hacia el docente: {{ this.capitalize(this.selectedTeacherOpenAnswers) }}</h2>
-
                         <h3 class="black--text pt-5"> PREGUNTA:  {{openAnswersStudents[0] == null ? '' : openAnswersStudents[0].question}}</h3>
-
                         <h3 class="black--text pt-5 mt-4"> Comentarios por parte de estudiantes:</h3>
-
                         <div v-for="studentAnswer in openAnswersStudents" class="mt-3">
-
                             <h4> {{ studentAnswer.answer }}</h4>
-
                         </div>
                     </v-card-text>
-
-
                     <v-card-actions>
                         <v-btn
                             color="primario"
@@ -224,8 +220,6 @@
                         >
                             Salir
                         </v-btn>
-
-
                     </v-card-actions>
                 </v-card>
 
@@ -306,11 +300,7 @@
                             <span>Exportar resultados actuales a Excel</span>
                         </v-tooltip>
                     </v-col>
-
-
                 </v-row>
-
-
             </v-toolbar>
 
             <!--Inicia tabla-->
@@ -333,7 +323,6 @@
                         <v-tooltip top
                         >
                             <template v-slot:activator="{on,attrs}">
-
                                 <v-icon
                                     v-bind="attrs"
                                     v-on="on"
@@ -342,14 +331,10 @@
                                 >
                                     mdi-chart-line
                                 </v-icon>
-
                             </template>
                             <span>Graficar resultados</span>
                         </v-tooltip>
-
                     </template>
-
-
 
                     <template v-slot:item.op_answers="{ item }">
 
@@ -363,13 +348,10 @@
                                 >
                                     mdi-text-box
                                 </v-icon>
-
                             </template>
                             <span>Visualizar Comentarios</span>
                         </v-tooltip>
-
                     </template>
-
                 </v-data-table>
             </v-card>
 
@@ -380,15 +362,11 @@
                 v-model="showChartDialog"
                 persistent
             >
-
                 <v-card class="py-2">
 
                     <v-card-text>
-
                         <h2 class="black--text ma-2" style="text-align: center"> Visualizando al docente: {{this.capitalize(this.selectedTeacherToGraph)}}</h2>
-
                     </v-card-text>
-
 
                     <v-container style="position: relative; height:60vh; width:90vw; background: #FAF9F6">
                         <canvas id="MiGrafica"></canvas>
@@ -397,8 +375,6 @@
                     <h5 class="gray--text" style="text-align: left; margin-left: 60px; margin-bottom: 5px"> Puedes dar click izquierdo sobre la leyenda de la línea de tendencia que desees ocultar </h5>
 
                     <v-card-actions>
-
-
                         <v-btn
                             color="primario"
                             class="white--text"
@@ -416,12 +392,8 @@
                         >
                             Salir
                         </v-btn>
-
-
                     </v-card-actions>
                 </v-card>
-
-
             </v-dialog>
 
 
@@ -434,31 +406,22 @@
                     <v-card-text v-if="openAnswersStudents.length >0">
                         <h2 class="black--text pt-5" style="text-align: center"> Visualizando comentarios hacia el docente:
                             {{ this.capitalize(this.selectedTeacherOpenAnswers)}}</h2>
-
                         <h2 class="black--text pt-3 pb-4" style="text-align: center">{{this.selectedGroupNameOpenAnswers}} - Grupo: {{this.selectedGroupNumberOpenAnswers}}</h2>
-
                         <h3 class="black--text pt-5"> PREGUNTA:  {{openAnswersStudents[0] == null ? '' : openAnswersStudents[0].question}}</h3>
-
                         <h3 class="black--text pt-5 mt-4"> Comentarios por parte de estudiantes:</h3>
-
                         <div v-for="studentAnswer in openAnswersStudents" class="mt-3">
-
                             <h4> {{ studentAnswer.answer }}</h4>
-
                         </div>
 
                     </v-card-text>
 
 
                     <v-card-text v-else>
-
                         <h2 class="black--text pt-5" style="text-align: center"> No hay comentarios disponibles para el grupo de este docente</h2>
-
                     </v-card-text>
 
 
                     <v-card-actions>
-
                         <v-btn
                             color="primario"
                             class="grey--text text--lighten-4"
@@ -466,8 +429,6 @@
                         >
                             Salir
                         </v-btn>
-
-
                     </v-card-actions>
                 </v-card>
             </v-dialog>
@@ -557,6 +518,8 @@ export default {
             //Display data
 
             assessments: [],
+            assessmentPeriod: '',
+            assessmentPeriods: [],
             serviceArea: '',
             serviceAreas:[],
             teacher: '',
@@ -599,13 +562,12 @@ export default {
 
 
     async created() {
-
         await this.checkUser();
+        await this.getAssessmentPeriods();
         await this.getServiceAreas();
         await this.getTeachers();
         await this.getServiceAreasTeacherResults();
         this.isLoading = false;
-
     },
 
     methods: {
@@ -615,151 +577,101 @@ export default {
         },
 
         checkUser: function (){
-
             if (this.propsServiceAreas !== undefined){
-
                 this.individualView = true;
             }
+        },
 
+        getAssessmentPeriods: async function () {
+            let request = await axios.get(route('api.assessmentPeriods.index'));
+            this.assessmentPeriods = request.data;
         },
 
         activateResultsPerGroup(){
-
             this.resultsPerGroup = true
             this.isLoading = true
             this.getServiceAreaGroupsTeacherResults();
-
         },
 
         activateResultsPerServiceAreas(){
-
             this.resultsPerGroup = false
             this.isLoading = true
             this.getServiceAreasTeacherResults();
-
         },
 
         matchProperty: function (array, propertyPath, reference) {
 
             return array.filter((item) => {
-
                 const propertyArr = propertyPath.split(".");
-
                 const propertyValue = propertyArr.reduce((obj, key) => {
-
                     return obj && obj[key];
-
                 }, item);
-
                 return propertyValue === reference;
-
             });
         },
 
 
         getServiceAreas: async function (){
 
-            let request = await axios.get(route('api.serviceAreas.index'));
-
+            let request = await axios.get(route('api.serviceAreas.index', {assessmentPeriodId: this.assessmentPeriod}));
             this.serviceAreas = this.sortArrayAlphabetically(request.data);
-
             console.log(this.serviceAreas, 'service areas');
-
             if (this.individualView){
-
                 this.serviceAreas = this.serviceAreas.filter (serviceArea => {
-
                     return this.propsServiceAreas.includes(serviceArea.code)
-
                 })
                 return this.serviceAreas;
             }
-
             this.serviceAreas.unshift({name: 'Todas las áreas de servicio', code:''})
-
         },
 
-
         getTeachers: async function (){
-
-            let request = await axios.get(route('serviceAreas.teachersWithResults'));
-
+            let request = await axios.get(route('serviceAreas.teachersWithResults', {assessmentPeriodId: this.assessmentPeriod}));
             this.teachers = request.data
-
             console.log(this.teachers, 'teacherssss');
-
             this.teachers.forEach(teacher =>{
-
                 teacher.name = this.capitalize(teacher.name)
-
             })
-
             this.teachers = this.sortArrayAlphabetically(this.teachers);
         },
 
-
         getServiceAreasTeacherResults: async function (){
-
-            let url = route('serviceAreas.getResults');
-
+            let url = route('serviceAreas.getResults', {assessmentPeriodId: this.assessmentPeriod});
             let request = await axios.get(url);
-
             this.assessments = request.data
-
             this.isLoading = false;
-
             console.log(request.data, 'resultsss');
-
         },
-
 
         getServiceAreaGroupsTeacherResults: async function (){
 
-            let url = route('serviceAreas.getResultsPerGroup');
-
+            let url = route('serviceAreas.getResultsPerGroup', {assessmentPeriodId: this.assessmentPeriod});
             let request = await axios.get(url);
-
             this.assessments = request.data
-
             this.isLoading = false
-
             console.log(request.data, 'resultsss');
 
         },
 
-
         getOpenAnswersFromStudents: async function (teacherId, serviceArea){
-
-            let url = route('formAnswers.teachers.openAnswersStudents');
-
+            let url = route('formAnswers.teachers.openAnswersStudents', {assessmentPeriodId: this.assessmentPeriod});
             let request = await axios.post(url, {teacherId: teacherId, serviceArea:serviceArea});
-
             this.openAnswersStudents = request.data;
-
         },
 
         getOpenAnswersFromStudentsFromGroup: async function (teacherId, serviceArea, groupId){
-
-            let url = route('formAnswers.teachers.openAnswersStudentsFromGroup');
-
+            let url = route('formAnswers.teachers.openAnswersStudentsFromGroup', {assessmentPeriodId: this.assessmentPeriod});
             let request = await axios.post(url, {teacherId: teacherId, serviceArea:serviceArea, groupId: groupId});
-
             console.log(request.data);
-
             this.openAnswersStudents = request.data;
-
-
         },
 
 
         async setDialogToShowOpenAnswers(teacher){
 
             this.selectedTeacherOpenAnswers = teacher.name;
-
             this.showOpenAnswersDialog = true
-
             console.log(teacher, "teacherrr")
-
             if(this.resultsPerGroup == false){
 
                 await this.getOpenAnswersFromStudents(teacher.teacherId, teacher.service_area_code);
@@ -768,33 +680,21 @@ export default {
             else{
 
                 this.selectedTeacherOpenAnswers = teacher.name;
-
                 this.showOpenAnswersDialog = true
-
                 this.selectedGroupNumberOpenAnswers = teacher.group_number;
-
                 this.selectedGroupNameOpenAnswers = teacher.group_name
-
                 await this.getOpenAnswersFromStudentsFromGroup(teacher.teacherId, teacher.service_area_code, teacher.group_id)
-
             }
-
-
         },
 
 
         async setDialogToShowOpenAnswersFromGroups(teacher){
 
             this.selectedTeacherOpenAnswers = teacher.name;
-
             this.showOpenAnswersDialog = true
-
             this.selectedGroupNumberOpenAnswers = teacher.group_number;
-
             this.selectedGroupNameOpenAnswers = teacher.group_name
-
             console.log(teacher, "teacherrr")
-
             await this.getOpenAnswersFromStudentsFromGroup(teacher.teacherId, teacher.service_area_code, teacher.group_id);
 
         },
@@ -802,16 +702,12 @@ export default {
 
 
         capitalize($field){
-
             return $field.toLowerCase().split(' ').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-
         },
 
         sortArrayAlphabetically(array){
-
             return array.sort( (p1, p2) =>
                 (p1.name > p2.name) ? 1 : (p1.name > p2.name) ? -1 : 0);
-
         },
 
         getFilteredAssessmentsByServiceArea(assessments = null) {
@@ -843,25 +739,17 @@ export default {
 
 
         async setDialogToShowChart(teacher){
-
             this.showChartDialog = true
-
             console.log(teacher, 'jefjewfjefj')
-
             await this.getResponseIdealsDataset(teacher);
-
             this.getServiceAreasDatasets(teacher);
-
             this.getGraph();
-
-
         },
 
         fillCompetencesArray(roleArray) {
 
             let array = [roleArray.first_competence_average, roleArray.second_competence_average, roleArray.third_competence_average,
                 roleArray.fourth_competence_average, roleArray.fifth_competence_average, roleArray.sixth_competence_average]
-
             return array;
 
         },
@@ -939,36 +827,6 @@ export default {
 
             let info = {userId : teacher.teacherId}
 
-/*            let request = await axios.post(route('teachers.getTeachingLadder'), info)
-
-            let teachingLadder= await this.getTeachingLadderNameByParameter(request.data)*/
-/*
-
-            console.log(teachingLadder, 'teachingLadder');
-
-            let responseIdealsCompetences = await this.getResponseIdealsCompetences(teachingLadder);
-
-            responseIdealsCompetences.forEach(competence =>{
-
-                this.responseIdealsCompetencesArray.push(competence.value);
-
-            })
-*/
-/*
-
-            let hex = this.randomHexColor()
-
-            this.datasets.unshift({
-
-                label: `Ideales de respuesta (${teachingLadder == 'Ninguno' ? 'Sin Escalafón' : teachingLadder})`,
-                data: this.responseIdealsCompetencesArray,
-                backgroundColor: hex,
-                borderColor: hex,
-                borderWidth: 2,
-                borderDash: [5, 5],
-
-            })*/
-
         },
 
 
@@ -999,7 +857,6 @@ export default {
             }
 
             else{
-
                 teacherServiceAreaArray.forEach((serviceArea, index) => {
 
                     this.datasets.push({
@@ -1009,13 +866,8 @@ export default {
                         borderColor: colorsArray[index],
                         borderWidth: 3
                     })
-
                 })
-
             }
-
-
-
         },
 
 
@@ -1039,7 +891,6 @@ export default {
         downloadResults (){
 
             let excelInfo = [];
-
             if(this.resultsPerGroup == false){
 
                 excelInfo = this.filteredItems.map(item =>{
@@ -1077,9 +928,7 @@ export default {
                         PromedioC5: item.fifth_competence_average,
                         PromedioC6: item.sixth_competence_average
                     }
-
                 })
-
             }
 
             let csv = Papa.unparse(excelInfo, {delimiter:';'});
@@ -1104,10 +953,7 @@ export default {
 
 
         async savePDF(){
-
-
             this.confirmSavePDF = false;
-
             this.datasets.forEach(dataset =>{
 
                 dataset.fill = {target: 'origin',
@@ -1213,7 +1059,6 @@ export default {
                     }
                 }
             })
-
         },
 
 
@@ -1236,11 +1081,9 @@ export default {
             }
 
             else {
-
                 if (this.serviceArea !== '') {
                     finalAssessments = this.getFilteredAssessmentsByServiceArea(finalAssessments);
                 }
-
             }
 
             if (this.teacher !== '') {
@@ -1250,30 +1093,29 @@ export default {
             return finalAssessments;
         },
 
-
         filteredTeachers(){
 
             let finalTeachers = this.teachers;
-
             let finalAssessments = this.assessments;
-
             if (this.serviceArea !== '') {
-
                 finalAssessments = this.getFilteredAssessmentsByServiceArea();
-
                 finalTeachers = finalTeachers.filter((teacher) => {
                     return finalAssessments.some((assessment) => assessment.teacherId == teacher.id)
                 });
             }
-
             this.addAllElementSelectionItem(finalTeachers, 'Todos los docentes');
-
             return finalTeachers;
-
-
-
-
         }
+    },
+
+    watch: {
+
+        async assessmentPeriod(){
+            await this.getServiceAreas();
+            await this.getTeachers();
+            await this.getServiceAreasTeacherResults();
+        }
+
     }
 }
 </script>
