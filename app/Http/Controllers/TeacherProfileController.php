@@ -77,18 +77,13 @@ class TeacherProfileController extends Controller
             ], true);
 
 
-
-
-
             $finalTeachers = [];
             foreach ($teachers as $teacher){
 
-               //Traerse profesores que tengan escalafon activo para evaluacion y no tengan el correo vacío
+               //Traerse profesores que tengan escalation activo para evaluacion y no tengan el correo vacío
                 if(in_array($teacher['teaching_ladder'],$suitableTeachingLadders, false)
                    && $teacher['email'] != ""){
-
                     $finalTeachers [] = $teacher;
-
                 }
             }
 

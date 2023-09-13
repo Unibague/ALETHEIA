@@ -54,7 +54,6 @@ class Unit extends Model
         if ($assessmentPeriodId === null){
             $assessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
         }
-
         return self::where('assessment_period_id','=', $assessmentPeriodId)->with('teachersFromUnit')->get();
     }
 
@@ -63,7 +62,6 @@ class Unit extends Model
         $upsertData = [];
         $assessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
         foreach ($units as $unit) {
-
             $unitAsString = (string)$unit->code;
             $assessmentPeriodAsString = (string)$assessmentPeriodId;
             $identifier = $unitAsString.'-'.$assessmentPeriodAsString;
@@ -77,9 +75,7 @@ class Unit extends Model
             ];
 
             DB::table('v2_units')->upsert($upsertData, $identifier, ['name', 'is_custom', 'assessment_period_id']);
-
         }
-
     }
 
     public static function transferTeacherToSelectedUnit($unit, $userId): void{
@@ -87,12 +83,9 @@ class Unit extends Model
         $activeAssessmentPeriod = AssessmentPeriod::getActiveAssessmentPeriod()->id;
         $teacherRole = Role::getTeacherRoleId();
 
-
         DB::table('v2_unit_user')->updateOrInsert(
-
             ['user_id' => $userId, 'role_id' => $teacherRole],
             ['unit_identifier' => $unit]
-
         );
 
         UnityAssessment::updateOrInsert(['evaluated_id' => $userId, 'evaluator_id'=> $userId,
@@ -102,43 +95,32 @@ class Unit extends Model
 
 
     public static function getUnitInfo($unitIdentifier){
-
         return self::where('identifier', $unitIdentifier)->with('users.teacherProfile')->first();
-
     }
 
     public static function getUnitTeachers($unitIdentifier){
-
         return self::where('identifier', $unitIdentifier)->with('teachersFromUnit.teacherProfile')->first();
-
     }
 
     public static function getUnitAdminsAndBosses($unitIdentifier){
-
         return self::where('identifier', $unitIdentifier)->with('adminsAndBosses')->first();
-
     }
 
     public static function getUnitAdmins($unitIdentifier){
-
         return self::where('identifier', $unitIdentifier)->with('admins')->first();
-
     }
 
     public static function getUnitBosses($unitIdentifier){
-
         return self::where('identifier', $unitIdentifier)->with('bosses')->first();
-
     }
 
 
     public static function getUnitTeachersSuitableForAssessment(){
 
         $activeAssessmentPeriod = AssessmentPeriod::getActiveAssessmentPeriod();
-
         $suitableTeachingLadders = $activeAssessmentPeriod->getSuitableTeachingLadders();
 
-         $teachers = DB::table('v2_units')
+        $teachers = DB::table('v2_units')
             ->where('units.assessment_period_id','=', $activeAssessmentPeriod->id)
             ->join('v2_unit_user','v2_unit_user.unit_identifier','=','units.identifier')
             ->join('users','users.id','=','v2_unit_user.user_id')

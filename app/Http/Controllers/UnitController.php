@@ -38,7 +38,6 @@ class UnitController extends Controller
     {
         try {
             $units = AtlanteProvider::get('units');
-
             Unit::createOrUpdateFromArray($units);
         } catch (\JsonException $e) {
             return response()->json(['message' => 'Ha ocurrido un error con la fuente de datos']);
@@ -52,15 +51,11 @@ class UnitController extends Controller
 
     public function syncStaffMembers(): JsonResponse
     {
-
         try {
 
             $staffMembers = $this->getStaffMembersFromEndpoint();
-
             $staffMembers = array_filter($staffMembers, function ($staffMember) {
-
                 return $staffMember->mail != "";
-
             });
 
             Unit::createOrUpdateStaffMembersUsers($staffMembers);

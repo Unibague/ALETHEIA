@@ -75,7 +75,6 @@ class TeacherProfile extends Model
         $unique = array_unique($serialized);
         $finalTeachers = array_intersect_key($finalTeachers, $unique);
 
-
         //Iterate over received data and create the academic period
         $assessment_period_id = AssessmentPeriod::getActiveAssessmentPeriod()->id;
         $assessmentPeriodAsString = (string)$assessment_period_id;
@@ -87,18 +86,13 @@ class TeacherProfile extends Model
                 'password' => Hash::make($teacher['identification_number'] . $teacher['email'])]);
 
             if ($teacher['unit'] !== "") {
-
                 $unitIdentifier = $teacher['unit'] . '-' . $assessmentPeriodAsString;
-
             }
 
-
             if ($teacher['unit'] == "" && $teacher['employee_type'] == 'DTC'){
-
                 $failedToSyncTeachersArray[] = $teacher;
                 $failedToSyncTeachersCounter++;
                 continue;
-
             }
 
             try {
@@ -116,11 +110,9 @@ class TeacherProfile extends Model
                         'assessment_period_id' => $assessment_period_id
                     ]);
 
-
                 DB::table('role_user')->updateOrInsert(
                     ['user_id' => $user->id,
                         'role_id' => $teacherRoleId]
-
                 );
 
 
@@ -128,13 +120,9 @@ class TeacherProfile extends Model
                 $errorMessage .= nl2br("Ha ocurrido el siguiente error mirando al docente $teacher[name] : {$e->getMessage()}");
             }
 
-
             if($teacher['employee_type'] == 'DTC'){
-
                 self::assignTeacherToUnit($user->id, $unitIdentifier);
-
             }
-
 
         }
 
@@ -154,40 +142,30 @@ class TeacherProfile extends Model
     }
 
 
-    public static function assignTeacherToUnit($userId, $unitIdentifier): void{
+    public static function assignTeacherToUnit($userId, $unitIdentifier): void
+    {
 
         $roleId = Role::getTeacherRoleId();
         $activeAssessmentPeriod = AssessmentPeriod::getActiveAssessmentPeriod()->id;
 
-            $user = DB::table('v2_unit_user')->where('user_id',$userId)
-                ->where('role_id', $roleId)->first();
+        DB::table('v2_unit_user')->updateOrInsert(
+            ['user_id' => $userId, 'role_id' => $roleId],
+            ['unit_identifier' => $unitIdentifier]
+        );
 
-            if (!$user){
+        $user = DB::table('unity_assessments')->where('evaluated_id', $userId)
+            ->where('evaluator_id', $userId)->where('assessment_period_id', '=', $activeAssessmentPeriod)->first();
 
-                DB::table('v2_unit_user')->updateOrInsert(
-                    ['user_id' => $userId , 'role_id' => $roleId],
-                    ['unit_identifier' => $unitIdentifier]
-                );
-
-            }
-
-            $user = DB::table('unity_assessments')->where('evaluated_id', $userId)
-                ->where('evaluator_id', $userId)->first();
-
-            if(!$user){
-
-                DB::table('unity_assessments')->updateOrInsert(
-                    ['evaluated_id' => $userId, 'evaluator_id'=> $userId, 'role' => 'autoevaluación'],
-                    ['pending' => 1, 'unit_identifier' => $unitIdentifier,
-                        'assessment_period_id'=> $activeAssessmentPeriod,
-                        'created_at' => Carbon::now('GMT-5')->toDateTimeString(),
-                        'updated_at' => Carbon::now('GMT-5')->toDateTimeString()]);
-
-            }
-
-
-
+        if (!$user) {
+            DB::table('unity_assessments')->updateOrInsert(
+                ['evaluated_id' => $userId, 'evaluator_id' => $userId, 'role' => 'autoevaluación'],
+                ['pending' => 1, 'unit_identifier' => $unitIdentifier,
+                    'assessment_period_id' => $activeAssessmentPeriod,
+                    'created_at' => Carbon::now('GMT-5')->toDateTimeString(),
+                    'updated_at' => Carbon::now('GMT-5')->toDateTimeString()]);
         }
+
+    }
 
 
     public function assessmentPeriod(): \Illuminate\Database\Eloquent\Relations\BelongsTo
