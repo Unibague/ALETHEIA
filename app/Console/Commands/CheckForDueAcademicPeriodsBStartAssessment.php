@@ -42,12 +42,9 @@ class CheckForDueAcademicPeriodsBStartAssessment extends Command
     {
 
         $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
-
         $anticipationDays = DB::table('assessment_reminder')->select(['days_in_advance'])->where('assessment_period_id', '=', $activeAssessmentPeriodId)
             ->where('send_reminder_before', '=', 'start')->first()->days_in_advance;
-
         $emailDate = Carbon::now()->addDays($anticipationDays)->toDateString();
-
         $dueAcademicPeriods = DB::table('academic_periods')->where('assessment_period_id', '=', $activeAssessmentPeriodId)
             ->where('students_start_date', '=', $emailDate )->get();
 
@@ -78,41 +75,30 @@ class CheckForDueAcademicPeriodsBStartAssessment extends Command
 
                         //Si no hay docentes pues no se agrega a la lista de correspondencia
                         continue;
-
                     }
 
                     foreach ($studentTeachers as $studentTeacher) {
 
                         if ($studentTeacher->group_name == 'ADULTOS--EXAMEN DE CLASIFICACION' || $studentTeacher->group_name == 'NI?OS--EXAMEN DE CLASIFICACION'
                             || $studentTeacher->group_name == 'EXAMEN DE SUFICIENCIA') {
-
                             continue;
-
                         }
 
                         $teacherInfo = (object)['teacher_name' => $studentTeacher->teacher_name,
                             'group_name' => $studentTeacher->group_name];
 
-
                         $studentTeachersToEvaluate [] = $teacherInfo;
-
                     }
 
                     /*                dd($studentTeachersToEvaluate);*/
 
                     if(count($studentTeachersToEvaluate) == 0){
-
                         continue;
-
                     }
-
 
                     $parameters = json_encode(['name' => $student->name, 'role' => 'Estudiante',
                         'teachers_to_evaluate' => $studentTeachersToEvaluate,
                         'start_date' => $academicPeriod->students_start_date, 'end_date' => $academicPeriod->students_end_date]);
-
-
-                    /*                dd($parameters);*/
 
                     DB::table('assessment_reminder_users')->updateOrInsert(['email' => $student->email,
                         'academic_period_id' => $academicPeriod->id,
@@ -121,15 +107,8 @@ class CheckForDueAcademicPeriodsBStartAssessment extends Command
                         ['email_parameters' => $parameters, 'status' => 'Not Started']);
 
                 }
-
-
             }
-
         }
-
         return 0;
-
     }
-
-
 }

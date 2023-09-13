@@ -39,8 +39,13 @@ class ServiceArea extends Model
     protected $guarded = [];
     use HasFactory;
 
-    public static function getCurrentServiceAreas(){
-        return self::where('assessment_period_id','=', AssessmentPeriod::getActiveAssessmentPeriod()->id)->orderBy('name', 'asc')->get();
+    public static function getCurrentServiceAreas(int $assessmentPeriodId = null){
+
+        if ($assessmentPeriodId === null){
+            $assessmentPeriodId =AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        }
+
+        return self::where('assessment_period_id','=', $assessmentPeriodId)->orderBy('name', 'asc')->get();
     }
 
     public static function createOrUpdateFromArray(array $serviceAreas): void
@@ -60,10 +65,12 @@ class ServiceArea extends Model
         self::upsert($upsertData, ['code', 'assessment_period_id'], ['name', 'assessment_period_id','updated_at']);
     }
 
-    public static function getServiceAreasResults()
+    public static function getServiceAreasResults(int $assessmentPeriodId = null)
     {
 
-        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        if ($assessmentPeriodId === null){
+            $assessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        }
 
         return  DB::table('teachers_service_areas_results as tsar')
             ->select([ 't.name', 'sa.name as service_area_name' , 'tsar.service_area_code', 't.id as teacherId',
@@ -76,17 +83,19 @@ class ServiceArea extends Model
                 'tsar.aggregate_students_amount_reviewers', 'tsar.aggregate_students_amount_on_service_area'])
             ->join('users as t', 'tsar.teacher_id', '=', 't.id')
             ->join('service_areas as sa', 'sa.code','=','tsar.service_area_code')
-            ->where('sa.assessment_period_id', '=', $activeAssessmentPeriodId)
-            ->where('tsar.assessment_period_id', '=', $activeAssessmentPeriodId)->orderBy('name', 'ASC')
+            ->where('sa.assessment_period_id', '=', $assessmentPeriodId)
+            ->where('tsar.assessment_period_id', '=', $assessmentPeriodId)->orderBy('name', 'ASC')
             ->get();
     }
 
-    public static function getServiceAreasResultsPerGroup()
+    public static function getServiceAreasResultsPerGroup(int $assessmentPeriodId = null)
     {
 
-        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        if ($assessmentPeriodId === null){
+            $assessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        }
 
-        return DB::table('group_results as gr')->where('gr.assessment_period_id', '=', $activeAssessmentPeriodId)
+        return DB::table('group_results as gr')->where('gr.assessment_period_id', '=', $assessmentPeriodId)
             ->select([ 't.name', 'sa.name as service_area_name' , 'gr.service_area_code', 't.id as teacherId', 'gr.group_id',
                 'g.name as group_name', 'g.group as group_number', 'ap.name as academic_period_name',
                 'gr.first_final_competence_average as first_competence_average',
@@ -102,16 +111,18 @@ class ServiceArea extends Model
             ->join('academic_periods as ap', 'ap.id', '=', 'g.academic_period_id')->get();
     }
 
-    public static function getServiceAreasTeachersWithResults()
+    public static function getServiceAreasTeachersWithResults(int $assessmentPeriodId = null)
     {
 
-        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        if ($assessmentPeriodId === null){
+            $assessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        }
 
         return  DB::table('teachers_service_areas_results as tsar')
             ->select(['t.name', 'sa.name as service_area_name' , 'tsar.service_area_code', 't.id as id'])
             ->join('users as t', 'tsar.teacher_id', '=', 't.id')
             ->join('service_areas as sa', 'sa.code','=','tsar.service_area_code')
-            ->where('tsar.assessment_period_id', '=', $activeAssessmentPeriodId)->orderBy('name', 'ASC')
+            ->where('tsar.assessment_period_id', '=', $assessmentPeriodId)->orderBy('name', 'ASC')
             ->get();
 
     }

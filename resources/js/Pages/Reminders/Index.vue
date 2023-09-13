@@ -33,8 +33,6 @@
                     class="elevation-1"
 
                 >
-
-
                     <template v-slot:item.actions="{ item }">
 
                         <v-icon
@@ -44,12 +42,7 @@
                             mdi-pencil
                         </v-icon>
 
-
                     </template>
-
-
-
-
                 </v-data-table>
             </v-card>
             <!--Acaba tabla-->
@@ -68,9 +61,7 @@
                 <v-card-title class="text-h5">
                 </v-card-title>
                 <v-card-text>
-
                     {{this.reminderToEdit.reminder_name}}
-
                     <v-text-field
                         color="primario"
                         v-model="reminderToEdit.days_in_advance"
@@ -80,9 +71,7 @@
                         max="60"
                         class="mt-3"
                     >
-
                     </v-text-field>
-
                 </v-card-text>
                 <v-card-actions>
                     <v-spacer></v-spacer>

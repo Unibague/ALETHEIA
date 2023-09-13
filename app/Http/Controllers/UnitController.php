@@ -28,10 +28,10 @@ class UnitController extends Controller
      *
      * @return JsonResponse
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-
-        return response()->json(Unit::getCurrentUnits());
+        $assessmentPeriodId = $request->input('assessmentPeriodId');
+        return response()->json(Unit::getCurrentUnits($assessmentPeriodId));
     }
 
     public function sync(): JsonResponse
@@ -198,7 +198,6 @@ class UnitController extends Controller
         return response()->json(['message' => 'Jefe de docente eliminado exitosamente']);
     }
 
-
     public function confirmDeleteUnitBoss(Request $request): JsonResponse
 
     {
@@ -230,8 +229,6 @@ class UnitController extends Controller
     }
 
 
-
-
     public function assignUnitBoss(Request $request): JsonResponse
     {
         $unitId = $request->input('unitIdentifier');
@@ -258,9 +255,7 @@ class UnitController extends Controller
 
     public function getUnitAdmin(Request $request): JsonResponse
     {
-
         $unitId = $request->input('unitId');
-
         return response()->json(Unit::getUnitAdmin($unitId));
 
     }
@@ -271,7 +266,6 @@ class UnitController extends Controller
         $unit = $request->input('unitIdentifier');
         $userId = $request->input('userId');
         $teacherRole = Role::getTeacherRoleId();
-
 
         $user = DB::table('v2_unit_user')->where([['user_id', $userId], ['unit_identifier', $unit], ['role_id', $teacherRole]])->first();
 
@@ -294,7 +288,6 @@ class UnitController extends Controller
                 ->where('role', 'jefe')->where('unit_identifier', $actualUnit)->delete();
 
         }
-
         Unit::transferTeacherToSelectedUnit($unit, $userId);
 
         return response()->json(['message' => 'Docente transferido exitosamente']);
@@ -308,11 +301,8 @@ class UnitController extends Controller
      */
     public function store(StoreUnityRequest $request): JsonResponse
     {
-
         $assessmentPeriodAsString = (string)AssessmentPeriod::getActiveAssessmentPeriod()->id;
         $code = 'custom-' . $request->input('name');
-
-
         Unit::create([
             'name' => $request->input('name'),
             'code' => $code,
@@ -355,9 +345,10 @@ class UnitController extends Controller
         return response()->json(Unit::getUnitAdmins($unitIdentifier));
     }
 
-    public function getTeachersThatBelongToAnUnit(): JsonResponse
+    public function getAssignedTeachers(Request $request): JsonResponse
     {
-        return response()->json(Unit::getTeachersThatBelongToAnUnit());
+        $assessmentPeriodId = $request->input('assessmentPeriodId');
+        return response()->json(Unit::getAssignedTeachers($assessmentPeriodId));
     }
 
 
@@ -370,59 +361,38 @@ class UnitController extends Controller
      */
     public function update(UpdateUnityRequest $request, Unit $unit): JsonResponse
     {
-
         $unit->update($request->all());
         return response()->json(['message' => 'Unidad actualizada correctamente']);
     }
 
     public function edit($unit)
     {
-
         $unit = Unit::where('identifier', '=', $unit)->get();
-
         return Inertia::render('Unities/ManageUnity', ['unit' => $unit]);
-
-
     }
-
 
     public function manageRoles($unitId)
     {
-
-
         $unitId = Unit::where('identifier', '=', $unitId)->get();
-
         return Inertia::render('Unities/AssignUnitRoles', ['unitId' => $unitId]);
-
-
     }
 
 
     public function assessmentStatus($unitId)
     {
-
-
         $unitId = Unit::where('identifier', '=', $unitId)->get();
-
         return Inertia::render('Unities/UnitAssessmentStatus', ['unitId' => $unitId]);
-
-
     }
 
 
     public function getSuitableTeachers(): JsonResponse {
-
         return response()->json(Unit::getUnitTeachersSuitableForAssessment());
-
     }
 
 
     public function getAllFaculties(): JsonResponse {
-
         return response()->json(Unit::getFaculties());
-
     }
-
 
     /**
      *
@@ -434,14 +404,9 @@ class UnitController extends Controller
      */
 
     public function destroy(DestroyUnityRequest $request, Unit $unit): JsonResponse
-
     {
-
-
         if($unit->users->count()>0){
-
             return response()->json(['message' => 'No puedes eliminar una unidad con usuarios adentro'], 400);
-
         }
 
         if ($unit->is_custom === 1) {
@@ -450,13 +415,6 @@ class UnitController extends Controller
         }
         return response()->json(['message' => 'No se ha podido eliminar, la unidad no es personalizada'], 400);
     }
-
-
-
-
-
-
-
 
 }
 

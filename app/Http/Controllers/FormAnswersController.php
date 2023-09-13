@@ -42,54 +42,46 @@ class FormAnswersController extends Controller
         //
     }
 
-    public function getTeacherAnswers(): JsonResponse
+    public function getTeacherAnswers(Request $request): JsonResponse
     {
-        return response()->json(FormAnswers::getCurrentTeacherFormAnswers());
+        $assessmentPeriodId = $request->input('assessmentPeriodId');
+        return response()->json(FormAnswers::getCurrentTeacherFormAnswers($assessmentPeriodId));
     }
 
-
-    public function getStudentPerspectiveAnswers(): JsonResponse
+    public function getStudentAnswers(Request $request): JsonResponse
     {
-        return response()->json(FormAnswers::getCurrentTeacherFormAnswersFromStudents());
+        $assessmentPeriodId = $request->input('assessmentPeriodId');
+        return response()->json(FormAnswers::getCurrentTeacherFormAnswersFromStudents($assessmentPeriodId));
     }
 
-
-    public function getFinalGrades(): JsonResponse
+    public function getFinalGrades(Request $request): JsonResponse
     {
-        return response()->json(FormAnswers::getFinalGradesFromTeachers());
+        $assessmentPeriodId = $request->input('assessmentPeriodId');
+        return response()->json(FormAnswers::getFinalGradesFromTeachers($assessmentPeriodId));
     }
-
 
     public function getOpenAnswersStudents(Request $request): JsonResponse
     {
-
         $teacherId = $request->input('teacherId');
         $serviceArea = $request->input('serviceArea');
-
-
-        return response()->json(FormAnswers::getOpenAnswersFromStudents($teacherId, $serviceArea));
+        $assessmentPeriodId = $request->input('assessmentPeriodId');
+        return response()->json(FormAnswers::getOpenAnswersFromStudents($teacherId, $serviceArea, $assessmentPeriodId));
     }
-
 
     public function getOpenAnswersStudentsFromGroup(Request $request): JsonResponse
     {
-
         $teacherId = $request->input('teacherId');
         $serviceArea = $request->input('serviceArea');
         $groupId = $request->input('groupId');
-
-
-        return response()->json(FormAnswers::getOpenAnswersFromStudentsFromGroup($teacherId, $serviceArea, $groupId));
+        $assessmentPeriodId = $request->input('assessmentPeriodId');
+        return response()->json(FormAnswers::getOpenAnswersFromStudentsFromGroup($teacherId, $serviceArea, $groupId,$assessmentPeriodId));
     }
-
-
 
     public function getOpenAnswersColleagues(Request $request): JsonResponse
     {
-
         $teacherId = $request->input('teacherId');
-
-        return response()->json(FormAnswers::getOpenAnswersFromColleagues($teacherId));
+        $assessmentPeriodId = $request->input('assessmentPeriodId');
+        return response()->json(FormAnswers::getOpenAnswersFromColleagues($teacherId, $assessmentPeriodId));
     }
 
 

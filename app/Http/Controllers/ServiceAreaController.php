@@ -11,11 +11,12 @@ use App\Http\Requests\UpdateServiceAreaRequest;
 use App\Models\Unit;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Request;
+use Illuminate\Http\Request;
 use Illuminate\Support\Js;
 use Inertia\Inertia;
 use Ospina\CurlCobain\CurlCobain;
 use Psy\Util\Json;
+
 
 class ServiceAreaController extends Controller
 {
@@ -24,9 +25,10 @@ class ServiceAreaController extends Controller
      *
      * @return JsonResponse
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        return response()->json(ServiceArea::getCurrentServiceAreas());
+        $assessmentPeriodId = $request->input('assessmentPeriodId');
+        return response()->json(ServiceArea::getCurrentServiceAreas($assessmentPeriodId));
     }
 
     public function edit($serviceArea)
@@ -52,21 +54,24 @@ class ServiceAreaController extends Controller
     }
 
 
-    public function getServiceAreasResults(): JsonResponse{
+    public function getServiceAreasResults(Request $request): JsonResponse{
 
-        return response()->json(ServiceArea::getServiceAreasResults());
-
-    }
-
-    public function getServiceAreasResultsPerGroup(): JsonResponse{
-
-        return response()->json(ServiceArea::getServiceAreasResultsPerGroup());
+        $assessmentPeriodId = $request->input('assessmentPeriodId');
+        return response()->json(ServiceArea::getServiceAreasResults($assessmentPeriodId));
 
     }
 
-    public function getServiceAreasTeachersWithResults(): JsonResponse{
+    public function getServiceAreasResultsPerGroup(Request $request): JsonResponse{
 
-        return response()->json(ServiceArea::getServiceAreasTeachersWithResults());
+        $assessmentPeriodId = $request->input('assessmentPeriodId');
+        return response()->json(ServiceArea::getServiceAreasResultsPerGroup($assessmentPeriodId));
+
+    }
+
+    public function getServiceAreasTeachersWithResults(Request $request): JsonResponse{
+
+        $assessmentPeriodId = $request->input('assessmentPeriodId');
+        return response()->json(ServiceArea::getServiceAreasTeachersWithResults($assessmentPeriodId));
 
     }
 
@@ -82,7 +87,6 @@ class ServiceAreaController extends Controller
 
         $serviceAreaCode = $request->input('serviceAreaCode');
         $userId = $request->input('userId');
-
         return (ServiceArea::assignServiceAreaAdmin($serviceAreaCode, $userId));
 
     }
@@ -92,7 +96,6 @@ class ServiceAreaController extends Controller
 
         $serviceAreaCode = $request->input('serviceAreaCode');
         $userId = $request->input('userId');
-
         return (ServiceArea::deleteServiceAreaAdmin($serviceAreaCode, $userId));
 
     }

@@ -4,22 +4,9 @@
                   :show="snackbar.status" @closeSnackbar="snackbar.status = false"></Snackbar>
 
         <v-container fluid>
-            <div class="d-flex flex-column align-end mb-5" id="malparido">
+            <div class="d-flex flex-column align-end mb-2" id="malparido">
                 <h2 class="align-self-start">Gestionar respuestas de evaluación 360</h2>
             </div>
-
-            <v-container class="d-flex flex-column align-end mr-5">
-
-<!--               <v-btn
-                    color="primario"
-                    class="white&#45;&#45;text"
-                    @click="savePDFFile()"
-                    :disabled="!teacher"
-                >
-                    Descargar Reporte en PDF
-                </v-btn>-->
-
-            </v-container>
 
             <v-toolbar
                     dark
@@ -28,7 +15,21 @@
                     height="auto"
                 >
                     <v-row class="py-3">
-                        <v-col cols="4" >
+                        <v-col cols="3" >
+                            <v-autocomplete
+                                v-model="assessmentPeriod"
+                                flat
+                                solo-inverted
+                                hide-details
+                                :items="assessmentPeriods"
+                                :item-text="(pStatus)=> capitalize(pStatus.name)"
+                                :item-value="(assessmentPeriod)=> (assessmentPeriod.id)"
+                                prepend-inner-icon="mdi-home-search"
+                                label="Periodo de evaluación"
+                            ></v-autocomplete>
+                        </v-col>
+
+                        <v-col cols="3" >
                             <v-autocomplete
                                 v-model="unit"
                                 flat
@@ -42,8 +43,7 @@
                             ></v-autocomplete>
                         </v-col>
 
-                        <v-col cols="4">
-
+                        <v-col cols="3">
                             <v-autocomplete
                                 v-model="teacher"
                                 flat
@@ -58,7 +58,7 @@
 
                         </v-col>
 
-                        <v-col cols="3">
+                        <v-col cols="2">
                             <v-select
                                 v-model="role"
                                 flat
@@ -72,11 +72,9 @@
                             ></v-select>
                         </v-col>
 
-
                         <v-col cols="1">
                             <v-tooltip top>
                             <template v-slot:activator="{ on, attrs }">
-
                                 <v-btn
                                     v-on="on"
                                     v-bind="attrs"
@@ -110,19 +108,13 @@
                     class="elevation-1"
                 >
                     <template v-slot:item.unit_role="{ item }">
-
                         {{capitalize(item.unit_role)}}
-
                     </template>
 
-
-
                     <template v-slot:item.graph="{ item }">
-
                         <v-tooltip top
                         >
                             <template v-slot:activator="{on,attrs}">
-
                                 <v-icon
                                     v-bind="attrs"
                                     v-on="on"
@@ -131,21 +123,15 @@
                                 >
                                     mdi-chart-line
                                 </v-icon>
-
                             </template>
                             <span>Graficar resultados</span>
                         </v-tooltip>
 
                     </template>
 
-
-
                     <template v-slot:item.op_answers="{ item }">
-
-                        <v-tooltip top
-                        >
+                        <v-tooltip top>
                             <template v-slot:activator="{on,attrs}">
-
                                 <v-icon
                                     v-bind="attrs"
                                     v-on="on"
@@ -154,16 +140,12 @@
                                 >
                                     mdi-text-box
                                 </v-icon>
-
                             </template>
                             <span>Visualizar Comentarios</span>
                         </v-tooltip>
-
                     </template>
-
                 </v-data-table>
             </v-card>
-
 
             <!--Seccion de dialogos-->
 
@@ -238,9 +220,7 @@
                         </v-btn>
                     </v-card-actions>
                 </v-card>
-
             </v-dialog>
-
         </v-container>
 
 
@@ -308,6 +288,8 @@ export default {
 
             deletedFormId: 0,
             assessments: [],
+            assessmentPeriod: '',
+            assessmentPeriods: [],
             unit: '',
             units:[],
             teacher: '',
@@ -346,12 +328,11 @@ export default {
     props: {
         propsUnits: Array,
         token: String
-
     },
 
     async created() {
-
         await this.checkUser();
+        await this.getAssessmentPeriods();
         await this.getRoles();
         await this.getUnits();
         await this.getTeachers();
@@ -359,7 +340,6 @@ export default {
         await this.getAnswersFromStudents();
         await this.getFinalGrades();
         this.isLoading = false;
-
     },
 
     methods: {
@@ -369,11 +349,14 @@ export default {
         },
 
         checkUser: function (){
-
             if (this.propsUnits === undefined){
                 this.individualView = false;
             }
+        },
 
+        getAssessmentPeriods: async function () {
+            let request = await axios.get(route('api.assessmentPeriods.index'));
+            this.assessmentPeriods = request.data;
         },
 
         matchProperty: function (array, propertyPath, reference) {
@@ -390,16 +373,13 @@ export default {
             });
         },
 
-
         getUnits: async function (){
 
-            let request = await axios.get(route('api.units.index'));
+            let request = await axios.get(route('api.units.index', {assessmentPeriodId: this.assessmentPeriod}));
             console.log(request.data, "units");
             this.units = this.sortArrayAlphabetically(request.data);
             this.units = this.units.filter(unit => {
-
                 return unit.teachers_from_unit.length>0 || unit.is_custom == 1;
-
             })
 
             if (this.individualView){
@@ -407,7 +387,6 @@ export default {
                 this.units = this.units.filter (unit => {
                     return this.propsUnits.includes(unit.identifier)
                 })
-
                 return this.units
             }
 
@@ -415,49 +394,32 @@ export default {
 
         },
 
-
         getTeachers: async function (){
-
-            let request = await axios.get(route('unit.getTeachersThatBelongToAnUnit'));
+            let request = await axios.get(route('units.teachers.assigned',{assessmentPeriodId: this.assessmentPeriod}));
             this.teachers = request.data
             this.teachers.forEach(teacher =>{
                 teacher.name = this.capitalize(teacher.name)
-
             })
         },
 
-
-        getRoles (){
-
-            this.roles = [{id:  'Todos los roles', name: ''},{id: 'jefe', name: 'jefe'},
-                {id: 'par', name: 'par'}, {id: 'autoevaluación', name: 'autoevaluación'}, {id: 'estudiante', name: 'estudiante'}, {id: 'promedio final', name:'promedio final'}]
-        },
-
         getAnswersFromTeachers: async function (){
-
-            let url = route('formAnswers.teachers.show');
+            let url = route('formAnswers.teachers.show', {assessmentPeriodId: this.assessmentPeriod});
             let request = await axios.get(url);
             this.assessments = request.data
             console.log(request.data);
-
             this.assessments.forEach(assessment =>{
                 assessment.first_competence_average = assessment.first_competence_average.toFixed(1);
                 assessment.aggregate_students_amount_reviewers = 1;
                 assessment.aggregate_students_amount_on_360_groups = 1;
             })
             console.log(this.assessments, 'assessments totales')
-
         },
-
 
         getAnswersFromStudents: async function () {
 
-            let url = route('formAnswers.teachers.studentPerspective');
-
+            let url = route('formAnswers.studentPerspective', {assessmentPeriodId: this.assessmentPeriod});
             let request = await axios.get(url);
-
             let answersFromStudents = request.data;
-
             console.log(answersFromStudents, 'answers from students');
 
            answersFromStudents.forEach(answer =>{
@@ -470,15 +432,10 @@ export default {
            this.assessments.sort(this.orderData);
         },
 
-
         async getFinalGrades(){
-
-            let url = route('formAnswers.teachers.finalGrades');
-
+            let url = route('formAnswers.finalGrades', {assessmentPeriodId: this.assessmentPeriod});
             let request = await axios.get(url);
-
             let finalGrades = request.data;
-
             console.log(finalGrades, 'answers from students');
 
             finalGrades.forEach(answer =>{
@@ -486,26 +443,25 @@ export default {
                 answer.aggregate_students_amount_reviewers = answer.involved_actors
                 answer.aggregate_students_amount_on_360_groups = answer.total_actors
                 this.assessments.push(answer)
-
-
             });
-
             this.assessments.sort(this.orderData);
-
         },
 
         getOpenAnswersFromStudents: async function (teacherId){
-
-            let url = route('formAnswers.teachers.openAnswersStudents');
+            let url = route('formAnswers.teachers.openAnswersStudents', {assessmentPeriodId: this.assessmentPeriod});
             let request = await axios.post(url, {teacherId: teacherId});
             this.openAnswersStudents = request.data;
         },
 
         getOpenAnswersFromColleagues: async function (teacherId){
-
-            let url = route('formAnswers.teachers.openAnswersColleagues');
+            let url = route('formAnswers.teachers.openAnswersColleagues', {assessmentPeriodId: this.assessmentPeriod});
             let request = await axios.post(url, {teacherId: teacherId});
             this.openAnswersColleagues = request.data;
+        },
+
+        getRoles (){
+            this.roles = [{id:  'Todos los roles', name: ''},{id: 'jefe', name: 'jefe'},
+                {id: 'par', name: 'par'}, {id: 'autoevaluación', name: 'autoevaluación'}, {id: 'estudiante', name: 'estudiante'}, {id: 'promedio final', name:'promedio final'}]
         },
 
         capitalize($field){
@@ -516,6 +472,10 @@ export default {
         sortArrayAlphabetically(array){
             return array.sort( (p1, p2) =>
                 (p1.name > p2.name) ? 1 : (p1.name > p2.name) ? -1 : 0);
+        },
+
+        async filterByAssessmentPeriod(){
+
         },
 
         getFilteredAssessmentsByUnit(assessments = null) {
@@ -555,15 +515,12 @@ export default {
 
         },
 
-
         async setDialogToShowChart(teacher){
-
             this.showChartDialog = true
             await this.getResponseIdealsDataset(teacher);
             this.getRolesDatasets(teacher);
             this.getGraph();
             this.getChartAsObject()
-
         },
 
         async setDialogToShowOpenAnswers(teacher){
@@ -573,11 +530,9 @@ export default {
             await this.getOpenAnswersFromColleagues(teacher.teacherId);
         },
 
-
         fillCompetencesArray(roleArray) {
 
             let array = [roleArray.first_competence_average, roleArray.second_competence_average, roleArray.third_competence_average, roleArray.fourth_competence_average,
-
                 roleArray.fifth_competence_average, roleArray.sixth_competence_average]
             return array;
 
@@ -644,8 +599,6 @@ export default {
             return request.data;
         },
 
-
-
         async getResponseIdealsDataset(teacher){
 
             console.log(teacher, 'teacher');
@@ -674,11 +627,8 @@ export default {
                 borderColor: 'orange',
                 borderWidth: 2,
                 borderDash: [5, 5],
-
             })
-
         },
-
 
         getRolesDatasets(teacher){
 
@@ -692,7 +642,6 @@ export default {
 
                 if(roleArray.unit_role == 'promedio final')
                 {
-
                     this.datasets.push({
 
                         label: this.capitalize(roleArray.unit_role),
@@ -734,7 +683,6 @@ export default {
 
         },
 
-
         setDialogToCancelChart (){
             this.showChartDialog = false
             this.chart.destroy();
@@ -750,7 +698,6 @@ export default {
 
         downloadResults (){
                 console.log(this.filteredItems);
-
                 let excelInfo = this.filteredItems.map(item =>{
 
                     return {
@@ -789,9 +736,7 @@ export default {
 
         },
 
-
         async savePDF(){
-
             this.confirmSavePDF = false;
 
             this.datasets.forEach(dataset =>{
@@ -826,8 +771,6 @@ export default {
             form.target = winName;
             form.submit();
             document.body.removeChild(form);
-
-
         },
 
         getGraph(){
@@ -925,7 +868,6 @@ export default {
                         }
                     },
                 })
-
         },
 
         getChartAsObject(){
@@ -933,7 +875,6 @@ export default {
         },
 
     },
-
 
     computed: {
 
@@ -965,21 +906,32 @@ export default {
         filteredTeachers(){
 
             let finalTeachers = this.teachers;
-
             let finalAssessments = this.assessments;
 
            if (this.unit !== '') {
                 finalAssessments = this.getFilteredAssessmentsByUnit();
-
                 finalTeachers = finalTeachers.filter((teacher) => {
                     return finalAssessments.some((assessment) => assessment.teacherId == teacher.id)
                 });
             }
 
             this.addAllElementSelectionItem(finalTeachers, 'Todos los docentes');
-
             return finalTeachers;
         }
+    },
+
+    watch:{
+
+        async assessmentPeriod(){
+            await this.getUnits();
+            await this.getTeachers();
+            await this.getAnswersFromTeachers();
+            await this.getAnswersFromStudents();
+            await this.getFinalGrades();
+        }
+
     }
+
+
 }
 </script>

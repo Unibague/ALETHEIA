@@ -7,9 +7,7 @@
 
             <div class="d-flex flex-column align-end mb-4">
                 <h3 class="align-self-start">Definir ideales de respuesta por facultad</h3>
-
                 <div>
-
                     <v-btn
                         color="primario"
                         class="grey--text text--lighten-4 ml-4"
@@ -17,9 +15,7 @@
                     >
                         Agregar nuevo ideal de respuesta
                     </v-btn>
-
                 </div>
-
             </div>
 
                 <!--Inicia tabla para mostrar todos los ideales de respuesta-->
@@ -45,25 +41,17 @@
                     }"
                         class="elevation-1"
                     >
-
                         <template v-slot:item.name="{ item }">
-
                             {{ capitalize(item.name) }}
-
                         </template>
-
 
                         <template v-slot:item.teaching_ladder="{ item }">
-
                             {{ capitalize(item.teaching_ladder) }}
-
                         </template>
-
 
                         <template v-slot:item.c1="{ item }">
                             {{ item.response[0].value }}
                         </template>
-
 
                         <template v-slot:item.c2="{ item }">
                             {{ item.response[1].value }}
@@ -85,7 +73,6 @@
                             {{ item.response[5].value }}
                         </template>
 
-
                         <template v-slot:item.actions="{ item }">
 
                             <v-tooltip top>
@@ -104,7 +91,6 @@
                                 <span>Editar ideales</span>
                             </v-tooltip>
 
-
                             <v-tooltip top>
                                 <template v-slot:activator="{on,attrs}">
 
@@ -120,15 +106,11 @@
                                 </template>
                                 <span>Borrar ideales</span>
                             </v-tooltip>
-
                         </template>
-
-
                     </v-data-table>
                 </v-card>
                 <!--Acaba tabla-->
         </v-container>
-
 
 
         <!--Modal para editar ideales de respuesta-->
@@ -172,7 +154,6 @@
                 </v-data-table>
 
                 <v-card-actions>
-
                     <v-btn
                         color="primario"
                         class="white--text"
@@ -188,14 +169,9 @@
                     >
                         Guardar Cambios
                     </v-btn>
-
-
                 </v-card-actions>
             </v-card>
-
         </v-dialog>
-
-
 
         <!--Modal para crear nuevos ideales de respuesta-->
         <v-dialog
@@ -208,8 +184,6 @@
                 <v-card-title>
                     <h3 style="margin: auto"> Creando nuevos ideales de respuesta </h3>
                 </v-card-title>
-
-
                 <v-row style="max-width: 80%; margin: auto" >
                     <v-col cols="6">
                         <v-select
@@ -232,15 +206,12 @@
                         ></v-select>
                     </v-col>
                 </v-row>
-
-
                 <v-data-table
                     loading-text="Cargando, por favor espere..."
                     :headers="headersEditTeachingLadder"
                     :items="competencesForNewResponseIdeal"
                     :hide-default-footer="true"
                     style="margin: auto; max-width: 70%"
-
                 >
 
                     <template v-slot:item.value="{ item }">
@@ -280,8 +251,6 @@
                     >
                         Guardar Cambios
                     </v-btn>
-
-
                 </v-card-actions>
             </v-card>
         </v-dialog>
@@ -311,7 +280,7 @@
             @confirmed-dialog="deleteResponseIdeals()"
         >
             <template v-slot:title>
-                Estas a punto de eliminar la unidad seleccionada
+                Estas a punto de eliminar el ideal de respuesta
             </template>
 
             ¡Cuidado! esta acción es irreversible
@@ -412,8 +381,6 @@ export default {
 
 
         setCompetencesForNewResponseIdeal() {
-
-
             let competencesName = ['Orientación a la calidad educativa',
                 'Trabajo Colaborativo',
                 'Empatía Universitaria',
@@ -429,28 +396,16 @@ export default {
                     id: i,
                     name: competencesName[i],
                     value: ''
-
                 })
-
             }
-
         },
-
 
         getSuitableTeachingLadders: async function () {
 
             let request = await axios.get(route('api.assessmentPeriods.teachingLadders'));
-
             let teachingLadders = request.data
 
             teachingLadders.forEach(teachingLadder => {
-
-                /*                if(teachingLadder == 'NIN'){
-
-                    this.finalTeachingLadders.unshift({name : 'Ninguno',
-                    identifier:teachingLadder})
-                }*/
-
                 if (teachingLadder == 'AUX') {
 
                     this.teachingLadders.unshift({
@@ -479,89 +434,25 @@ export default {
                         identifier: teachingLadder
                     })
                 }
-
             })
-
-            console.log(this.teachingLadders, 'teachingLADDDDDDDDDDDDDDDDDDDD');
-
         },
 
 
         async getFaculties() {
 
             let url = route('unit.getFaculties');
-
             let request = await axios.get(url);
-
             this.faculties = request.data
-
             console.log(this.faculties, 'faculties')
-
-
         },
 
 
         async getAllResponseIdeals() {
 
             let url = route('responseIdeals.get');
-
             let request = await axios.get(url);
-
             this.facultiesTeachingLadders = request.data;
-
             console.log(this.facultiesTeachingLadders, 'responseIdealsFromEndPoint');
-
-            /* this.faculties.forEach(faculty =>{
-
-                faculty.responseIdeals = [];
-
-                let filteredIdeals = responseIdeals.filter(ideal =>{
-
-                    return ideal.unit_identifier == faculty.unit_identifier
-
-                })
-
-                filteredIdeals.forEach(ideal => {
-
-                    faculty.responseIdeals.push({
-                        teaching_ladder: ideal.teaching_ladder,
-                        values: ideal.response
-                    })
-
-                })
-
-                console.log(filteredIdeals, 'filteredddddd')
-
-            })
-
-            console.log(this.faculties, 'faculties after assignment');
-
-
-
-            this.responseIdeals.forEach(responseIdeal =>{
-
-                responseIdeal.teaching_ladder = this.capitalize(responseIdeal.teaching_ladder);
-
-            })
-
-
-            this.responseIdeals.forEach( responseIdeal =>{
-
-                this.finalTeachingLadders.forEach( teachingLadder =>{
-
-                    if(teachingLadder.name == responseIdeal.teaching_ladder){
-
-                        teachingLadder.C1 = responseIdeal.response[0].value
-                        teachingLadder.C2 = responseIdeal.response[1].value
-                        teachingLadder.C3 = responseIdeal.response[2].value
-                        teachingLadder.C4 = responseIdeal.response[3].value
-                        teachingLadder.C5 = responseIdeal.response[4].value
-                        teachingLadder.C6 = responseIdeal.response[5].value
-                    }
-                })
-            })
-
-            console.log(this.finalTeachingLadders);*/
 
         },
 
@@ -575,18 +466,8 @@ export default {
 
                 let hex = this.randomHexColor()
 
-
-                /*   const randomBetween = (min, max) => min + Math.floor(Math.random() * (max - min + 1));
-                const r = randomBetween(0, 255);
-                const g = randomBetween(0, 255);
-                const b = randomBetween(0, 255);
-                let rgb = `rgb(${r},${g},${b})`
-*/
-
                 if (responseIdeal.teaching_ladder === 'Ninguno') {
-
                     responseIdeal.teaching_ladder = 'Sin Escalafón'
-
                 }
 
                 this.datasets.push({
@@ -600,11 +481,8 @@ export default {
                 })
 
             })
-
             console.log(this.datasets)
-
             return this.datasets
-
 
         },
 
@@ -614,13 +492,10 @@ export default {
             let array = []
 
             competencesValuesAsArrayOfObjects.forEach(competenceValue => {
-
                 array.push(competenceValue.value)
-
             })
 
             return array
-
         },
 
         getGraph() {
@@ -633,8 +508,6 @@ export default {
                     datasets: this.setDatasets(),
                 },
                 options: {
-
-
                     legend: {
                         display: false
                     },
@@ -680,54 +553,36 @@ export default {
         },
 
         capitalize($field) {
-
             return $field.toLowerCase().split(' ').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-
         },
 
         async editResponseIdeals(item) {
 
             console.log(item, "jejrejrjejerjrej")
-
             this.unit = item.unit_identifier;
-
             this.infoFromEditTeachingLadder = item;
-
             let request = await axios.get(route('unit.teachingLadder.responseIdeals.get', {
                 unitId: item.unit_identifier,
                 teachingLadder: item.teaching_ladder
             }));
 
             this.competencesToEdit = request.data
-
             this.updateTeachingLadder = item.teaching_ladder;
-
             console.log(this.competencesToEdit, 'competences to editttttt')
-
             this.editDialog = true
-
-
         },
 
 
         async createResponseIdeal() {
-
             this.setCompetencesForNewResponseIdeal();
-
             this.createDialog = true
-
         },
 
 
 
         cancelCreateResponseIdeal (){
-
-
             this.createDialog = false
             this.competencesForNewResponseIdeal = [];
-
-
-
         },
 
         async updateResponseIdeals(competences) {
@@ -735,26 +590,17 @@ export default {
             try {
 
                 console.log(competences, "JCEJRIWERJCIWERJCWIEJRCWRJE")
-
                 let url = route('responseIdeals.update');
-
                 let request = await axios.post(url, {
                     competences: competences,
                     teachingLadder: this.updateTeachingLadder, unit: this.unit
                 });
 
                 this.competencesValuesArray.length = 0;
-
                 this.fillArrayWithCompetencesValues(competences)
-
                 this.editDialog = false;
-
                 await this.getAllResponseIdeals();
-
-
                 showSnackbar(this.snackbar, request.data.message, 'success');
-
-                /*this.updateGraph(this.competencesValuesArray);*/
 
             } catch (e) {
                 showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
@@ -767,7 +613,6 @@ export default {
             try {
 
                 let url = route('responseIdeals.update');
-
                 console.log(confirmation, 'ffwkefwkefkwefkwkefkwfe');
 
                 if (confirmation !== null) {
@@ -780,11 +625,8 @@ export default {
                     });
 
                     this.confirmSaveExistingResponseIdeal = false
-
                     await this.getAllResponseIdeals();
-
                     this.createDialog = false;
-
                     showSnackbar(this.snackbar, request.data.message, 'success');
                 }
 
@@ -795,11 +637,8 @@ export default {
                         competences: competences,
                         teachingLadder: this.selectedTeachingLadder, unit: this.selectedFaculty
                     });
-
                     await this.getAllResponseIdeals();
-
                     this.createDialog = false;
-
                     showSnackbar(this.snackbar, request.data.message, 'success');
                 }
 
@@ -819,13 +658,8 @@ export default {
 
 
         confirmDeleteResponseIdeals(item){
-
             this.responseIdealsToDelete = item;
-
-            console.log(this.responseIdealsToDelete, 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAS')
-
             this.deleteDialog = true;
-
         },
 
         async deleteResponseIdeals (){
@@ -834,15 +668,10 @@ export default {
 
                 this.unit = this.responseIdealsToDelete.unit_identifier;
                 this.updateTeachingLadder = this.responseIdealsToDelete.teaching_ladder;
-
                 let url = route('responseIdeals.delete');
-
                 let request = await axios.post(url, {teachingLadder: this.updateTeachingLadder, unit: this.unit});
-
                 this.deleteDialog = false;
-
                 await this.getAllResponseIdeals();
-
                 showSnackbar(this.snackbar, request.data.message, 'success');
 
             }
@@ -850,21 +679,15 @@ export default {
             catch (e){
                 showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
             }
-
-
         },
 
         fillArrayWithCompetencesValues(competences){
 
             competences.forEach(competence =>{
-
                 this.competencesValuesArray.push(competence.value);
-
             })
 
         },
-
-
 },
 
 
