@@ -57,13 +57,9 @@
                     }"
                 class="elevation-1"
             >
-
                     <template v-slot:item.name="{ item }"  >
-
                         {{ item.name}}
-
                     </template>
-
 
                 <template v-slot:item.is_custom="{ item }"  >
                     {{ item.is_custom ? 'Personalizada' : 'Integración' }}
@@ -286,9 +282,7 @@ export default {
         capitalize(){
 
             this.units.forEach((unit) => {
-
                 unit.name = unit.name.toLowerCase().split(' ').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-
             })
 
         },
