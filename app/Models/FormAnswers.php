@@ -104,6 +104,7 @@ class FormAnswers extends Model
             ->join('teachers_students_perspectives as tsp', 'tsp.teacher_id','=','t.id')
             ->join('v2_unit_user','tsp.teacher_id', '=', 'v2_unit_user.user_id')
             ->join('v2_units', 'v2_unit_user.unit_identifier','=', 'v2_units.identifier')
+            ->where('f.creation_assessment_period_id', '=',$assessmentPeriodId)
             ->where('f.type','=','otros')
             ->where('v2_unit_user.role_id', '=', $teacherRoleId)
             ->where('tsp.assessment_period_id', '=', $assessmentPeriodId)->orderBy('t.name', 'ASC')
@@ -144,8 +145,6 @@ class FormAnswers extends Model
 
     public static function getFinalGradesFromTeachers(int $assessmentPeriodId = null): \Illuminate\Support\Collection
     {
-
-        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
         $teacherRoleId = Role::getTeacherRoleId();
 
         if ($assessmentPeriodId === null){
@@ -165,13 +164,12 @@ class FormAnswers extends Model
             ->join('v2_unit_user','t.id', '=', 'v2_unit_user.user_id')
             ->join('v2_units', 'v2_unit_user.unit_identifier','=', 'v2_units.identifier')
             ->where('v2_unit_user.role_id', '=', $teacherRoleId)
-            ->where('tsp.assessment_period_id', '=', $assessmentPeriodId)->get();
+            ->where('t360.assessment_period_id', '=', $assessmentPeriodId)->get();
     }
 
 
     public static function getOpenAnswersFromStudents($teacherId, $serviceArea, int $assessmentPeriodId = null)
     {
-        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
         $openAnswersFromStudents = [];
 
         if ($assessmentPeriodId === null){
@@ -181,8 +179,10 @@ class FormAnswers extends Model
         if($serviceArea !== null){
             $answersFromStudents = DB::table('form_answers as fa')->select(['answers'])->where('fa.teacher_id', '=', $teacherId)
                 ->join('forms', 'fa.form_id','=', 'forms.id')->where('forms.type', '=', 'estudiantes')
-                ->join('groups', 'groups.group_id', '=', 'fa.group_id')->join('service_areas', 'groups.service_area_code', '=', 'service_areas.code')
-                ->where('fa.assessment_period_id', '=', $assessmentPeriodId)->where('service_areas.code', '=', $serviceArea)->get();
+                ->join('groups', 'groups.group_id', '=', 'fa.group_id')
+                ->join('service_areas as sa', 'groups.service_area_code', '=', 'sa.code')
+                ->where('sa.assessment_period_id', '=', $assessmentPeriodId)
+                ->where('fa.assessment_period_id', '=', $assessmentPeriodId)->where('sa.code', '=', $serviceArea)->get();
         }
 
         else{
@@ -207,7 +207,6 @@ class FormAnswers extends Model
     }
 
 
-
     public static function getOpenAnswersFromStudentsFromGroup($teacherId, $serviceArea, $groupId, int $assessmentPeriodId = null)
     {
         $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
@@ -220,8 +219,10 @@ class FormAnswers extends Model
         if($serviceArea !== null) {
             $answersFromStudents = DB::table('form_answers as fa')->select(['answers'])->where('fa.teacher_id', '=', $teacherId)
                 ->where('fa.group_id', '=', $groupId)->join('forms', 'fa.form_id', '=', 'forms.id')->where('forms.type', '=', 'estudiantes')
-                ->join('groups', 'groups.group_id', '=', 'fa.group_id')->join('service_areas', 'groups.service_area_code', '=', 'service_areas.code')
-                ->where('fa.assessment_period_id', '=', $assessmentPeriodId)->where('service_areas.code', '=', $serviceArea)->get();
+                ->join('groups', 'groups.group_id', '=', 'fa.group_id')
+                ->join('service_areas as sa', 'groups.service_area_code', '=', 'sa.code')
+                ->where('sa.assessment_period_id', '=', $assessmentPeriodId)
+                ->where('fa.assessment_period_id', '=', $assessmentPeriodId)->where('sa.code', '=', $serviceArea)->get();
         }
         else{
                 $answersFromStudents = DB::table('form_answers as fa')->select(['answers'])->where('fa.teacher_id', '=', $teacherId)
@@ -275,6 +276,7 @@ class FormAnswers extends Model
                }
            }
        }
+
        return $openAnswersFromColleagues;
 
    }

@@ -193,17 +193,12 @@
                     <v-card-text>
                         <h2 class="black--text pt-5" style="text-align: center"> Visualizando comentarios hacia el
                             docente: {{ this.capitalize(this.selectedTeacherOpenAnswers) }}</h2>
-
-                        <h3 class="black--text pt-5"> PREGUNTA:  {{openAnswersColleagues[0] == null ? '' : openAnswersColleagues[0].question}}</h3>
-
+                        <h3 class="black--text pt-5"> PREGUNTA:  {{openAnswersStudents[0] == null ? '' : openAnswersStudents[0].question}}</h3>
                         <h3 class="black--text pt-5"> Comentarios por parte de profesores:</h3>
-
                         <div v-for="colleagueAnswer in openAnswersColleagues" class="mt-3">
                             <h4> {{colleagueAnswer.name}} ({{colleagueAnswer.unit_role}}): {{ colleagueAnswer.answer }}</h4>
                         </div>
-
                         <h3 class="black--text pt-5 mt-4"> Comentarios por parte de estudiantes:</h3>
-
                         <div v-for="studentAnswer in openAnswersStudents" class="mt-3">
                             <h4> {{ studentAnswer.answer }}</h4>
                         </div>
@@ -423,10 +418,8 @@ export default {
             console.log(answersFromStudents, 'answers from students');
 
            answersFromStudents.forEach(answer =>{
-
                 answer.unit_role = 'estudiante'
                 this.assessments.push(answer)
-
             });
 
            this.assessments.sort(this.orderData);
@@ -483,7 +476,6 @@ export default {
             if (assessments === null) {
                 assessments = this.assessments;
             }
-
             return assessments.filter((assessment) => {
 
                 let doesAssessmentHaveUnit = false;
@@ -492,27 +484,20 @@ export default {
                 }
                 return doesAssessmentHaveUnit;
             });
-
         },
 
         getFilteredAssessmentsByTeacher(assessments = null) {
-
             if (assessments === null) {
                 assessments = this.assessments;
             }
-
             return this.matchProperty(assessments, 'teacherId', this.teacher)
-
         },
 
         getFilteredAssessmentsByRole(assessments = null) {
-
             if (assessments === null) {
                 assessments = this.assessments;
             }
-
             return this.matchProperty(assessments, 'unit_role', this.role)
-
         },
 
         async setDialogToShowChart(teacher){
@@ -531,11 +516,9 @@ export default {
         },
 
         fillCompetencesArray(roleArray) {
-
             let array = [roleArray.first_competence_average, roleArray.second_competence_average, roleArray.third_competence_average, roleArray.fourth_competence_average,
                 roleArray.fifth_competence_average, roleArray.sixth_competence_average]
             return array;
-
         },
 
         getTeachingLadderNameByParameter: async function (teachingLadderCode){
@@ -580,7 +563,6 @@ export default {
             if (teachingLadder === undefined){
                 return 'Ninguno'
             }
-
             return teachingLadder.name
 
         },
@@ -604,15 +586,10 @@ export default {
             console.log(teacher, 'teacher');
             this.selectedTeacherToGraph = teacher.name
             let unitIdentifier = teacher.unit_identifier
-
-            console.log(unitIdentifier, 'unitIdentifier');
             let teacherId = teacher.teacherId;
             let info = {userId : teacherId}
             let request = await axios.post(route('teachers.getTeachingLadder'), info)
             let teachingLadder= await this.getTeachingLadderNameByParameter(request.data)
-
-            console.log(teachingLadder, 'teachingLadder');
-
             let responseIdealsCompetences = await this.getResponseIdealsCompetences(teachingLadder, unitIdentifier);
 
             responseIdealsCompetences.forEach(competence =>{
@@ -620,7 +597,6 @@ export default {
             })
 
             this.datasets.unshift({
-
                 label: `Nivel Esperado (${teachingLadder == 'Ninguno' ? 'Auxiliar' : teachingLadder})`,
                 data: this.responseIdealsCompetencesArray,
                 backgroundColor: 'orange',
@@ -664,7 +640,6 @@ export default {
                                 borderColor: color.color,
                                 borderWidth: 2
                             })
-
                         }
                     })
                 }
@@ -713,11 +688,9 @@ export default {
                         ActoresInvolucrados: item.aggregate_students_amount_reviewers,
                         ActoresTotales: item.aggregate_students_amount_on_360_groups
                     }
-
                 })
 
                 let csv = Papa.unparse(excelInfo, {delimiter:';'});
-
                 var csvData = new Blob(["\uFEFF"+csv], {type: 'text/csv;charset=utf-8;'});
                 var csvURL =  null;
                 if (navigator.msSaveBlob)
@@ -798,15 +771,12 @@ export default {
                             },
                         },
                         layout:{
-
                             padding:{
-
                                 left: 0,
                                 right: 0,
                                 top: 0,
                                 bottom: 0
                             }
-
                         },
                         legend: {
                             display: true,
@@ -929,9 +899,6 @@ export default {
             await this.getAnswersFromStudents();
             await this.getFinalGrades();
         }
-
     }
-
-
 }
 </script>

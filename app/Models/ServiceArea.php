@@ -84,6 +84,7 @@ class ServiceArea extends Model
             ->join('users as t', 'tsar.teacher_id', '=', 't.id')
             ->join('service_areas as sa', 'sa.code','=','tsar.service_area_code')
             ->where('sa.assessment_period_id', '=', $assessmentPeriodId)
+            ->where('sa.assessment_period_id', '=', $assessmentPeriodId)
             ->where('tsar.assessment_period_id', '=', $assessmentPeriodId)->orderBy('name', 'ASC')
             ->get();
     }
@@ -108,6 +109,7 @@ class ServiceArea extends Model
             ->join('groups as g', 'gr.group_id', '=', 'g.group_id')
             ->join('users as t', 'gr.teacher_id', '=', 't.id')
             ->join('service_areas as sa', 'sa.code','=','gr.service_area_code')
+            ->where('sa.assessment_period_id', '=', $assessmentPeriodId)
             ->join('academic_periods as ap', 'ap.id', '=', 'g.academic_period_id')->get();
     }
 
