@@ -293,12 +293,10 @@ class ReportsController extends Controller
         $timestamp = Carbon::now('GMT-5');
 
         if(isset($teacherResults[0]->group_id)){
-            /*dd($teacherResults);*/
             return view('reportServiceAreaGroups', compact( 'assessmentPeriodName', 'chart', 'teacherResults', 'labels', 'teacherName', 'timestamp'));
-
         }
-        return view('reportServiceArea', compact( 'assessmentPeriodName', 'chart', 'teacherResults', 'labels', 'teacherName', 'timestamp'));
 
+        return view('reportServiceArea', compact( 'assessmentPeriodName', 'chart', 'teacherResults', 'labels', 'teacherName', 'timestamp'));
     }
 
 
