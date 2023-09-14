@@ -54,7 +54,6 @@ class UpdateReportResultsCommand extends Command
         if(count($teachers) > 0){
 
             $uniqueTeachers = array_column($teachers, 'teacher_id');
-
             $uniqueTeachers = array_unique($uniqueTeachers);
 
             foreach ($uniqueTeachers as $uniqueTeacher) {
@@ -139,9 +138,7 @@ class UpdateReportResultsCommand extends Command
                             'created_at' => Carbon::now('GMT-5')->toDateTimeString(),
                             'updated_at' => Carbon::now('GMT-5')->toDateTimeString()]);
                 }
-
             }
-
 
             //Now, we are going to calculate the final results on groups for teachers on 360 assessment, this is, only taking into account groups with hour_type = normal
             $finalResultsFromTeachersOnGroups = DB::table('group_results as gr')->select(['gr.teacher_id'])->where('hour_type', '=', 'normal')
@@ -360,6 +357,8 @@ class UpdateReportResultsCommand extends Command
                 $peerBossAutoAssessmentAnswers [] = $studentsAnswers;
 
                 $allAssessments = $peerBossAutoAssessmentAnswers;
+
+                dd($allAssessments);
 
                 foreach ($allAssessments as $assessment){
 
