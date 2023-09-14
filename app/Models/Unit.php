@@ -51,9 +51,10 @@ class Unit extends Model
 
     public static function getCurrentUnits(int $assessmentPeriodId = null){
 
-        if ($assessmentPeriodId === null){
+        if ($assessmentPeriodId == null){
             $assessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
         }
+
         return self::where('assessment_period_id','=', $assessmentPeriodId)->with('teachersFromUnit')->get();
     }
 

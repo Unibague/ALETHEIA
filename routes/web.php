@@ -991,9 +991,6 @@ Route::get('testEmail', function () {
 //
 //});
 
-Route::get('checkForDueAcademicPeriodsBeforeEndAssessment', function () {
-
-});
 
 Route::get('sendEmailForDueAcademicPeriodsBeforeStartAssessment', function () {
 

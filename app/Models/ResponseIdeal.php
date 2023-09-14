@@ -78,28 +78,23 @@ class ResponseIdeal extends Model
 
 
 
-    public function getTeacherResponseIdeals($teaching_ladder, $unitIdentifier): JsonResponse{
-
-
-        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+    public function getTeacherResponseIdeals($teaching_ladder, $unitIdentifier, int $assessmentPeriodId = null): JsonResponse{
 
         if($teaching_ladder == 'Ninguno'){
-
             $teaching_ladder = 'auxiliar';
         }
 
-
-
+        if($assessmentPeriodId == null){
+            $assessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        }
 
         $finalUnit = DB::table('unit_hierarchy')->select(['father_unit_identifier'])
             ->where('child_unit_identifier','=', $unitIdentifier)->first();
-
 
         if ($finalUnit == null){
 
             $finalUnit = DB::table('unit_hierarchy')->select(['father_unit_identifier'])
                 ->where('prior_child_unit_identifier','=',$unitIdentifier)->first();
-
 
             if($finalUnit == null){
 
@@ -107,21 +102,17 @@ class ResponseIdeal extends Model
                     ->where('father_unit_identifier','=',$unitIdentifier)->first();
 
                 if($finalUnit == null){
-
-
                     return response()->json("");
                 }
-
             }
-
         }
+
 
 
         $finalUnit = $finalUnit->father_unit_identifier;
 
-
         $competences = DB::table('response_ideals')->where('teaching_ladder', $teaching_ladder)->where('unit_identifier', $finalUnit)
-            ->where('assessment_period_id', $activeAssessmentPeriodId)->select('response')->first();
+            ->where('assessment_period_id', $assessmentPeriodId)->select('response')->first();
 
 
         if($competences == null){
@@ -131,10 +122,9 @@ class ResponseIdeal extends Model
         }
 
         $competences = DB::table('response_ideals')->where('teaching_ladder', $teaching_ladder)->where('unit_identifier', $finalUnit)
-            ->where('assessment_period_id', $activeAssessmentPeriodId)->select('response')->first()->response;
+            ->where('assessment_period_id', $assessmentPeriodId)->select('response')->first()->response;
 
         return response()->json(json_decode($competences));
-
 
     }
 

@@ -85,7 +85,6 @@ class FormAnswers extends Model
 
     public static function getCurrentTeacherFormAnswers(int $assessmentPeriodId = null): \Illuminate\Support\Collection
     {
-        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
         $teacherRoleId = Role::getTeacherRoleId();
   /*      'tsp.first_final_aggregate_competence_average',
                 'tsp.second_final_aggregate_competence_average', 'tsp.third_final_aggregate_competence_average', 'tsp.fourth_final_aggregate_competence_average',
@@ -106,6 +105,7 @@ class FormAnswers extends Model
             ->join('v2_units', 'v2_unit_user.unit_identifier','=', 'v2_units.identifier')
             ->where('f.creation_assessment_period_id', '=',$assessmentPeriodId)
             ->where('f.type','=','otros')
+            ->where('v2_units.assessment_period_id', '=', $assessmentPeriodId)
             ->where('v2_unit_user.role_id', '=', $teacherRoleId)
             ->where('tsp.assessment_period_id', '=', $assessmentPeriodId)->orderBy('t.name', 'ASC')
             ->get();
@@ -137,6 +137,7 @@ class FormAnswers extends Model
             ->join('v2_unit_user','t.id', '=', 'v2_unit_user.user_id')
             ->join('v2_units', 'v2_unit_user.unit_identifier','=', 'v2_units.identifier')
             ->where('v2_unit_user.role_id', '=', $teacherRoleId)
+            ->where('v2_units.assessment_period_id', '=', $assessmentPeriodId)
             ->where('tsp.assessment_period_id', '=', $assessmentPeriodId)
             ->get();
 
@@ -164,6 +165,7 @@ class FormAnswers extends Model
             ->join('v2_unit_user','t.id', '=', 'v2_unit_user.user_id')
             ->join('v2_units', 'v2_unit_user.unit_identifier','=', 'v2_units.identifier')
             ->where('v2_unit_user.role_id', '=', $teacherRoleId)
+            ->where('v2_units.assessment_period_id', '=', $assessmentPeriodId)
             ->where('t360.assessment_period_id', '=', $assessmentPeriodId)->get();
     }
 
