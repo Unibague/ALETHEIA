@@ -165,11 +165,8 @@ class UpdateReportResultsCommand extends Command
                 $final_fifth_aggregate_competence_average = 0;
                 $final_sixth_aggregate_competence_average = 0;
                 /*
-
                             if ($uniqueTeacher == 181){
-
                                 dd($finalResultsFromTeacherOnGroups);
-
                             }*/
                 foreach ($finalResultsFromTeacherOnGroups as $key=>$finalResultsFromTeacherOnGroup){
 
@@ -302,6 +299,7 @@ class UpdateReportResultsCommand extends Command
             foreach ($uniqueTeachersId as $uniqueTeacherId){
 
                 $allAssessments = [];
+                DB::table('assessment_weights')->get();
 
                 $peerPercentage = 0.15;
                 $autoPercentage = 0.15;
@@ -331,15 +329,8 @@ class UpdateReportResultsCommand extends Command
                     ->where('t.id', '=', $uniqueTeacherId)
                     ->get();
 
-                /*
-                                  if($uniqueTeacherId == 236){
-                                        dd(count($peerBossAutoAssessmentAnswers));
-                                    }*/
-
                 if(count($peerBossAutoAssessmentAnswers) == 0){
-
                     continue;
-
                 }
 
                 $studentsAnswers = DB::table('teachers_students_perspectives as tsp')
@@ -357,8 +348,6 @@ class UpdateReportResultsCommand extends Command
                 $peerBossAutoAssessmentAnswers [] = $studentsAnswers;
 
                 $allAssessments = $peerBossAutoAssessmentAnswers;
-
-                dd($allAssessments);
 
                 foreach ($allAssessments as $assessment){
 

@@ -42,13 +42,9 @@ class CheckForDueAcademicPeriodsBFinishAssessment extends Command
     {
 
         $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
-
         $anticipationDays = DB::table('assessment_reminder')->select(['days_in_advance'])->where('assessment_period_id', '=', $activeAssessmentPeriodId)
             ->where('send_reminder_before', '=', 'finish')->first()->days_in_advance;
-
         $emailDate = Carbon::now()->addDays($anticipationDays)->toDateString();
-
-        /*  $emailDate = Carbon::parse($academicPeriod->students_start_date)->toDate()->modify("+" . $anticipationDays . "days")->format('d/m/Y');*/
 
         $dueAcademicPeriods = DB::table('academic_periods')->where('assessment_period_id', '=', $activeAssessmentPeriodId)
             ->where('students_end_date', '=', $emailDate )->get();
@@ -73,7 +69,7 @@ class CheckForDueAcademicPeriodsBFinishAssessment extends Command
                     $studentTeachers = DB::table('group_user as gu')->select(['gu.user_id', 'u.name as teacher_name', 'g.name as group_name'])
                         ->join('groups as g', 'gu.group_id', '=', 'g.group_id')
                         ->join('users as u', 'g.teacher_id', '=', 'u.id')
-                        ->where('gu.academic_period_id', '=', $academicPeriod->id)->where('user_id', '=', $student->id)
+                        ->where('gu.academic_period_id', '=', $academicPeriod->id)->where('gu.user_id', '=', $student->id)
                         ->where('gu.has_answer', '=', 0)->get();
 
                     if (count($studentTeachers) == 0){
@@ -108,7 +104,6 @@ class CheckForDueAcademicPeriodsBFinishAssessment extends Command
                         'assessment_period_id' => $activeAssessmentPeriodId,
                         'before_start_or_finish_assessment' => 'Finish'],
                         ['email_parameters' => $parameters, 'status' => 'Not Started']);
-
                 }
             }
         }

@@ -63,16 +63,13 @@ class CheckForDueAcademicPeriodsBStartAssessment extends Command
                 foreach ($students as $student) {
 
                     $studentTeachersToEvaluate = [];
-
                     $studentTeachers = DB::table('group_user as gu')->select(['gu.user_id', 'u.name as teacher_name', 'g.name as group_name'])
                         ->join('groups as g', 'gu.group_id', '=', 'g.group_id')
                         ->join('users as u', 'g.teacher_id', '=', 'u.id')
                         ->where('gu.academic_period_id', '=', $academicPeriod->id)->where('user_id', '=', $student->id)
                         ->get();
 
-
                     if (count($studentTeachers) == 0){
-
                         //Si no hay docentes pues no se agrega a la lista de correspondencia
                         continue;
                     }
@@ -90,8 +87,6 @@ class CheckForDueAcademicPeriodsBStartAssessment extends Command
                         $studentTeachersToEvaluate [] = $teacherInfo;
                     }
 
-                    /*                dd($studentTeachersToEvaluate);*/
-
                     if(count($studentTeachersToEvaluate) == 0){
                         continue;
                     }
@@ -105,7 +100,6 @@ class CheckForDueAcademicPeriodsBStartAssessment extends Command
                         'assessment_period_id' => $activeAssessmentPeriodId,
                         'before_start_or_finish_assessment' => 'start'],
                         ['email_parameters' => $parameters, 'status' => 'Not Started']);
-
                 }
             }
         }

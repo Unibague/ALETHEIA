@@ -992,6 +992,38 @@ Route::get('testEmail', function () {
 //});
 
 
-Route::get('sendEmailForDueAcademicPeriodsBeforeEndAssessment', function () {
+Route::get('checkCronJob', function () {
+    $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+
+    $emailsToSent = DB::table('assessment_reminder_users')->where('status', '=', 'Not Started')
+        ->where('before_start_or_finish_assessment', '=', 'Finish')
+        ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->take(100)->get();
+
+    if (count($emailsToSent) == 0) {
+        $emailsToSent = DB::table('assessment_reminder_users')->where('status', '=', 'In Progress')
+            ->where('before_start_or_finish_assessment', '=', 'Finish')
+            ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->take(100)->get();
+    }
+
+    foreach ($emailsToSent as $student){
+
+        $emailParameters = json_decode($student->email_parameters);
+
+        DB::table('assessment_reminder_users')->where('assessment_period_id', '=', $activeAssessmentPeriodId)
+            ->where('id', '=', $student->id)->update(['status' => 'In Progress']);
+
+        $data = [
+            'role' => $emailParameters->role,
+            'name' => $emailParameters->name,
+            'teachers_to_evaluate' => $emailParameters->teachers_to_evaluate,
+            'end_date' => $emailParameters->end_date,
+            'assessment_period_name' => AssessmentPeriod::getActiveAssessmentPeriod()->name
+        ];
+
+        $email = new \App\Mail\SecondReminderMailable($data);
+        Mail::bcc(['juanes01.gonzalez@gmail.com'])->send($email);
+        DB::table('assessment_reminder_users')->where('assessment_period_id', '=', $activeAssessmentPeriodId)
+            ->where('id', '=', $student->id)->update(['status' => 'Done']);
+    }
 
 });
