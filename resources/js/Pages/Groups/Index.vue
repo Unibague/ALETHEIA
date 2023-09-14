@@ -47,21 +47,21 @@
                                 <v-list-item-title>Ver todos los grupos</v-list-item-title>
                             </v-list-item>
 
-                            <v-list-item
-                                @click="deleteThoseGroups"
-                            >
-                                <v-list-item-avatar>
-                                    <v-avatar
-                                        size="32px"
-                                        tile
-                                    >
-                                        <v-icon>
-                                            mdi-delete
-                                        </v-icon>
-                                    </v-avatar>
-                                </v-list-item-avatar>
-                                <v-list-item-title>Borrar esos grupos</v-list-item-title>
-                            </v-list-item>
+<!--                            <v-list-item-->
+<!--                                @click="deleteThoseGroups"-->
+<!--                            >-->
+<!--                                <v-list-item-avatar>-->
+<!--                                    <v-avatar-->
+<!--                                        size="32px"-->
+<!--                                        tile-->
+<!--                                    >-->
+<!--                                        <v-icon>-->
+<!--                                            mdi-delete-->
+<!--                                        </v-icon>-->
+<!--                                    </v-avatar>-->
+<!--                                </v-list-item-avatar>-->
+<!--                                <v-list-item-title>Borrar esos grupos</v-list-item-title>-->
+<!--                            </v-list-item>-->
 
 
                         </v-list>
@@ -78,30 +78,19 @@
                         color="primario"
                         class="grey--text text--lighten-4"
                         @click="syncGroups"
-
                     >
                         Sincronizar grupos
                     </v-btn>
-
-
-
                 </div>
-
-
             </div>
 
 
 
             <div class="d-flex flex-column align-center mt-12" v-if="">
-
                 <h3 v-if="isSync">
-
                     Por favor espera, estamos realizando la sincronización de los estudiantes...
-
                 </h3>
-
             </div>
-
 
             <!--Inicia tabla-->
 
@@ -264,9 +253,6 @@ export default {
                 showSnackbar(this.snackbar, 'Se han cargado todos los grupos', 'success')
             }
         },
-
     },
-
-
 }
 </script>
