@@ -401,7 +401,7 @@ export default {
             let url = route('formAnswers.teachers.show', {assessmentPeriodId: this.assessmentPeriod});
             let request = await axios.get(url);
             this.assessments = request.data
-            console.log(request.data);
+            console.log(request.data, 'ANSWERS FROM TEACHERS');
             this.assessments.forEach(assessment =>{
                 assessment.first_competence_average = assessment.first_competence_average.toFixed(1);
                 assessment.aggregate_students_amount_reviewers = 1;
@@ -460,7 +460,6 @@ export default {
         capitalize($field){
             return $field.toLowerCase().split(' ').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
         },
-
 
         sortArrayAlphabetically(array){
             return array.sort( (p1, p2) =>
@@ -574,7 +573,10 @@ export default {
         async getResponseIdealsCompetences(teachingLadder, unitIdentifier){
 
             let url = route('teacher.responseIdeals.get');
-            let request = await axios.post(url, {teachingLadder: teachingLadder, unitIdentifier: unitIdentifier})
+            let request = await axios.post(url, {teachingLadder: teachingLadder, unitIdentifier: unitIdentifier, assessmentPeriodId: this.assessmentPeriod})
+
+            console.log(request.data, 'RESPONSE IDEALS DATASET')
+
             if(request.data.length === 0){
                 return this.getPossibleInitialCompetences();
             }
@@ -590,6 +592,8 @@ export default {
             let info = {userId : teacherId}
             let request = await axios.post(route('teachers.getTeachingLadder'), info)
             let teachingLadder= await this.getTeachingLadderNameByParameter(request.data)
+
+            console.log(request.data, 'RESPONSE IDEALS DATASET')
             let responseIdealsCompetences = await this.getResponseIdealsCompetences(teachingLadder, unitIdentifier);
 
             responseIdealsCompetences.forEach(competence =>{

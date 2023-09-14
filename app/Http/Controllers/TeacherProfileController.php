@@ -114,14 +114,17 @@ class TeacherProfileController extends Controller
     public function getTeachingLadderByUserId(Request $request): JsonResponse
 
     {
-
         $userId = $request->input('userId');
+        $assessmentPeriodId = $request->input('assessmentPeriodId');
 
-        $actualAssessmentPeriod = AssessmentPeriod::getActiveAssessmentPeriod();
+        if($assessmentPeriodId == null){
 
-        return response()->json(TeacherProfile::select(['teaching_ladder'])->where('assessment_period_id', '=', $actualAssessmentPeriod->id)
+            $assessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        }
+
+
+        return response()->json(TeacherProfile::select(['teaching_ladder'])->where('assessment_period_id', '=', $assessmentPeriodId)
             ->where('user_id','=', $userId)->first()->teaching_ladder);
-
     }
 
 

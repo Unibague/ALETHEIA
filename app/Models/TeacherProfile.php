@@ -149,8 +149,8 @@ class TeacherProfile extends Model
         $activeAssessmentPeriod = AssessmentPeriod::getActiveAssessmentPeriod()->id;
 
         DB::table('v2_unit_user')->updateOrInsert(
-            ['user_id' => $userId, 'role_id' => $roleId],
-            ['unit_identifier' => $unitIdentifier]
+            ['user_id' => $userId, 'unit_identifier' => $unitIdentifier, 'role_id' => $roleId],
+            ['user_id' => $userId, 'unit_identifier' => $unitIdentifier, 'role_id' => $roleId]
         );
 
         $user = DB::table('unity_assessments')->where('evaluated_id', $userId)

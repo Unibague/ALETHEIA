@@ -217,8 +217,9 @@ class ResponseIdealController extends Controller
     {
         $teachingLadder = $request->input('teachingLadder');
         $unitIdentifier = $request->input('unitIdentifier');
+        $assessmentPeriodId = $request->input('assessmentPeriodId');
 
-        return ResponseIdeal::getTeacherResponseIdeals($teachingLadder, $unitIdentifier);
+        return ResponseIdeal::getTeacherResponseIdeals($teachingLadder, $unitIdentifier, $assessmentPeriodId);
 
     }
 
