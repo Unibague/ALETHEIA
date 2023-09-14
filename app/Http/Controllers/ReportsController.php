@@ -253,61 +253,40 @@ class ReportsController extends Controller
 
     public function download360(Request $request){
 
+        $assessmentPeriodId = $request->input('assessmentPeriodId');
+        if($assessmentPeriodId == null){
+            $assessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        }
 
-        $assessmentPeriodName = AssessmentPeriod::select(['name'])->where('active', '=', 1)->first()->name;
-
+        $assessmentPeriodName = AssessmentPeriod::select(['name'])->where('id', '=',  $assessmentPeriodId)->first()->name;
         $teacherResults = $request->input('teacherResults');
-
         $teacherResults = json_decode($teacherResults);
-
         $chartInfo = $request->input('chart');
-
         $chart = json_decode($chartInfo);
-
         $labels = $chart->data->labels;
         $teacherName = strtolower($teacherResults[0]->name);
         $chart = urlencode(json_encode($chart));
 
         $timestamp = Carbon::now('GMT-5');
 
-
-        /*dd($chart);*/
-/*        $pdf = Pdf::loadView('report', compact( 'assessmentPeriodName', 'chart', 'teacherResults', 'labels', 'teacherName'));*/
-/*        $pdf = app('dompdf.wrapper');*/
-/*
-        //############ Permitir ver imagenes si falla ################################
-        $contxt = stream_context_create([
-            'ssl' => [
-                'verify_peer' => FALSE,
-                'verify_peer_name' => FALSE,
-                'allow_self_signed' => TRUE,
-            ]
-        ]);
-
-        $pdf = Pdf::setOptions(['isHTML5ParserEnabled' => true, 'isRemoteEnabled' => true]);
-        $pdf->getDomPDF()->setHttpContext($contxt);
-        //#################################################################################*/
-
-
-/*        return Pdf::loadView('report', compact( 'assessmentPeriodName', 'chart', 'teacherResults', 'labels', 'teacherName'));*/
-
         return view('report', compact( 'assessmentPeriodName', 'chart', 'teacherResults', 'labels', 'teacherName', 'timestamp'));
-
     }
 
 
     public function downloadServiceAreasAssessment(Request $request){
 
-        $assessmentPeriodName = AssessmentPeriod::select(['name'])->where('active', '=', 1)->first()->name;
 
+        $assessmentPeriodId = $request->input('assessmentPeriodId');
+        if($assessmentPeriodId == null){
+            $assessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        }
+
+        $assessmentPeriodName = AssessmentPeriod::select(['name'])->where('id', '=',  $assessmentPeriodId)->first()->name;
         $teacherResults = $request->input('teacherResults');
         $chartInfo = $request->input('chart');
-
         $teacherResults = json_decode($teacherResults);
-
         $chart = json_decode($chartInfo);
         $labels = $chart->data->labels;
-
         $teacherName = strtolower($teacherResults[0]->name);
         $chart = urlencode(json_encode($chart));
 

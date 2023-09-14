@@ -727,7 +727,8 @@ export default {
             var windowOption='resizable=yes,height=600,width=800,location=0,menubar=0,scrollbars=1';
             var params = { _token: this.token,
                 chart: JSON.stringify(this.getChartAsObject()),
-                teacherResults: JSON.stringify(this.filteredItems)
+                teacherResults: JSON.stringify(this.filteredItems),
+                assessmentPeriodId: this.assessmentPeriod
             };
 
             var form = document.createElement("form");

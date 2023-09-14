@@ -23,6 +23,8 @@
         @foreach($labels as $label)
         <th scope="col">{{$label}}</th>
         @endforeach
+        <th scope="col"> Estudiantes involucrados</th>
+        <th scope="col"> Estudiantes totales</th>
     </tr>
     </thead>
 
@@ -38,6 +40,8 @@
         <td>{{$teacherResult->fourth_competence_average}}</td>
         <td>{{$teacherResult->fifth_competence_average}}</td>
         <td>{{$teacherResult->sixth_competence_average}}</td>
+        <td>{{$teacherResult->aggregate_students_amount_reviewers}}</td>
+        <td>{{$teacherResult->aggregate_students_amount_on_service_area}}</td>
     </tr>
     @endforeach
     </tbody>
