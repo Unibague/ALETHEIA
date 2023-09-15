@@ -53,6 +53,8 @@ class SendBStartAssessmentReminderStudent extends Command
             ->where('before_start_or_finish_assessment', '=', 'Start')
             ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->take(100)->get();
 
+        $reference = $emailsToSent;
+
         if (count($emailsToSent) == 0) {
 
             $emailsToSent = DB::table('assessment_reminder_users')->where('status', '=', 'In Progress')
@@ -81,11 +83,11 @@ class SendBStartAssessmentReminderStudent extends Command
                 ->where('id', '=', $student->id)->update(['status' => 'Done']);
         }
 
-
+        if (count($reference) > 0) {
             $issue = 'Lote de Estudiantes previos a empezar evaluación docente';
             $confirmationEmail = new \App\Mail\ConfirmationFinishSend($issue);
             Mail::bcc(['juanes01.gonzalez@gmail.com'])->send($confirmationEmail);
-
+        }
 
         return 0;
     }
