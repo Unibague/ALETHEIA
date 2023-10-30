@@ -199,11 +199,8 @@ export default {
             let url = route('api.unity.roles.unitAssignments')
             let data = this.teachers;
             try {
-
                 let request = await axios.post(url, data);
-
                 this.assignments = request.data
-
                 this.teachers.forEach(teacher =>{
                     this.assignments.forEach(assignment=>{
                         if(teacher.id === assignment.evaluated_id){
@@ -229,52 +226,31 @@ export default {
                 showSnackbar(this.snackbar, "Asignaciones cargadas correctamente", 'success', 5000);
 
             } catch  {
-                showSnackbar(this.snackbar, "Si transferiste a un docente desde otra unidad y ya tenía" +
-                    " un jefe asignado, recuerda que debes asignarlo" +
-                    " como jefe primero en esta unidad", 'alert', 10000);
+
             }
         },
 
 
 /*
         async getBossAssignments (){
-
             let url = route('api.unity.roles.unitAssignments')
-
             let data = this.teachers;
-
             try {
-
                 let request = await axios.post(url, data);
-
                 console.log(request.data);
-
                 this.bossAssignments = request.data
-
                 this.teachers.forEach(teacher =>{
-
                     this.bossAssignments.forEach(bossAssignment =>{
-
                         if(teacher.id === bossAssignment.evaluated_id){
-
                             if(bossAssignment.role == "jefe"){
-
-
-
                         }
-
                     })
-
                 })
-
                 /!*     console.log(this.peerSelected, this.bossSelected)*!/
-
                 showSnackbar(this.snackbar, "Asignaciones cargadas correctamente", 'success', 5000);
-
             } catch (e) {
                 showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
             }
-
         },*/
 
         async assignRolesToTeacher (which, beingAssignedUserId, assignedToUserId, unitIdentifier){
