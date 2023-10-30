@@ -70,13 +70,9 @@ class UnitController extends Controller
 
     public function getStaffMembersFromEndpoint()
     {
-
         $url = 'https://directorio.unibague.edu.co/modules/mod_directorio/get_Funcionaries.php';
-
         $curl = new CurlCobain($url);
-
         return json_decode($curl->makeRequest());
-
     }
 
     public function getStaffMembersFromDB()

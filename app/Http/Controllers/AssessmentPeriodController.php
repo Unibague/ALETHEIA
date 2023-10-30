@@ -100,7 +100,6 @@ class  AssessmentPeriodController extends Controller
 
         return response()->json(AssessmentPeriod::getActiveAssessmentPeriod()->getSuitableTeachingLaddersWithNames());
 
-
     }
 
 

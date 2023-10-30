@@ -10,19 +10,15 @@
                 <div>
 
                     <InertiaLink :href="route('units.assessment.status',{unitId:this.currentUnit.identifier}) ">
-
                         <v-btn>
                             Estado de la evaluación
                         </v-btn>
-
                     </InertiaLink>
 
                     <InertiaLink :href="route('units.roles.manage',{unitId:this.currentUnit.identifier}) ">
-
                         <v-btn class="ml-4">
                            Gestionar Evaluadores
                         </v-btn>
-
                     </InertiaLink>
                     <v-btn
                         color="primario"
@@ -49,9 +45,7 @@
             <v-card>
 
                 <v-data-table
-
                     loading-text="Cargando, por favor espere..."
-
                     :headers="headersAdminsAndBosses"
                     :items="adminsAndBosses"
                     :items-per-page="20"
@@ -100,10 +94,7 @@
                             </template>
                             <span>Eliminar jefe de docente</span>
                         </v-tooltip>
-
-
                     </template>
-
                 </v-data-table>
             </v-card>
 
@@ -116,7 +107,6 @@
                 <v-data-table
 
                     loading-text="Cargando, por favor espere..."
-
                     :headers="headersTeachers"
                     :items="teachers"
                     :items-per-page="20"
@@ -127,10 +117,8 @@
                 >
 
                     <template v-slot:item.actions="{ item }">
-
                         <v-tooltip top v-if="item.teacher_profile!=null">
                             <template v-slot:activator="{on,attrs}">
-
                                 <v-icon
                                     v-bind="attrs"
                                     v-on="on"
@@ -139,11 +127,9 @@
                                 >
                                     mdi-swap-horizontal
                                 </v-icon>
-
                             </template>
                             <span>Transferir docente</span>
                         </v-tooltip>
-
                     </template>
 
                 </v-data-table>
@@ -200,16 +186,12 @@
                         >
                             Guardar cambios
                         </v-btn>
-
-
-
                     </v-card-actions>
                 </v-card>
             </v-dialog>
 
 
             <!--Asignar Admin de unidad-->
-
             <v-dialog
                 v-model="unitAdminDialog"
                 persistent
@@ -253,9 +235,6 @@
                         >
                             Guardar cambios
                         </v-btn>
-
-
-
                     </v-card-actions>
                 </v-card>
             </v-dialog>
@@ -285,7 +264,6 @@
                             return-object
                         ></v-autocomplete>
 
-
                         <small>Los campos con * son obligatorios </small>
                     </v-card-text>
                     <v-card-actions>
@@ -305,14 +283,9 @@
                         >
                             Guardar cambios
                         </v-btn>
-
-
-
                     </v-card-actions>
                 </v-card>
             </v-dialog>
-
-
 
             <confirm-dialog
                 :show="deleteUnitAdminDialog"
@@ -331,8 +304,6 @@
                 </template>
             </confirm-dialog>
 
-
-
             <confirm-dialog
                 :show="deleteUnitBossDialog"
                 @canceled-dialog="deleteUnitBossDialog = false"
@@ -349,7 +320,6 @@
                 </template>
             </confirm-dialog>
 
-
             <confirm-dialog
                 :show="sureDeleteUnitBossDialog"
                 @canceled-dialog="sureDeleteUnitBossDialog = false"
@@ -365,12 +335,7 @@
                     Borrar
                 </template>
             </confirm-dialog>
-
-
-
         </v-container>
-
-
     </AuthenticatedLayout>
 </template>
 
@@ -473,7 +438,6 @@ export default {
     async mounted(){
 
         await this.getAdminsAndBosses();
-
         await this.getTeachersFromCurrentUnit();
 
     },
@@ -485,15 +449,12 @@ export default {
         async getTeachersFromCurrentUnit () {
 
             let url = route('unit.teachers', {unitId:this.currentUnit.identifier})
-
             let request = await axios.get(url);
-
             this.teachers = request.data.teachers_from_unit;
 
         /*    console.log(this.teachers);*/
 
             this.includeTeachersCodeOnArrayAndCapitalize();
-
             await this.getAllUnitsAndSortAlphabetically();
 
         },
@@ -502,40 +463,22 @@ export default {
         async getAdminsAndBosses(){
 
             let url = route('unit.adminsAndBosses', {unitId:this.currentUnit.identifier})
-
             let request = await axios.get(url);
-
             this.adminsAndBosses = request.data.admins_and_bosses;
-
             this.adminsAndBosses.forEach(adminOrBoss => {
-
                 adminOrBoss.code = adminOrBoss.email.substring(0,adminOrBoss.email.indexOf("@"));
-
                 adminOrBoss.name= this.capitalize(adminOrBoss.name);
-
             })
-
-            console.log(this.adminsAndBosses);
-
-
-
         },
 
         async getStaffMembersAndSortAlphabetically(){
 
             let request = await axios.get(route('staffMembers.index'));
-
             this.listOfStaffMembers = request.data;
-
             this.sortArrayAlphabetically(this.listOfStaffMembers);
-
                 this.listOfStaffMembers.forEach(staffMember => {
-
                     staffMember.name = this.capitalize(staffMember.name)
-
                 })
-
-            console.log(this.listOfStaffMembers);
 
         },
 
@@ -543,19 +486,11 @@ export default {
         includeTeachersCodeOnArrayAndCapitalize (){
 
             this.teachers.forEach(teacher => {
-
                 teacher.code = teacher.email.substring(0,teacher.email.indexOf("@"));
-
                 teacher.unitName = this.currentUnitTitle
-
                 teacher.name= this.capitalize(teacher.name);
-
                 teacher.position = this.capitalize(teacher.teacher_profile.position);
-
-
             })
-
-
         },
 
         async getAllTeachersAndSortAlphabetically () {
@@ -564,84 +499,59 @@ export default {
             for the user to select on the v-autocomplete*/
 
             let url = route('teachers.getSuitableList')
-
             let request = await axios.get(url);
-
             let data = request.data;
-
             data.forEach(teacher => {
-
                 this.listOfTeachers.push({
                     name: this.capitalize(teacher.user.name),
                     id: teacher.user.id
                 })
-
             })
-
-            console.log(this.listOfTeachers);
-
         },
 
 
         async getAllUnitsAndSortAlphabetically (){
 
             let request = await axios.get(route('api.units.index'));
-
             this.listOfUnits = request.data;
-
             this.sortArrayAlphabetically(this.listOfUnits);
-
             this.listOfUnits.forEach(unit => {
-
                  this.units.push({
                     title: this.capitalize(unit.name),
                     value: unit.identifier
                 })
             })
-
-
         },
 
         capitalize($field){
-
            return $field.toLowerCase().split(' ').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-
         },
 
 
         setDialogToTransferTeacher(item){
-
             this.transferTeacherDialog = true
             this.selectedTeacher = item
             console.log(this.selectedTeacher);
             this.selectedTeacherName = this.selectedTeacher.name;
-
-
         },
 
 
         async setDialogToAddUnitAdmin(){
 
             this.unitAdminDialog = true
-
             await this.getStaffMembersAndSortAlphabetically();
 
         },
 
         async setDialogToAddUnitBoss(){
-
             await this.getStaffMembersAndSortAlphabetically();
-
             this.unitBossDialog = true
-
         },
 
 
         sortArrayAlphabetically(array){
-
             return array.sort( (p1, p2) =>
                 (p1.name > p2.name) ? 1 : (p1.name > p2.name) ? -1 : 0);
-
         },
 
 
@@ -691,9 +601,7 @@ export default {
             }
 
             catch (e){
-
                 showSnackbar(this.snackbar, e.response.data.message, 'red', 5000);
-
             }
 
         },
@@ -718,43 +626,11 @@ export default {
             }
 
             catch (e){
-
                 showSnackbar(this.snackbar, e.response.data.message, 'red', 5000);
-
             }
 
         },
 
-
-/*
-
-        retrieveUnitAdmin: async function ($unitIdentifier){
-
-          let url = route('units.unitAdmin.index')
-
-            try{
-
-               let data = {unitId: $unitIdentifier}
-
-               let request = await axios.post(url, data)
-
-               let unitAdminName =  request.data[0].name;
-               let unitAdminId =  request.data[0].user_id;
-
-               this.unitAdmin = {name: unitAdminName, id: unitAdminId}
-
-               console.log(this.unitAdmin);
-
-            }
-
-
-            catch (e){
-
-
-
-            }
-        },
-*/
         cancelUnitBossDialog(){
             this.unitBossDialog = false;
 
@@ -828,8 +704,6 @@ export default {
                 /*await this.sureDeleteUnitBoss(data.unitIdentifier, data.userId);*/
 
             }
-
-
         },
 
         sureDeleteUnitBoss: async function(){

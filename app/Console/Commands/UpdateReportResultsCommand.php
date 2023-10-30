@@ -69,6 +69,9 @@ class UpdateReportResultsCommand extends Command
 
                 foreach ($uniqueGroupsId as $uniqueGroupId) {
 
+                    dd($uniqueGroupId);
+
+
                     $final_first_competence_average = 0;
                     $final_second_competence_average = 0;
                     $final_third_competence_average = 0;
@@ -124,7 +127,6 @@ class UpdateReportResultsCommand extends Command
                     $final_fourth_competence_average = number_format($final_fourth_competence_average, 1);
                     $final_fifth_competence_average = number_format($final_fifth_competence_average, 1);
                     $final_sixth_competence_average = number_format($final_sixth_competence_average, 1);
-
 
                     DB::table('group_results')->updateOrInsert(['teacher_id' => $uniqueTeacher, 'group_id' => $uniqueGroupId,
                         'assessment_period_id' => $activeAssessmentPeriodId],

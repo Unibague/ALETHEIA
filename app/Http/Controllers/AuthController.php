@@ -78,17 +78,12 @@ class AuthController extends Controller
         try {
 
             $googleUser = Socialite::driver('google')->user();
-
             $email = $googleUser->email;
-
             $indexOfAtSymbol = stripos($email, "@", 0);
-
             $unibagueString = strrpos($email, "unibague", $indexOfAtSymbol);
-
             if($unibagueString == false){
                 return redirect()->route('login');
             }
-
         } catch (\Exception $e) {
             return redirect()->route('login');
         }
