@@ -82,6 +82,7 @@ class TeacherProfile extends Model
         $errorMessage = '';
 
         foreach ($finalTeachers as $teacher) {
+
             $user = User::firstOrCreate(['email' => $teacher['email']], ['name' => $teacher['name'],
                 'password' => Hash::make($teacher['identification_number'] . $teacher['email'])]);
 

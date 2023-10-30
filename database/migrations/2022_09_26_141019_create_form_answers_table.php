@@ -29,6 +29,7 @@ class CreateFormAnswersTable extends Migration
             $table->double('fourth_competence_average')->nullable();
             $table->double('fifth_competence_average')->nullable();
             $table->double('sixth_competence_average')->nullable();
+            $table->foreignId('assessment_period_id')->nullable()->constrained();
             $table->timestamps();
         });
     }

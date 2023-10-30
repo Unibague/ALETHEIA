@@ -125,7 +125,6 @@ class UpdateReportResultsCommand extends Command
                     $final_fifth_competence_average = number_format($final_fifth_competence_average, 1);
                     $final_sixth_competence_average = number_format($final_sixth_competence_average, 1);
 
-
                     DB::table('group_results')->updateOrInsert(['teacher_id' => $uniqueTeacher, 'group_id' => $uniqueGroupId,
                         'assessment_period_id' => $activeAssessmentPeriodId],
                         ['hour_type' => $hourTypeFromGroup, 'service_area_code' => $serviceAreaCodeFromGroup, 'first_final_competence_average' => $final_first_competence_average,

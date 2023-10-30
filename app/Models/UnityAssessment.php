@@ -295,11 +295,10 @@ return $this->belongsToMany(Group::class,'group_user',
 
     public static function getUnitAssignments($unitTeachersId){
 
-        $finalTeachers = DB::table('unity_assessments')
-            ->whereIn('unity_assessments.evaluated_id', $unitTeachersId)
-            ->join('users','users.id','unity_assessments.evaluator_id')->get();
-
-        return $finalTeachers;
+        $activeAssessmentPeriod = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        return DB::table('unity_assessments as ua')
+            ->whereIn('ua.evaluated_id', $unitTeachersId)->where('ua.assessment_period_id', '=', $activeAssessmentPeriod)
+            ->join('users','users.id','=', 'ua.evaluator_id')->get();
 
     }
 

@@ -28,19 +28,12 @@ class UnityAssessmentController extends Controller
     public function getUnitAssignments(Request $request): JsonResponse
     {
         $teachers = $request->all();
-
         $unitTeachersId = [];
-
         foreach ($teachers as $teacher)
         {
-
             $unitTeachersId [] = $teacher['id'];
-
         }
-
         return response()->json(UnityAssessment::getUnitAssignments($unitTeachersId));
-
-
     }
 
 

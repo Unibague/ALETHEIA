@@ -259,19 +259,13 @@ export default {
     computed:{
 
       filteredUnits(){
-
           return this.units.filter(unit => {
-
               return unit.teachers_from_unit.length>0 || unit.is_custom == 1;
-
           })
-
       }
-
     },
 
     async created() {
-
         await this.getAllUnits();
         this.capitalize();
         this.isLoading = false;
@@ -377,15 +371,10 @@ export default {
 
 
         getAllUnits: async function () {
-
             let request = await axios.get(route('api.units.index'));
-
             this.units = request.data
-
             await this.capitalize();
-
             console.log(this.units)
-
         },
 
 

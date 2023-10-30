@@ -35,7 +35,6 @@ class UpdateFormRequest extends FormRequest
             'unit_role' => [Rule::in([null, 'jefe', 'par', 'autoevaluación'])],
             'teaching_ladder' => [Rule::in([null, 'ninguno', 'auxiliar', 'asistente', 'asociado', 'titular'])],
             'service_areas' => 'Array|min:1',
-
         ];
     }
 }

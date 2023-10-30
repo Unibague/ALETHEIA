@@ -49,16 +49,12 @@ class GroupController extends Controller
                 'periods' => $namesSeparatedByCommas,
             ], true);
 
-
             foreach ($groups as $key => $group) {
-
                 if ($groups[$key]['teacher_email'] == "") {
-
                     $groups[$key]['teacher_email'] = null;
-
                 }
-
             }
+
 
             Group::createOrUpdateFromArray($groups, explode(',', $namesSeparatedByCommas));
         } catch (\JsonException $e) {

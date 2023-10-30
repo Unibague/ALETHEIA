@@ -15,7 +15,6 @@
                     >
                         Sincronizar docentes
                     </v-btn>
-
                 </div>
 
             </div>
@@ -23,9 +22,7 @@
             <div class="d-flex flex-column align-center mt-12" v-if="">
 
                 <h3 v-if="isSync">
-
                     Por favor espera, estamos realizando la sincronización de los docentes...
-
                 </h3>
 
             </div>

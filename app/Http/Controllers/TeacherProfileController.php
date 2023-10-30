@@ -30,7 +30,7 @@ class TeacherProfileController extends Controller
      *
      * @return JsonResponse
      */
-    public function index(): JsonResponse
+    public function index(): knvJsonResponse
     {
         $actualAssessmentPeriod = AssessmentPeriod::getActiveAssessmentPeriod();
         return response()->json(TeacherProfile::where('assessment_period_id', '=', $actualAssessmentPeriod->id)
@@ -75,7 +75,6 @@ class TeacherProfileController extends Controller
             $teachers = AtlanteProvider::get('teachers', [
                 'periods' => $academicPeriodsSeparatedByComas,
             ], true);
-
 
             $finalTeachers = [];
             foreach ($teachers as $teacher){

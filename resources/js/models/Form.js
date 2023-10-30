@@ -40,10 +40,7 @@ export default class Form {
             {name: 'Todos', value: null},
             {name: 'jefe', value: 'jefe'},
             {name: 'par', value: 'par'},
-            {
-                name: 'autoevaluación',
-                value: 'autoevaluación'
-            }
+            {name: 'autoevaluación', value: 'autoevaluación'}
         ];
     }
 

@@ -96,10 +96,7 @@ class ResponseIdealController extends Controller
     public function indexUnitResponseIdeals($unitId){
 
         $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
-
-
         $unit = Unit::where('identifier','=', $unitId)->where('assessment_period_id', '=', $activeAssessmentPeriodId)->first();
-
         return Inertia::render('ResponseIdeals/IndexUnit', ['unit' => $unit]);
 
     }
@@ -108,30 +105,20 @@ class ResponseIdealController extends Controller
     public function editUnitTeachingLadderResponseIdeals($unitId, $teachingLadder){
 
         $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
-
-
         $unit = Unit::where('identifier','=', $unitId)->where('assessment_period_id', '=', $activeAssessmentPeriodId)->first();
-
         return Inertia::render('ResponseIdeals/IndexUnit', ['unit' => $unit]);
 
     }
 
-
-
     public function getUnitTeachingLadderResponseIdeals($unitId, $teachingLadder){
 
         $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
-
         $responseIdeals = DB::table('response_ideals')->select(['response'])->where('assessment_period_id', '=', $activeAssessmentPeriodId)
             ->where('teaching_ladder', '=', $teachingLadder)->where('unit_identifier', '=', $unitId)->first()->response;
-
         return response()->json(json_decode($responseIdeals));
-
     }
 
-
     public function delete(Request $request): JsonResponse{
-
         try {
 
             $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
@@ -139,20 +126,17 @@ class ResponseIdealController extends Controller
             $unitIdentifier = $request->input('unit');
 
             DB::table('response_ideals')->where('unit_identifier' , '=',  $unitIdentifier)
-                ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->where('teaching_ladder', '=', $teachingLadder)->delete();
+                ->where('assessment_period_id', '=', $activeAssessmentPeriodId)
+                ->where('teaching_ladder', '=', $teachingLadder)->delete();
 
         } catch (JsonException $e) {
 
             return response()->json(['message' => 'Ha ocurrido un error guardando la información']);
         }
-
         return response()->json(['message' => 'Ideales de respuesta borrados exitosamente']);
-
     }
 
-
     public function upsertData(Request $request): JsonResponse{
-
         try {
 
             $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
@@ -161,31 +145,20 @@ class ResponseIdealController extends Controller
             $competences = json_encode($request->input('competences'));
             $confirmation = $request->input('confirmation');
 
-
-/*            dd($teachingLadder, $unitIdentifier, $confirmation);*/
-
             if ($confirmation){
-
                 DB::table('response_ideals')->updateOrInsert
                 (['unit_identifier' => $unitIdentifier,'assessment_period_id'  =>   $activeAssessmentPeriodId, 'teaching_ladder' => $teachingLadder],
                     ['response' => $competences,
                         'created_at' => Carbon::now()->toDateTimeString(),
                         'updated_at' => Carbon::now()->toDateTimeString()]);
-
-
                 return response()->json(['message' => 'Ideales de respuesta guardados exitosamente']);
-
             }
-
-/*            dd($teachingLadder, $unitIdentifier, $competences);*/
 
             $existingTeachingLadder =  DB::table('response_ideals')->where('unit_identifier' , '=',  $unitIdentifier)
                 ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->where('teaching_ladder', '=', $teachingLadder)->first();
 
             if($existingTeachingLadder){
-
                 return response()->json(['message' => 'Ya existe un ideal de respuesta asociado a este escalafón en esta unidad, ¿deseas sobreescribirlo?:'] , 500);
-
             }
 
             DB::table('response_ideals')->updateOrInsert
@@ -197,32 +170,23 @@ class ResponseIdealController extends Controller
 
 
         } catch (JsonException $e) {
-
             return response()->json(['message' => 'Ha ocurrido un error guardando la información']);
         }
-
         return response()->json(['message' => 'Ideales de respuesta guardados exitosamente']);
-
     }
-
 
     public function getAllCompetences(): JsonResponse
     {
-
         return ResponseIdeal::getAllResponseIdeals();
     }
-
 
     public function getTeacherResponseIdeals(Request $request): JsonResponse
     {
         $teachingLadder = $request->input('teachingLadder');
         $unitIdentifier = $request->input('unitIdentifier');
         $assessmentPeriodId = $request->input('assessmentPeriodId');
-
         return ResponseIdeal::getTeacherResponseIdeals($teachingLadder, $unitIdentifier, $assessmentPeriodId);
-
     }
-
 
     public function getUnitResponseIdeals($unitId): JsonResponse
     {
