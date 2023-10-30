@@ -69,9 +69,6 @@ class UpdateReportResultsCommand extends Command
 
                 foreach ($uniqueGroupsId as $uniqueGroupId) {
 
-                    dd($uniqueGroupId);
-
-
                     $final_first_competence_average = 0;
                     $final_second_competence_average = 0;
                     $final_third_competence_average = 0;
