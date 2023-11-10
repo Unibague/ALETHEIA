@@ -98,7 +98,9 @@ export default {
         Snackbar,
     },
 
-    props: ['unitId'],
+    props: {
+        unit: Object
+    },
 
     data: () => {
         return {
@@ -140,7 +142,7 @@ export default {
     async created() {
 
         //Tomamos toda la info de los props y la colocamos en la variable currentUnit
-        this.currentUnit= this.unitId[0];
+        this.currentUnit= this.unit;
         this.unitIdentifier = this.currentUnit.identifier
         this.currentUnitTitle  = this.capitalize(this.currentUnit.name);
 

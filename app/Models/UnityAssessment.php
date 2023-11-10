@@ -289,7 +289,6 @@ class UnityAssessment extends Model
     }
 
 
-
     public static function getUnitAssignments($unitTeachersId){
 
         $activeAssessmentPeriod = AssessmentPeriod::getActiveAssessmentPeriod()->id;
@@ -297,6 +296,48 @@ class UnityAssessment extends Model
             ->whereIn('ua.evaluated_id', $unitTeachersId)->where('ua.assessment_period_id', '=', $activeAssessmentPeriod)
             ->join('users','users.id','=', 'ua.evaluator_id')->get();
 
+    }
+
+    public static function getUnitAssessments(string $unitIdentifier){
+
+        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        $dataFromTeachers = [];
+
+        $teachersFromUnit = DB::table('unity_assessments as ua')->select(['ua.evaluated_id as id', 'tp.id as teacher_profile_id', 'u.name as name'])
+            ->where('ua.assessment_period_id', '=', $activeAssessmentPeriodId)
+            ->join('v2_teacher_profiles as tp','ua.evaluated_id', '=', 'tp.user_id')
+            ->join('users as u', 'u.id', '=', 'ua.evaluated_id')
+            ->where('tp.assessment_period_id', '=', $activeAssessmentPeriodId)
+            ->where('ua.unit_identifier', '=', $unitIdentifier)->distinct()->get();
+
+        foreach ($teachersFromUnit as $teacherFromUnit){
+
+            $teacherAssessments = (object) ['id' => $teacherFromUnit->id, 'functionary_profile_id' => $teacherFromUnit->teacher_profile_id,
+                'name' => $teacherFromUnit->name];
+
+            $assessmentsFromTeacher = DB::table('unity_assessments as ua')->select(['u.name as name', 'ua.role as role', 'ua.pending'])
+                ->where('ua.evaluated_id', '=', $teacherFromUnit->id)
+                ->where('ua.assessment_period_id', '=', $activeAssessmentPeriodId)
+                ->join('users as u','ua.evaluator_id', '=', 'u.id')->get();
+
+            foreach($assessmentsFromTeacher as $assessmentFromTeacher){
+                if($assessmentFromTeacher->role === "jefe"){
+                    $teacherAssessments->boss = $assessmentFromTeacher->name;
+                    $teacherAssessments->bossPending = $assessmentFromTeacher->pending;
+                }
+                if($assessmentFromTeacher->role === "par"){
+                    $teacherAssessments->peer = $assessmentFromTeacher->name;
+                    $teacherAssessments->peerPending = $assessmentFromTeacher->pending;
+                }
+
+                if($assessmentFromTeacher->role === "autoevaluación"){
+                    $teacherAssessments->autoPending = $assessmentFromTeacher->pending;
+                }
+            }
+            $dataFromTeachers [] = $teacherAssessments;
+        }
+
+        return $dataFromTeachers;
     }
 
 

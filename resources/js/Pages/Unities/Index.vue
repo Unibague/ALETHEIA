@@ -5,7 +5,7 @@
 
         <v-container>
             <div class="d-flex flex-column align-end mb-7">
-                <h2 class="align-self-start">Gestionar unidades</h2>
+                <h2 class="align-self-start mb-3">Gestionar unidades</h2>
                 <div>
                     <v-btn
                         @click="syncUnits"
@@ -28,8 +28,6 @@
                     >
                         Crear nueva unidad
                     </v-btn>
-
-
                 </div>
             </div>
 
@@ -75,7 +73,6 @@
                                v-if="item.is_custom"
                     >
                         <template v-slot:activator="{on,attrs}">
-
                                 <v-icon
                                     v-bind="attrs"
                                     v-on="on"
@@ -88,7 +85,6 @@
                         </template>
                         <span>Editar nombre de unidad personalizada</span>
                     </v-tooltip>
-
 
                     <v-tooltip top
                                v-if="item.is_custom"
@@ -110,9 +106,7 @@
 
                     <v-tooltip top>
                         <template v-slot:activator="{on,attrs}">
-
                             <InertiaLink :href="route('units.manageUnit', {unit:item.identifier})">
-
                                 <v-icon
                                     v-bind="attrs"
                                     v-on="on"
@@ -120,9 +114,7 @@
                                 >
                                     mdi-account-group
                                 </v-icon>
-
                             </InertiaLink>
-
                         </template>
                         <span>Gestionar Unidad</span>
                     </v-tooltip>
@@ -162,7 +154,6 @@
                     </v-card-text>
                     <v-card-actions>
                         <v-spacer></v-spacer>
-
                         <v-btn
                             color="primario"
                             text
@@ -177,7 +168,6 @@
                         >
                             Guardar cambios
                         </v-btn>
-
                     </v-card-actions>
                 </v-card>
             </v-dialog>
@@ -208,8 +198,6 @@ import {prepareErrorText, showSnackbar} from "@/HelperFunctions"
 import ConfirmDialog from "@/Components/ConfirmDialog";
 import Unit from "@/models/Unit";
 import Snackbar from "@/Components/Snackbar";
-
-
 export default {
     components: {
         ConfirmDialog,
@@ -221,8 +209,6 @@ export default {
     data: () => {
         return {
             //Table info
-
-            suitableTeachers: [],
             teachers: [],
             search:'',
             headers: [
@@ -257,7 +243,6 @@ export default {
     },
 
     computed:{
-
       filteredUnits(){
           return this.units.filter(unit => {
               return unit.teachers_from_unit.length>0 || unit.is_custom == 1;
@@ -274,11 +259,9 @@ export default {
     methods: {
 
         capitalize(){
-
             this.units.forEach((unit) => {
                 unit.name = unit.name.toLowerCase().split(' ').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
             })
-
         },
 
         syncUnits: async function () {
@@ -294,7 +277,6 @@ export default {
         },
 
         syncStaffMembers: async function () {
-
             try {
                 let request = await axios.post(route('api.staffMembers.sync'));
                 /*console.log(request);*/
@@ -303,8 +285,6 @@ export default {
             } catch (e) {
                 showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
             }
-
-
         },
 
         confirmDeleteUnit: function (unit) {
@@ -314,7 +294,6 @@ export default {
         },
         deleteUnit: async function (unitId) {
             try {
-
                 console.log(unitId);
                 let request = await axios.delete(route('api.units.destroy', {unit: unitId}));
                 this.deleteUnitDialog = false;
@@ -357,7 +336,6 @@ export default {
             console.log(data);
 
             try {
-
                 let request = await axios.post(route('api.units.store'), data);
                 this.createOrEditDialog.dialogStatus = false;
                 showSnackbar(this.snackbar, request.data.message, 'success', 2000);
@@ -393,7 +371,6 @@ export default {
             }
         },
     },
-
 
 }
 </script>
