@@ -6,16 +6,14 @@
         <v-container>
             <div class="d-flex flex-column align-end mb-8">
                 <h2 class="align-self-start" > {{this.currentUnitTitle}} </h2>
-
                 <div>
-
-                    <InertiaLink :href="route('units.assessment.status',{unitId:this.currentUnit.identifier}) ">
+                    <InertiaLink :href="route('units.assessment.status',{unit:this.unit.identifier}) ">
                         <v-btn>
                             Estado de la evaluación
                         </v-btn>
                     </InertiaLink>
 
-                    <InertiaLink :href="route('units.roles.manage',{unitId:this.currentUnit.identifier}) ">
+                    <InertiaLink :href="route('units.roles.manage',{unit:this.unit.identifier}) ">
                         <v-btn class="ml-4">
                            Gestionar Evaluadores
                         </v-btn>
@@ -135,11 +133,8 @@
                 </v-data-table>
             </v-card>
 
-
             <!--Seccion de dialogos-->
-
                 <!--Transferir docente entre unidades-->
-
             <v-dialog
                 v-model="transferTeacherDialog"
                 persistent
@@ -355,8 +350,9 @@ export default {
         Snackbar,
     },
 
-
-    props: ['unit'],
+    props: {
+        unit: Object
+    },
 
     data: () => {
         return {
@@ -401,7 +397,6 @@ export default {
                 {text: 'Transferir Docente', value: 'actions', width: '10%', sortable: false},
             ],
 
-
             //Snackbars
             snackbar: {
                 text: "",
@@ -409,51 +404,27 @@ export default {
                 status: false,
                 timeout: 2000,
             },
-
-
             isLoading: true,
-
         }
     },
 
-
     async created() {
-
-
-        //Tomamos toda la info de los props y la colocamos en la variable currentUnit
-        this.currentUnit= this.unit[0];
-/*
-        console.log(this.currentUnit);*/
-
-       /* await this.getAllRoles();*/
-        /*console.log(this.currentUnit);*/
-
+        this.currentUnit= this.unit;
         this.currentUnitTitle  = this.capitalize(this.currentUnit.name);
-
-
-
-
     },
 
     async mounted(){
-
         await this.getAdminsAndBosses();
         await this.getTeachersFromCurrentUnit();
-
     },
 
 
     methods:{
-
-
         async getTeachersFromCurrentUnit () {
-
             let url = route('unit.teachers', {unitId:this.currentUnit.identifier})
             let request = await axios.get(url);
             this.teachers = request.data.teachers_from_unit;
-
         /*    console.log(this.teachers);*/
-
             this.includeTeachersCodeOnArrayAndCapitalize();
             await this.getAllUnitsAndSortAlphabetically();
 
@@ -633,14 +604,11 @@ export default {
 
         cancelUnitBossDialog(){
             this.unitBossDialog = false;
-
         },
 
         cancelUnitAdminDialog(){
-
             this.unitAdmin= {name: '', id:''};
             this.unitAdminDialog = false;
-
         },
 
         confirmDeleteUnitAdmin: function (userId) {
@@ -653,7 +621,6 @@ export default {
             this.deletedUnitBossId = userId;
             console.log(this.deletedUnitAdminId);
             this.deleteUnitBossDialog = true;
-
         },
 
 
@@ -685,15 +652,10 @@ export default {
             }
 
             try{
-
                 let url = route('unit.deleteUnitBoss');
-
                 let request = await axios.post(url, data);
-
                 this.deleteUnitBossDialog = false;
-
                 await this.getAdminsAndBosses();
-
                 showSnackbar(this.snackbar, request.data.message, 'success');
             }
 
@@ -714,28 +676,17 @@ export default {
             }
 
             try{
-
                 let url = route('unit.confirmDeleteUnitBoss');
-
                 let request = await axios.post(url, data);
-
                 this.sureDeleteUnitBossDialog = false;
-
                 await this.getAdminsAndBosses();
-
                 showSnackbar(this.snackbar, request.data.message, 'success');
             }
 
             catch(e){
-
                 showSnackbar(this.snackbar, e.response.data.message, 'red', 5000);
-
             }
-
-
         }
-
-
 },
 
 

@@ -356,23 +356,20 @@ class UnitController extends Controller
         return response()->json(['message' => 'Unidad actualizada correctamente']);
     }
 
-    public function edit($unit)
+    public function edit(Unit $unit)
     {
-        $unit = Unit::where('identifier', '=', $unit)->get();
         return Inertia::render('Unities/ManageUnity', ['unit' => $unit]);
     }
 
-    public function manageRoles($unitId)
+    public function manageRoles(Unit $unit)
     {
-        $unitId = Unit::where('identifier', '=', $unitId)->get();
-        return Inertia::render('Unities/AssignUnitRoles', ['unitId' => $unitId]);
+        return Inertia::render('Unities/AssignUnitRoles', ['unit' => $unit]);
     }
 
 
-    public function assessmentStatus($unitId)
+    public function assessmentStatus(Unit $unit)
     {
-        $unitId = Unit::where('identifier', '=', $unitId)->get();
-        return Inertia::render('Unities/UnitAssessmentStatus', ['unitId' => $unitId]);
+        return Inertia::render('Unities/UnitAssessmentStatus', ['unit' => $unit]);
     }
 
 
