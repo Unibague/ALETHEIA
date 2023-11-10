@@ -19,6 +19,23 @@ use Inertia\Inertia;
 |--------------------------------------------------------------------------
 */
 
+/* >>>>>>>>>>>>>>>>>>>>>>>>>>>> Auth routes <<<<<<<<<<<<<<<<<<<<<<<< */
+Route::get('/', [\App\Http\Controllers\AuthController::class, 'handleRoleRedirect'])->middleware(['auth'])->name('redirect');
+Route::get('/login', [\App\Http\Controllers\AuthController::class, 'redirectGoogleLogin'])->name('login');
+Route::post('/logout', [\App\Http\Controllers\AuthController::class, 'logout'])->name('logout');
+Route::get('/google/callback', [\App\Http\Controllers\AuthController::class, 'handleGoogleCallback']);
+Route::get('/pickRole', [\App\Http\Controllers\AuthController::class, 'pickRole'])->name('pickRole');
+
+
+/* >>>>>>>>>>>>>>>>>>>>>>>>>>Academic Periods routes <<<<<<<<<<<<<<<<<<<< */
+Route::inertia('/academicPeriods', 'AcademicPeriods/Index')->middleware(['auth', 'isAdmin'])->name('academicPeriods.index.view');
+Route::resource('api/academicPeriods', \App\Http\Controllers\AcademicPeriodController::class, [
+    'as' => 'api'
+])->middleware('auth');
+//Sync periods from SIGA
+Route::post('/api/academicPeriods/sync', [\App\Http\Controllers\AcademicPeriodController::class, 'sync'])->middleware(['auth'])->name('api.academicPeriods.sync');
+
+
 /* >>>>>>>>>>>>>>>>>>>>>>>  Assessment Periods routes >>>>>>>><<<<<< */
 Route::inertia('/assessmentPeriods', 'AssessmentPeriods/Index')->middleware(['auth', 'isAdmin'])->name('assessmentPeriods.index.view');
 Route::resource('api/assessmentPeriods', \App\Http\Controllers\AssessmentPeriodController::class, [
@@ -59,79 +76,6 @@ Route::get('formAnswers/teachers/finalGrades', [\App\Http\Controllers\FormAnswer
 Route::post('formAnswers/teachers/openAnswersStudents', [\App\Http\Controllers\FormAnswersController::class, 'getOpenAnswersStudents'])->name('formAnswers.teachers.openAnswersStudents')->middleware(['auth']);
 Route::post('formAnswers/teachers/openAnswersStudentsGroup', [\App\Http\Controllers\FormAnswersController::class, 'getOpenAnswersStudentsFromGroup'])->name('formAnswers.teachers.openAnswersStudentsFromGroup')->middleware(['auth']);
 Route::post('formAnswers/teachers/openAnswersColleagues', [\App\Http\Controllers\FormAnswersController::class, 'getOpenAnswersColleagues'])->name('formAnswers.teachers.openAnswersColleagues')->middleware(['auth']);
-
-
-
-/* >>>>>>>>>>>>>>>>>>>>>>>>>>Academic Periods routes <<<<<<<<<<<<<<<<<<<< */
-Route::inertia('/academicPeriods', 'AcademicPeriods/Index')->middleware(['auth', 'isAdmin'])->name('academicPeriods.index.view');
-Route::resource('api/academicPeriods', \App\Http\Controllers\AcademicPeriodController::class, [
-    'as' => 'api'
-])->middleware('auth');
-//Sync periods from SIGA
-Route::post('/api/academicPeriods/sync', [\App\Http\Controllers\AcademicPeriodController::class, 'sync'])->middleware(['auth'])->name('api.academicPeriods.sync');
-
-
-/* >>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Units routes <<<<<<<<<<<<<<<<<<<<<<<<<<< */
-Route::inertia('/units', 'Unities/Index')->middleware(['auth', 'isAdminOrUnitAdmin'])->name('unities.index.view');
-Route::resource('api/units', \App\Http\Controllers\UnitController::class, [
-    'as' => 'api'])->middleware('auth');
-
-Route::post('/api/units/sync', [\App\Http\Controllers\UnitController::class, 'sync'])->middleware(['auth'])->name('api.units.sync');
-Route::post('/api/units/assign', [\App\Http\Controllers\UnitController::class, 'assign'])->middleware(['auth'])->name('api.units.assign');
-Route::post('/api/units/transfer', [\App\Http\Controllers\UnitController::class, 'transferTeacherToUnit'])->middleware(['auth'])->name('api.units.transfer');
-
-//Sync staffMembers
-Route::post('api/staffMembers/sync', [\App\Http\Controllers\UnitController::class, 'syncStaffMembers'])->middleware(['auth'])->name('api.staffMembers.sync');
-Route::get('staffMembers/index', [\App\Http\Controllers\UnitController::class, 'getStaffMembersFromDB'])->middleware(['auth'])->name('staffMembers.index');
-
-//assignUnitAdmi
-Route::post('/api/units/assignUnitAdmin', [\App\Http\Controllers\UnitController::class, 'assignUnitAdmin'])->middleware(['auth'])->name('api.units.assignUnitAdmin');
-
-Route::post('/api/units/assignUnitBoss', [\App\Http\Controllers\UnitController::class, 'assignUnitBoss'])->middleware(['auth'])->name('api.units.assignUnitBoss');
-
-//getUnitAdmin
-Route::post('/units/unitAdmin', [\App\Http\Controllers\UnitController::class, 'getUnitAdmin'])->middleware(['auth'])->name('units.unitAdmin.index');
-
-
-Route::post('unit/deleteUnitAdmin', [\App\Http\Controllers\UnitController::class, 'deleteUnitAdmin'])
-    ->middleware(['auth', 'isAdminOrUnitAdmin'])->name('unit.deleteUnitAdmin');
-
-Route::post('unit/deleteUnitBoss', [\App\Http\Controllers\UnitController::class, 'deleteUnitBoss'])->middleware(['auth', 'isAdminOrUnitAdmin'])->name('unit.deleteUnitBoss');
-
-Route::post('unit/confirmDeleteUnitBoss', [\App\Http\Controllers\UnitController::class, 'confirmDeleteUnitBoss'])->middleware(['auth', 'isAdminOrUnitAdmin'])->name('unit.confirmDeleteUnitBoss');
-
-Route::get('/units/{unit}', [\App\Http\Controllers\UnitController::class, 'edit'])->middleware(['auth', 'isAdminOrUnitAdmin'])->name('units.manageUnit');
-
-Route::get('unit/{unitId}/users', [\App\Http\Controllers\UnitController::class, 'show'])->name('unit.users')->middleware(['auth']);
-
-Route::get('unit/{unitId}/teachers', [\App\Http\Controllers\UnitController::class, 'getUnitTeachers'])->name('unit.teachers')->middleware(['auth']);
-
-Route::get('unit/{unitId}/adminsAndBosses', [\App\Http\Controllers\UnitController::class, 'getUnitAdminsAndBosses'])->name('unit.adminsAndBosses')->middleware(['auth']);
-
-Route::get('unit/{unitId}/bosses', [\App\Http\Controllers\UnitController::class, 'getUnitBosses'])->name('unit.bosses')->middleware(['auth']);
-
-Route::get('unit/{unitId}/unitAdmins', [\App\Http\Controllers\UnitController::class, 'getUnitAdmins'])->name('unit.unitAdmins')->middleware(['auth']);
-Route::get('/units/{unitId}/manage', [\App\Http\Controllers\UnitController::class, 'manageRoles'])->middleware(['auth', 'isAdminOrUnitAdmin'])->name('units.roles.manage');
-Route::get('/units/{unitId}/assessmentStatus', [\App\Http\Controllers\UnitController::class, 'assessmentStatus'])->middleware(['auth', 'isAdminOrUnitAdmin'])->name('units.assessment.status');
-Route::get('/api/suitableTeachers', [\App\Http\Controllers\UnitController::class, 'getSuitableTeachers'])->middleware(['auth'])->name('api.suitableTeachers');
-Route::get('units/teachers/assigned', [\App\Http\Controllers\UnitController::class, 'getAssignedTeachers'])->middleware(['auth', 'isAdminOrUnitAdmin'])->name('units.teachers.assigned');
-Route::get('unit/faculties', [\App\Http\Controllers\UnitController::class, 'getAllFaculties'])->middleware(['auth', 'isAdminOrUnitAdmin'])->name('unit.getFaculties');
-
-
-/* >>>>>>>>>>>>>>>>>>>>>>>>> Unity Assessment routes <<<<<<<<<<<<<<<<<<<<<<<<< */
-Route::post('/unity/assignRoles', [\App\Http\Controllers\UnityAssessmentController::class, 'store'])->middleware(['auth'])->name('unity.roles.assignment');
-
-Route::get('api/unity/allAssignments', [\App\Http\Controllers\UnityAssessmentController::class, 'index'])->middleware(['auth'])->name('api.unity.roles.assignment');
-
-Route::post('api/unity/unitAssignments', [\App\Http\Controllers\UnityAssessmentController::class, 'getUnitAssignments'])->middleware(['auth'])->name('api.unity.roles.unitAssignments');
-
-Route::post('/unity/removeAssignment', [\App\Http\Controllers\UnityAssessmentController::class, 'removeAssignment'])->middleware(['auth'])->name('unity.roles.removeAssignment');
-
-
-Route::post('unity/autoAssessment', [\App\Http\Controllers\UnityAssessmentController::class, 'getAutoAssessment'])->middleware(['auth', 'isTeacher'])->name('api.unity.getAutoAssessment');
-Route::post('unity/peerAssessments', [\App\Http\Controllers\UnityAssessmentController::class, 'getPeerAssessments'])->middleware(['auth', 'isTeacher'])->name('api.unity.peerAssessments');
-Route::post('unity/BossAssessments', [\App\Http\Controllers\UnityAssessmentController::class, 'getBossAssessments'])->middleware(['auth', 'isTeacher'])->name('api.unity.bossAssessments');
-
 
 /* >>>>>>>>>>>>>>>>>>>>>>>>> Service Areas routes <<<<<<<<<<<<<<<<<<<<<<<<< */
 Route::inertia('/serviceAreas', 'ServiceAreas/Index')->middleware(['auth', 'isAdmin'])->name('serviceAreas.index.view');
@@ -179,57 +123,13 @@ Route::post('/api/enrolls/sync', [\App\Http\Controllers\EnrollController::class,
 Route::post('/api/enrolls/deleteThoseGroups', [\App\Http\Controllers\EnrollController::class, 'deleteThoseExistingDuplicatedGroups'])->middleware(['auth'])->name('api.enrolls.deleteThoseGroups');
 
 
-/* >>>>>>>>>>>>>>>>>>>>>>> Teacher routes <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< */
-Route::inertia('/teachers', 'Teachers/Index')->middleware(['auth', 'isAdmin'])->name('teachers.index.view');
-//Change teacher status
-Route::post('api/teachers/{teacher}/status', [\App\Http\Controllers\TeacherProfileController::class, 'changeStatus'])->middleware(['auth'])->name('api.teachers.changeStatus');
-Route::resource('api/teachers', \App\Http\Controllers\TeacherProfileController::class, [
-    'as' => 'api'
-])->middleware('auth');
-Route::post('/api/teachers/sync', [\App\Http\Controllers\TeacherProfileController::class, 'sync'])->middleware(['auth'])->name('api.teachers.sync');
-Route::get('/teachers/suitableList', [\App\Http\Controllers\TeacherProfileController::class, 'getSuitableList'])->middleware(['auth'])->name('teachers.getSuitableList');
-
-/*Route::inertia('/teachers/assessments', 'Teachers/Assessments')->middleware(['auth', 'isAdmin'])->name('teachers.assessments.view');*/
-Route::get('/teachers/assessments', [\App\Http\Controllers\TeacherProfileController::class, 'viewTeacherAssessments'])->middleware(['auth', 'isTeacher'])->name('teachers.assessments.view');
-
-Route::post('api/teachers/teachingLadder', [\App\Http\Controllers\TeacherProfileController::class, 'getTeachingLadderByUserId'])->middleware(['auth'])->name('teachers.getTeachingLadder');
 
 /* >>>>>>>>>>>>>>>>>>>>>>>>StaffMembers routes <<<<<<<<<<<<<<<<<<<<<<<<<<<< */
 
 
 
-/* >>>>>>>>>>>>>>>>>>>>>>>>>>>> Test routes  (students) <<<<<<<<<<<<<<<<<<<<<<<<<<< */
-Route::get('/tests', [\App\Http\Controllers\TestsController::class, 'indexView'])->middleware(['auth'])->name('tests.index.view');
-Route::post('/tests/{testId}', [\App\Http\Controllers\TestsController::class, 'startTest'])->middleware(['auth'])->name('tests.startTest');
-
-Route::get('/tests/{testId}/preview', [\App\Http\Controllers\TestsController::class, 'preview'])->middleware(['auth'])->name('tests.preview');
-
-//Change teacher status
-Route::resource('api/tests', \App\Http\Controllers\TestsController::class, [
-    'as' => 'api'
-])->middleware('auth');
 
 
-Route::get('/test/teacherAutoTest', [\App\Http\Controllers\TestsController::class, 'indexTeacherAutoTest'])->middleware(['auth'])->name('tests.index.teacherAutoTest');
-
-Route::get('/test/teacherPeerTests', [\App\Http\Controllers\TestsController::class, 'indexTeacherPeerTests'])->middleware(['auth'])->name('tests.index.teacherPeerTests');
-
-Route::get('/test/teacherBossTests', [\App\Http\Controllers\TestsController::class, 'indexTeacherBossTests'])->middleware(['auth'])->name('tests.index.teacherBossTests');
-
-
-/* >>>>>>>>>>>>>>>>>>>>>>>>>>>>User routes <<<<<<<<<<<<<<<<<<<<<<<< */
-//Get all users
-Route::get('/users', [\App\Http\Controllers\Users\UserController::class, 'index'])->middleware(['auth', 'isAdmin'])->name('users.index');
-//users api
-Route::resource('api/users', \App\Http\Controllers\Users\ApiUserController::class, [
-    'as' => 'api'
-])->middleware('auth');
-Route::post('/users/{userId}/impersonate', [\App\Http\Controllers\Users\UserController::class, 'impersonate'])->middleware(['auth', 'isAdmin'])->name('users.impersonate');
-
-//Update user role
-Route::patch('/api/users/{user}/roles', [\App\Http\Controllers\Users\ApiUserController::class, 'updateUserRoles'])->middleware('auth')->name('api.users.roles.update');
-Route::get('/api/users/{user}/roles', [\App\Http\Controllers\Users\ApiUserController::class, 'getUserRoles'])->middleware('auth')->name('api.users.roles.show');
-Route::post('/api/roles/select', [\App\Http\Controllers\Users\ApiUserController::class, 'selectRole'])->middleware('auth')->name('api.roles.selectRole');
 
 /* >>>>>>>>>>>>>>>>>>>>>>>>>>>> Reports routes <<<<<<<<<<<<<<<<<<<<<<<< */
 /*Route::get('/reports/showCompleteServiceAreas', [\App\Http\Controllers\ReportsController::class, 'index'])->middleware(['auth', 'isAdmin'])->name('reports.showCompleteServiceAreas');*/
@@ -248,40 +148,22 @@ Route::get('/reports/serviceArea/chart/{chartInfo}/teacher/{teacherResults}/down
 Route::post('/reports/360Assessment/downloadPdf', [\App\Http\Controllers\ReportsController::class, 'download360'])->middleware(['auth'])->name('reports.savePDFF');
 Route::post('/reports/serviceAreasAssessment/downloadPdf', [\App\Http\Controllers\ReportsController::class, 'downloadServiceAreasAssessment'])->middleware(['auth'])->name('reports.serviceAreas.savePDF');
 
-
 /* >>>>>>>>>>>>>>>>>>>>>>>>Reminders routes <<<<<<<<<<<<<<<<<<<<<<<<<<<< */
 Route::inertia('/reminders', 'Reminders/Index')->middleware(['auth', 'isAdmin'])->name('reminders.index');
 Route::get('/reminders/get', [\App\Http\Controllers\ReportsController::class, 'getReminders'])->middleware(['auth'])->name('reminders.get');
 Route::post('/reminders/update', [\App\Http\Controllers\ReportsController::class, 'updateReminder'])->middleware(['auth'])->name('reminders.update');
 
 
-
-
-
-
-
-
 /* >>>>>>>>>>>>>>>>>>>>>>>>ResponseIdeals routes <<<<<<<<<<<<<<<<<<<<<<<<<<<< */
 Route::inertia('/responseIdeals', 'ResponseIdeals/IndexAndEdit')->middleware(['auth', 'isAdmin'])->name('responseIdeals.index.view');
-
 Route::post('teacher/responseIdeals/get', [\App\Http\Controllers\ResponseIdealController::class, 'getTeacherResponseIdeals'])->middleware('auth')->name('teacher.responseIdeals.get');
-
 Route::get('{unitId}/responseIdeals/get', [\App\Http\Controllers\ResponseIdealController::class, 'getUnitResponseIdeals'])->middleware('auth')->name('unit.responseIdeals.get');
-
 Route::get('/responseIdeals/index/{unitId}',  [\App\Http\Controllers\ResponseIdealController::class, 'indexUnitResponseIdeals'])->middleware(['auth', 'isAdmin'])->name('unit.responseIdeals.index');
-
 Route::get('/responseIdeals/edit/{unitId}/{teachingLadder}',  [\App\Http\Controllers\ResponseIdealController::class, 'editUnitTeachingLadderResponseIdeals'])->middleware(['auth', 'isAdmin'])->name('unit.teachingLadder.responseIdeals.edit');
-
 Route::get('/responseIdeals/get/{unitId}/{teachingLadder}',  [\App\Http\Controllers\ResponseIdealController::class, 'getUnitTeachingLadderResponseIdeals'])->middleware(['auth', 'isAdmin'])->name('unit.teachingLadder.responseIdeals.get');
-
-
 Route::get('/responseIdeals/get', [\App\Http\Controllers\ResponseIdealController::class, 'getAllCompetences'])->middleware('auth')->name('responseIdeals.get');
-
-
 Route::post('/responseIdeals/update', [\App\Http\Controllers\ResponseIdealController::class, 'upsertData'])->middleware('auth')->name('responseIdeals.update');
 Route::post('/responseIdeals/delete', [\App\Http\Controllers\ResponseIdealController::class, 'delete'])->middleware('auth')->name('responseIdeals.delete');
-
-
 
 
 /* >>>>>>>>>>>>>>>>>>>>>>>>Roles routes <<<<<<<<<<<<<<<<<<<<<<<<<<<< */
@@ -293,12 +175,90 @@ Route::resource('api/roles', \App\Http\Controllers\Roles\ApiRoleController::clas
 ])->middleware('auth');
 
 
-/* >>>>>>>>>>>>>>>>>>>>>>>>>>>> Auth routes <<<<<<<<<<<<<<<<<<<<<<<< */
-Route::get('/', [\App\Http\Controllers\AuthController::class, 'handleRoleRedirect'])->middleware(['auth'])->name('redirect');
-Route::get('/login', [\App\Http\Controllers\AuthController::class, 'redirectGoogleLogin'])->name('login');
-Route::post('/logout', [\App\Http\Controllers\AuthController::class, 'logout'])->name('logout');
-Route::get('/google/callback', [\App\Http\Controllers\AuthController::class, 'handleGoogleCallback']);
-Route::get('/pickRole', [\App\Http\Controllers\AuthController::class, 'pickRole'])->name('pickRole');
+/* >>>>>>>>>>>>>>>>>>>>>>> Teacher routes <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< */
+Route::inertia('/teachers', 'Teachers/Index')->middleware(['auth', 'isAdmin'])->name('teachers.index.view');
+//Change teacher status
+Route::post('api/teachers/{teacher}/status', [\App\Http\Controllers\TeacherProfileController::class, 'changeStatus'])->middleware(['auth'])->name('api.teachers.changeStatus');
+Route::resource('api/teachers', \App\Http\Controllers\TeacherProfileController::class, [
+    'as' => 'api'
+])->middleware('auth');
+Route::post('/api/teachers/sync', [\App\Http\Controllers\TeacherProfileController::class, 'sync'])->middleware(['auth'])->name('api.teachers.sync');
+Route::get('/teachers/suitableList', [\App\Http\Controllers\TeacherProfileController::class, 'getSuitableList'])->middleware(['auth'])->name('teachers.getSuitableList');
+/*Route::inertia('/teachers/assessments', 'Teachers/Assessments')->middleware(['auth', 'isAdmin'])->name('teachers.assessments.view');*/
+Route::get('/teachers/assessments', [\App\Http\Controllers\TeacherProfileController::class, 'viewTeacherAssessments'])->middleware(['auth', 'isTeacher'])->name('teachers.assessments.view');
+Route::post('api/teachers/teachingLadder', [\App\Http\Controllers\TeacherProfileController::class, 'getTeachingLadderByUserId'])->middleware(['auth'])->name('teachers.getTeachingLadder');
+
+
+/* >>>>>>>>>>>>>>>>>>>>>>>>>>>> Test routes  (students) <<<<<<<<<<<<<<<<<<<<<<<<<<< */
+Route::get('/tests', [\App\Http\Controllers\TestsController::class, 'indexView'])->middleware(['auth'])->name('tests.index.view');
+Route::post('/tests/{testId}', [\App\Http\Controllers\TestsController::class, 'startTest'])->middleware(['auth'])->name('tests.startTest');
+Route::get('/tests/{testId}/preview', [\App\Http\Controllers\TestsController::class, 'preview'])->middleware(['auth'])->name('tests.preview');
+//Change teacher status
+Route::resource('api/tests', \App\Http\Controllers\TestsController::class, [
+    'as' => 'api'])->middleware('auth');
+Route::get('/test/teacherAutoTest', [\App\Http\Controllers\TestsController::class, 'indexTeacherAutoTest'])->middleware(['auth'])->name('tests.index.teacherAutoTest');
+Route::get('/test/teacherPeerTests', [\App\Http\Controllers\TestsController::class, 'indexTeacherPeerTests'])->middleware(['auth'])->name('tests.index.teacherPeerTests');
+Route::get('/test/teacherBossTests', [\App\Http\Controllers\TestsController::class, 'indexTeacherBossTests'])->middleware(['auth'])->name('tests.index.teacherBossTests');
+
+
+/* >>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Units routes <<<<<<<<<<<<<<<<<<<<<<<<<<< */
+Route::inertia('/units', 'Unities/Index')->middleware(['auth', 'isAdminOrUnitAdmin'])->name('unities.index.view');
+Route::resource('api/units', \App\Http\Controllers\UnitController::class, [
+    'as' => 'api'])->middleware('auth');
+Route::post('/api/units/sync', [\App\Http\Controllers\UnitController::class, 'sync'])->middleware(['auth'])->name('api.units.sync');
+Route::post('/api/units/assign', [\App\Http\Controllers\UnitController::class, 'assign'])->middleware(['auth'])->name('api.units.assign');
+Route::post('/api/units/transfer', [\App\Http\Controllers\UnitController::class, 'transferTeacherToUnit'])->middleware(['auth'])->name('api.units.transfer');
+//Sync staffMembers
+Route::post('api/staffMembers/sync', [\App\Http\Controllers\UnitController::class, 'syncStaffMembers'])->middleware(['auth'])->name('api.staffMembers.sync');
+Route::get('staffMembers/index', [\App\Http\Controllers\UnitController::class, 'getStaffMembersFromDB'])->middleware(['auth'])->name('staffMembers.index');
+//assignUnitAdmin
+Route::post('/api/units/assignUnitAdmin', [\App\Http\Controllers\UnitController::class, 'assignUnitAdmin'])->middleware(['auth'])->name('api.units.assignUnitAdmin');
+Route::post('/api/units/assignUnitBoss', [\App\Http\Controllers\UnitController::class, 'assignUnitBoss'])->middleware(['auth'])->name('api.units.assignUnitBoss');
+//getUnitAdmin
+Route::post('/units/unitAdmin', [\App\Http\Controllers\UnitController::class, 'getUnitAdmin'])->middleware(['auth'])->name('units.unitAdmin.index');
+Route::post('unit/deleteUnitAdmin', [\App\Http\Controllers\UnitController::class, 'deleteUnitAdmin'])
+    ->middleware(['auth', 'isAdminOrUnitAdmin'])->name('unit.deleteUnitAdmin');
+Route::post('unit/deleteUnitBoss', [\App\Http\Controllers\UnitController::class, 'deleteUnitBoss'])->middleware(['auth', 'isAdminOrUnitAdmin'])->name('unit.deleteUnitBoss');
+Route::post('unit/confirmDeleteUnitBoss', [\App\Http\Controllers\UnitController::class, 'confirmDeleteUnitBoss'])->middleware(['auth', 'isAdminOrUnitAdmin'])->name('unit.confirmDeleteUnitBoss');
+Route::get('/units/{unit}', [\App\Http\Controllers\UnitController::class, 'edit'])->middleware(['auth', 'isAdminOrUnitAdmin'])->name('units.manageUnit');
+Route::get('unit/{unitId}/users', [\App\Http\Controllers\UnitController::class, 'show'])->name('unit.users')->middleware(['auth']);
+Route::get('unit/{unitId}/teachers', [\App\Http\Controllers\UnitController::class, 'getUnitTeachers'])->name('unit.teachers')->middleware(['auth']);
+Route::get('unit/{unitId}/adminsAndBosses', [\App\Http\Controllers\UnitController::class, 'getUnitAdminsAndBosses'])->name('unit.adminsAndBosses')->middleware(['auth']);
+Route::get('unit/{unitId}/bosses', [\App\Http\Controllers\UnitController::class, 'getUnitBosses'])->name('unit.bosses')->middleware(['auth']);
+Route::get('unit/{unitId}/unitAdmins', [\App\Http\Controllers\UnitController::class, 'getUnitAdmins'])->name('unit.unitAdmins')->middleware(['auth']);
+Route::get('/units/{unitId}/manage', [\App\Http\Controllers\UnitController::class, 'manageRoles'])->middleware(['auth', 'isAdminOrUnitAdmin'])->name('units.roles.manage');
+Route::get('/units/{unitId}/assessmentStatus', [\App\Http\Controllers\UnitController::class, 'assessmentStatus'])->middleware(['auth', 'isAdminOrUnitAdmin'])->name('units.assessment.status');
+Route::get('/api/suitableTeachers', [\App\Http\Controllers\UnitController::class, 'getSuitableTeachers'])->middleware(['auth'])->name('api.suitableTeachers');
+Route::get('units/teachers/assigned', [\App\Http\Controllers\UnitController::class, 'getAssignedTeachers'])->middleware(['auth', 'isAdminOrUnitAdmin'])->name('units.teachers.assigned');
+Route::get('unit/faculties', [\App\Http\Controllers\UnitController::class, 'getAllFaculties'])->middleware(['auth', 'isAdminOrUnitAdmin'])->name('unit.getFaculties');
+
+
+/* >>>>>>>>>>>>>>>>>>>>>>>>> Unity Assessment routes <<<<<<<<<<<<<<<<<<<<<<<<< */
+Route::post('/unity/assignRoles', [\App\Http\Controllers\UnityAssessmentController::class, 'store'])->middleware(['auth'])->name('unity.roles.assignment');
+
+Route::get('api/unity/allAssignments', [\App\Http\Controllers\UnityAssessmentController::class, 'index'])->middleware(['auth'])->name('api.unity.roles.assignment');
+
+Route::post('api/unity/unitAssignments', [\App\Http\Controllers\UnityAssessmentController::class, 'getUnitAssignments'])->middleware(['auth'])->name('api.unity.roles.unitAssignments');
+
+Route::post('/unity/removeAssignment', [\App\Http\Controllers\UnityAssessmentController::class, 'removeAssignment'])->middleware(['auth'])->name('unity.roles.removeAssignment');
+Route::post('unity/autoAssessment', [\App\Http\Controllers\UnityAssessmentController::class, 'getAutoAssessment'])->middleware(['auth', 'isTeacher'])->name('api.unity.getAutoAssessment');
+Route::post('unity/peerAssessments', [\App\Http\Controllers\UnityAssessmentController::class, 'getPeerAssessments'])->middleware(['auth', 'isTeacher'])->name('api.unity.peerAssessments');
+Route::post('unity/BossAssessments', [\App\Http\Controllers\UnityAssessmentController::class, 'getBossAssessments'])->middleware(['auth', 'isTeacher'])->name('api.unity.bossAssessments');
+
+
+
+/* >>>>>>>>>>>>>>>>>>>>>>>>>>>>User routes <<<<<<<<<<<<<<<<<<<<<<<< */
+//Get all users
+Route::get('/users', [\App\Http\Controllers\Users\UserController::class, 'index'])->middleware(['auth', 'isAdmin'])->name('users.index');
+//users api
+Route::resource('api/users', \App\Http\Controllers\Users\ApiUserController::class, [
+    'as' => 'api'
+])->middleware('auth');
+Route::post('/users/{userId}/impersonate', [\App\Http\Controllers\Users\UserController::class, 'impersonate'])->middleware(['auth', 'isAdmin'])->name('users.impersonate');
+//Update user role
+Route::patch('/api/users/{user}/roles', [\App\Http\Controllers\Users\ApiUserController::class, 'updateUserRoles'])->middleware('auth')->name('api.users.roles.update');
+Route::get('/api/users/{user}/roles', [\App\Http\Controllers\Users\ApiUserController::class, 'getUserRoles'])->middleware('auth')->name('api.users.roles.show');
+Route::post('/api/roles/select', [\App\Http\Controllers\Users\ApiUserController::class, 'selectRole'])->middleware('auth')->name('api.roles.selectRole');
 
 
 Route::get('/fulfillServiceAreasResultsTable', function () {

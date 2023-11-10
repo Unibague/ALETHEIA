@@ -325,12 +325,6 @@ export default {
                         role: 10,
                         icon: 'mdi-account-cog'
                     },
-                    /* {
-                         name: 'Carga académica',
-                         href: route('enrolls.index.view'),
-                         role: 10,
-                         icon: 'mdi-account-cog'
-                     },*/
                     {
                         name: 'Notificaciones de Evaluación',
                         href: route('reminders.index'),
@@ -411,15 +405,11 @@ export default {
         },
 
         async getRoleNameByCustomId (){
-
             let url = route('role.name')
-
             let request = await axios.post(url, {
                 customRoleId : this.$page.props.user.customRoleId
             })
-
             this.currentRoleName = request.data;
-
         }
 
     },
@@ -431,11 +421,6 @@ export default {
         let splitName = name.split(' ');
         this.initials = `${splitName[0].charAt(0)}${splitName[1].charAt(0)}`;
     }
-
-
-
-
-
 }
 </script>
 <style>

@@ -223,13 +223,13 @@ class UnityAssessment extends Model
         $now = Carbon::now();
         $date = $now->toDateString();
 
-
         return self::where('unity_assessments.evaluated_id', $userId)->where('role', 'autoevaluación')
             ->where('unity_assessments.assessment_period_id', $activeAssessmentPeriodId)
             ->join('assessment_periods', 'assessment_periods.id','unity_assessments.assessment_period_id')
             ->join('v2_teacher_profiles','v2_teacher_profiles.user_id','unity_assessments.evaluated_id')
             ->join('users','users.id','v2_teacher_profiles.user_id')
             ->where('v2_teacher_profiles.status', '=', 'activo')
+            ->where('v2_teacher_profiles.assessment_period_id', '=', $activeAssessmentPeriodId)
             ->where('assessment_periods.self_start_date', '<=', $date)
             ->where('assessment_periods.self_end_date', '>=', $date)
             ->select(
@@ -245,50 +245,47 @@ class UnityAssessment extends Model
 
     }
 
-/*$now = Carbon::now();
-$date = $now->toDateString();
-return $this->belongsToMany(Group::class,'group_user',
-'user_id','group_id','id','group_id')
-->with(['teacher', 'academicPeriod'])
-->wherePivotIn('academic_period_id', AcademicPeriod::getCurrentAcademicPeriodIds())
-->join('academic_periods as ap','ap.id','=','group_user.academic_period_id')
-->where('ap.students_start_date','<=',$date)
-->where('ap.students_end_date','>=',$date)
-->withPivot('has_answer');*/
-
     public static function getPeerAssessmentsFromTeacher($userId){
 
-        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        $now = Carbon::now();
+        $date = $now->toDateString();
 
+        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
         return self::where('unity_assessments.evaluator_id', $userId)->where('role', 'par')
             ->where('unity_assessments.assessment_period_id', $activeAssessmentPeriodId)
             ->join('assessment_periods', 'assessment_periods.id','unity_assessments.assessment_period_id')
             ->join('users','users.id', 'unity_assessments.evaluated_id')
             ->join('v2_teacher_profiles','v2_teacher_profiles.user_id','users.id')
+            ->where('v2_teacher_profiles.assessment_period_id', '=', $activeAssessmentPeriodId)
             ->where('v2_teacher_profiles.status', '=', 'activo')
+            ->where('assessment_periods.colleague_start_date', '<=', $date)
+            ->where('assessment_periods.colleague_end_date', '>=', $date)
             ->select(['users.name', 'users.id','unity_assessments.unit_identifier', 'v2_teacher_profiles.teaching_ladder',
                 'unity_assessments.pending',
                 'assessment_periods.colleague_start_date',
                 'assessment_periods.colleague_end_date'])->get();
-
     }
 
 
     public static function getBossAssessmentsFromTeacher($userId){
 
-        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        $now = Carbon::now();
+        $date = $now->toDateString();
 
+        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
         return self::where('unity_assessments.evaluator_id', $userId)->where('role', 'jefe')
             ->where('unity_assessments.assessment_period_id', $activeAssessmentPeriodId)
             ->join('assessment_periods', 'assessment_periods.id','unity_assessments.assessment_period_id')
             ->join('users','users.id', 'unity_assessments.evaluated_id')
             ->join('v2_teacher_profiles','v2_teacher_profiles.user_id','users.id')
+            ->where('v2_teacher_profiles.assessment_period_id', '=', $activeAssessmentPeriodId)
             ->where('v2_teacher_profiles.status', '=', 'activo')
+            ->where('assessment_periods.boss_start_date', '<=', $date)
+            ->where('assessment_periods.boss_end_date', '>=', $date)
             ->select(['users.name', 'users.id','unity_assessments.unit_identifier', 'v2_teacher_profiles.teaching_ladder',
                 'unity_assessments.pending',
                 'assessment_periods.boss_start_date',
                 'assessment_periods.boss_end_date'])->get();
-
     }
 
 
