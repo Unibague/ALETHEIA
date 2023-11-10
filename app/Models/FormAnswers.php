@@ -288,7 +288,6 @@ class FormAnswers extends Model
      */
     public static function createStudentFormFromRequest(Request $request, Form $form): void
     {
-
         $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
         $competencesAverage = self::getCompetencesAverage(json_decode(json_encode($request->input('answers'), JSON_THROW_ON_ERROR), false, 512, JSON_THROW_ON_ERROR));
 
@@ -341,7 +340,6 @@ class FormAnswers extends Model
     public static function getCompetencesAverage($answers): array
     {
         $competences = self::getCompetencesFromFormAnswer($answers);
-
         return self::getAveragesFromCompetences($competences);
     }
 
@@ -376,13 +374,10 @@ class FormAnswers extends Model
             }
 
         }
-
         catch (\Exception $exception) {
             $message = 'Debes contestar todas las preguntas para poder enviar el formulario';
             throw new \RuntimeException($message);
         }
-
-
         return $competences;
     }
 
@@ -390,13 +385,7 @@ class FormAnswers extends Model
     {
         DB::table('group_user')
             ->where('group_id', '=', $groupId)
-            ->where('user_id', '=', $userId)
-            ->update(
-                [
-                    'has_answer' => 1
-                ]
-            );
-
+            ->where('user_id', '=', $userId)->update(['has_answer' => 1]);
     }
 
 
@@ -413,7 +402,6 @@ class FormAnswers extends Model
                 ]);
         }
 
-
         if($role == "jefe" || $role == "par"){
 
             UnityAssessment::where('evaluated_id',$evaluatedId )->where('role', $role)
@@ -423,7 +411,6 @@ class FormAnswers extends Model
                 ]);
 
         }
-
     }
 
 

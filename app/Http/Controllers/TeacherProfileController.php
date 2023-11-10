@@ -30,7 +30,7 @@ class TeacherProfileController extends Controller
      *
      * @return JsonResponse
      */
-    public function index(): knvJsonResponse
+    public function index(): JsonResponse
     {
         $actualAssessmentPeriod = AssessmentPeriod::getActiveAssessmentPeriod();
         return response()->json(TeacherProfile::where('assessment_period_id', '=', $actualAssessmentPeriod->id)
@@ -40,10 +40,8 @@ class TeacherProfileController extends Controller
 
     public function viewTeacherAssessments(): \Inertia\Response
     {
-
         $token = csrf_token();
         return Inertia::render('Teachers/Assessments', ['token' => $token]);
-
     }
 
 

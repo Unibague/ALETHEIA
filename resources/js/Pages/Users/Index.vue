@@ -72,7 +72,6 @@
                         <span class="subtitle-1">
                             Por favor seleccione los roles que desee asignar al usuario
                         </span>
-
                         <v-checkbox v-for="role in roles" :key="role.name"
                                     :label="role.name"
                                     :value="role.id"

@@ -236,11 +236,7 @@
                     </v-tooltip>
                 </template>
             </v-data-table>
-
             <!--Acaba tabla-->
-
-
-
         </v-container>
     </AuthenticatedLayout>
 </template>
@@ -294,7 +290,6 @@ export default {
     },
 
     async created() {
-
         await this.getAutoAssessment();
         await this.getPeerAssessments();
         await this.getBossAssessments();
@@ -309,36 +304,23 @@ export default {
             this.tests = request.data;
         },*/
 
-
         getAutoAssessment: async function() {
-
             let url = route('tests.index.teacherAutoTest')
-
             let request = await axios.get(url);
-
             this.autoAssessment = request.data;
-
             if(this.autoAssessment.length>0) {
-
                 this.user = {
-
                     autoAssessmentStartDate: this.autoAssessment[0].self_start_date,
                     autoAssessmentEndDate: this.autoAssessment[0].self_end_date
                 }
-
                 console.log(this.user);
-
                 console.log(this.autoAssessment);
-
                 this.autoAssessment.forEach(item =>{
 
                     item.name = this.capitalize(item.name)
 
                 })
-
             }
-
-
         },
 
 
@@ -368,37 +350,23 @@ export default {
 
 
         getBossAssessments: async function(){
-
             let url = route('tests.index.teacherBossTests')
-
             let request = await axios.get(url);
 
             this.bossAssessments = request.data;
 
             if(this.bossAssessments.length>0){
-
                 this.user.bossAssessmentStartDate= this.bossAssessments[0].boss_start_date
                 this.user.bossAssessmentEndDate= this.bossAssessments[0].boss_end_date
-
-
                 this.bossAssessments.forEach(bossAssessment =>{
-
                     bossAssessment.name = this.capitalize(bossAssessment.name)
-
                 })
-
             }
-
-
-
-
         },
 
 
         capitalize($field){
-
             return $field.toLowerCase().split(' ').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-
         }
 
     },

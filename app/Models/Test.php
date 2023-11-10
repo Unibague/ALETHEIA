@@ -52,38 +52,24 @@ class Test extends Model
     public static function getUserTests($peersOrSubordinates = null, $role = null)
     {
         $user = auth()->user();
-
         if($user->role()->name == "estudiante"){
             $userGroups = $user->groups;
-
-
             $userGroups = $userGroups->filter(function($userGroup){
                 return $userGroup->teacher_id !== null;
             });
-
-
             foreach ($userGroups as $group) {
                 $group->test = self::getTestFromGroup($group);
             }
-
             return $userGroups;
-
         }
 
         if ($user->role()->name == "docente" || $user->role()->name == "jefe de profesor"){
-
             foreach ($peersOrSubordinates as $teacher) {
-
                 $teacher->test = self::getTestFromTeacher($teacher, $role);
-
             }
-
             return $peersOrSubordinates;
-
         }
-
         return [];
-
     }
 
     public static function getTestFromGroup(Group $group)
@@ -137,19 +123,16 @@ class Test extends Model
             'asistente' => 'ASI', 'asociado' => 'ASO', 'titular' => 'TIT'];
 
         foreach ($teachingLadders as $key => $teachingLadder) {
-
             if ($teacher->teaching_ladder == $teachingLadder) {
                 $teacher->teaching_ladder = $key;
             }
         }
-
 
         $form = Form::whereJsonContains('units', [$teacher->unit_identifier])
                 ->where('teaching_ladder', '=', $teacher->teaching_ladder)
                 ->where('unit_role', '=', $role)
                 ->where('assessment_period_id', '=', $activeAssessmentPeriodId)
                 ->latest()->first();
-
 
         if ($form !== null) {
             return $form;
@@ -161,9 +144,6 @@ class Test extends Model
             ->where('assessment_period_id', '=', $activeAssessmentPeriodId)
             ->latest()->first();
 
-
-
-
         if ($form !== null) {
             return $form;
         }
@@ -173,8 +153,6 @@ class Test extends Model
             ->where('unit_role', '=', $role)
             ->where('assessment_period_id', '=', $activeAssessmentPeriodId)
             ->latest()->first();
-
-
 
         if ($form !== null) {
             return $form;
@@ -186,7 +164,6 @@ class Test extends Model
             ->where('assessment_period_id', '=', $activeAssessmentPeriodId)
             ->latest()->first();
 
-
         if ($form !== null) {
             return $form;
         }
@@ -196,7 +173,6 @@ class Test extends Model
             ->where('unit_role', '=', null)
             ->where('assessment_period_id', '=', null)
             ->latest()->first();
-
 
         return $form ?? null;
     }

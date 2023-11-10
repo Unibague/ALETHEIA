@@ -30,11 +30,8 @@ class TestsController extends Controller
 
     public function indexTeacherAutoTest()
     {
-
         $userId = auth()->user()->id;
-
         $teacher = json_decode(UnityAssessment::getAutoAssessmentFromTeacher($userId));
-
         return response()->json(Test::getUserTests($teacher, 'autoevaluación'));
     }
 
@@ -42,22 +39,16 @@ class TestsController extends Controller
 
     public function indexTeacherPeerTests()
     {
-
         $userId = auth()->user()->id;
-
         $peers = json_decode(UnityAssessment::getPeerAssessmentsFromTeacher($userId));
-
         return response()->json(Test::getUserTests($peers, 'par'));
     }
 
 
     public function indexTeacherBossTests(Request $request)
     {
-
         $userId = auth()->user()->id;
-
         $subordinates = json_decode(UnityAssessment::getBossAssessmentsFromTeacher($userId));
-
         return response()->json(Test::getUserTests($subordinates, 'jefe'));
     }
 
@@ -66,7 +57,6 @@ class TestsController extends Controller
     public function indexView(): Response
     {
         $token = csrf_token();
-
         return Inertia::render('Tests/Index', ['token' => $token]);
     }
 
@@ -79,23 +69,14 @@ class TestsController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-
-
-
         $form = Form::findOrFail($request->input('form_id'));
 
         if ($form->type === 'estudiantes') {
-
             FormAnswers::createStudentFormFromRequest($request, $form);
         }
 
-
-
-
         if ($form->type === 'otros'){
-
             FormAnswers::createTeacherFormFromRequest($request, $form);
-
         }
 
         return response()->json(['messages' => 'Formulario diligenciado exitosamente. Serás redirigido a la página de inicio']);

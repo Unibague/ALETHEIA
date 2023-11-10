@@ -149,10 +149,7 @@ export default {
         },
         sendForm: async function () {
             try {
-
-
                 console.log(this.test.questions);
-
                 await axios.post(route('api.tests.store'),
                     {
                         answers: this.test.questions,
@@ -160,9 +157,7 @@ export default {
                         teacherId: this.teacher.id,
                         groupId: this.group.id,
                     });
-
                 this.dialog = true;
-
             } catch (e) {
                 showSnackbar(this.snackbar, prepareErrorText(e), 'alert')
             }
@@ -173,18 +168,12 @@ export default {
         validate() {
 
             let isValid = this.$refs.form.validate()
-
-            console.log(isValid);
-
             if (isValid === true) {
                 this.sendForm()
             }
-
             else{
-
                 showSnackbar(this.snackbar,
                     'Debes contestar todas las preguntas para poder enviar el formulario', 'alert');
-
             }
         },
     },
