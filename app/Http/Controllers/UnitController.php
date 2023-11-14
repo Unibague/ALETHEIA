@@ -366,12 +366,10 @@ class UnitController extends Controller
         return Inertia::render('Unities/AssignUnitRoles', ['unit' => $unit]);
     }
 
-
     public function assessmentStatus(Unit $unit)
     {
         return Inertia::render('Unities/UnitAssessmentStatus', ['unit' => $unit]);
     }
-
 
     public function getSuitableTeachers(): JsonResponse {
         return response()->json(Unit::getUnitTeachersSuitableForAssessment());

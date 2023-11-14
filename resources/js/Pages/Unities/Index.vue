@@ -44,20 +44,20 @@
                     ></v-text-field>
                 </v-card-title>
                 <v-data-table
-                    :search="search"
+                :search="search"
                 loading-text="Cargando, por favor espere..."
                 :loading="isLoading"
                 :headers="headers"
                 :items="filteredUnits"
                 :items-per-page="20"
-                    :footer-props="{
+                :footer-props="{
                         'items-per-page-options': [20,50,100,-1]
                     }"
                 class="elevation-1"
             >
-                    <template v-slot:item.name="{ item }"  >
+                <template v-slot:item.name="{ item }"  >
                         {{ item.name}}
-                    </template>
+                </template>
 
                 <template v-slot:item.is_custom="{ item }"  >
                     {{ item.is_custom ? 'Personalizada' : 'Integración' }}
@@ -118,14 +118,12 @@
                         </template>
                         <span>Gestionar Unidad</span>
                     </v-tooltip>
-
                 </template>
             </v-data-table>
             </v-card>
             <!--Acaba tabla-->
 
             <!------------Seccion de dialogos ---------->
-
             <!--Crear o editar unit -->
             <v-dialog
                 v-model="createOrEditDialog.dialogStatus"
@@ -204,7 +202,6 @@ export default {
         AuthenticatedLayout,
         InertiaLink,
         Snackbar,
-
     },
     data: () => {
         return {
@@ -238,7 +235,6 @@ export default {
                     dialogStatus: false,
             },
             isLoading: true,
-
         }
     },
 
@@ -302,7 +298,6 @@ export default {
             } catch (e) {
                 showSnackbar(this.snackbar, e.response.data.message, 'red', 10000);
             }
-
         },
         handleSelectedMethod: function () {
             this[this.createOrEditDialog.method]();
@@ -346,15 +341,12 @@ export default {
                 showSnackbar(this.snackbar, e.response.data.message, 'alert', 3000);
             }
         },
-
-
         getAllUnits: async function () {
             let request = await axios.get(route('api.units.index'));
             this.units = request.data
             await this.capitalize();
             console.log(this.units)
         },
-
 
         setUnitDialogToCreateOrEdit(which, item = null) {
             if (which === 'create') {
