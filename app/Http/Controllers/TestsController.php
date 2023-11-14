@@ -92,17 +92,12 @@ class TestsController extends Controller
     public function startTest(Request $request, int $testId)
     {
         $data = json_decode($request->input('data')); //parse data
-
         $test = Form::findOrFail($testId);
-
         if ($data->test->type == "estudiantes") {
-
             if ($data->pivot->has_answer === 1) {
                 return response('Ya has contestado esta evaluación', 401);
             }
-
             return Inertia::render('Tests/Show', ['test' => $test, 'group' => ['id' => $data->group_id, 'name' => $data->name], 'teacher' => $data->teacher, 'canSend' => true]);
-
         }
 
         if ($data->test->type == "otros") {
@@ -110,15 +105,9 @@ class TestsController extends Controller
             if ($data->pending === 0) {
                 return response('Ya has contestado esta evaluación', 401);
             }
-
             return Inertia::render('Tests/ShowTeacherTest', ['test' => $test, 'teacher' => $data, 'canSend' => true]);
-
         }
-
-
-
     }
-
 
     public function preview(TestPreviewRequest $request, int $testId): Response
     {

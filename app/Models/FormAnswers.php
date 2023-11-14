@@ -355,9 +355,7 @@ class FormAnswers extends Model
     private static function getCompetencesFromFormAnswer($formAnswers): array
     {
         $competences = [];
-
         try{
-
             foreach ($formAnswers as $answer) {
                 if (isset($competences[$answer->competence]) === true) {
                     $competences[$answer->competence]['totalAnswers']++;
@@ -372,7 +370,6 @@ class FormAnswers extends Model
                     $competences[$answer->competence]['accumulatedValue'] = (double)$answer->answer;
                 }
             }
-
         }
         catch (\Exception $exception) {
             $message = 'Debes contestar todas las preguntas para poder enviar el formulario';
