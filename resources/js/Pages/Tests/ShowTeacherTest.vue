@@ -79,7 +79,7 @@
                 <v-card-title class="text-h5">
                     Formulario guardado
                 </v-card-title>
-                <v-card-text>El formulario ha sido diligenciado exitosamente. Seras redirigido a la página de inicio
+                <v-card-text>El formulario ha sido diligenciado exitosamente. Serás redirigido a la página de inicio
                 </v-card-text>
                 <v-card-actions>
                     <v-spacer></v-spacer>
