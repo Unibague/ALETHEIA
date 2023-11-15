@@ -102,22 +102,16 @@ class UnitController extends Controller
         $unitId = $request->input('unitIdentifier');
         $userId = $request->input('userId');
         $roleName = $request->input('role');
-
         $roleId = DB::table('roles')->where('name', $roleName)->pluck('id')[0];
 
         $userIsAlreadyAdmin = DB::table('role_user')->where('user_id', $userId)->where('role_id', $roleId)->exists();
 
-
         if (!$userIsAlreadyAdmin) {
-
             DB::table('role_user')->updateOrInsert(['user_id' => $userId, 'role_id' => $roleId]);
-
         }
 
         Unit::assignStaffMemberAsUnitAdmin($unitId, $userId, $roleId);
-
         return response()->json(['message' => 'Adminstrador de unidad actualizado exitosamente']);
-
     }
 
 

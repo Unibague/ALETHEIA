@@ -94,8 +94,6 @@
                 </v-row>
             </v-toolbar>
 
-
-
             <!--Inicia tabla-->
             <v-card>
                 <v-data-table
@@ -110,9 +108,7 @@
                     }"
                     class="elevation-1"
                 >
-
                     <template v-slot:item.graph="{ item }">
-
                         <v-tooltip top
                         >
                             <template v-slot:activator="{on,attrs}">
@@ -133,11 +129,9 @@
                     </template>
 
                     <template v-slot:item.op_answers="{ item }">
-
                         <v-tooltip top
                         >
                             <template v-slot:activator="{on,attrs}">
-
                                 <v-icon
                                     v-bind="attrs"
                                     v-on="on"
@@ -146,13 +140,10 @@
                                 >
                                     mdi-text-box
                                 </v-icon>
-
                             </template>
                             <span>Visualizar Comentarios</span>
                         </v-tooltip>
-
                     </template>
-
                 </v-data-table>
             </v-card>
 
@@ -160,7 +151,6 @@
             <!--Seccion de dialogos-->
 
             <!--Mostrar gráfica con resultados del docente-->
-
             <v-dialog
                 v-model="showChartDialog"
                 persistent
@@ -169,13 +159,10 @@
                     <v-card-text class="py-3">
                         <h2 class="black--text ma-2" style="text-align: center"> Visualizando al docente: {{this.capitalize(this.selectedTeacherToGraph)}}</h2>
                     </v-card-text>
-
                     <v-container style="position: relative; height:60vh; width:90vw; background: #FAF9F6">
                         <canvas id="MiGrafica"></canvas>
                     </v-container>
-
                     <v-card-actions>
-
                         <v-btn
                             color="primario"
                             class="white--text"
@@ -192,12 +179,9 @@
                         >
                             Salir
                         </v-btn>
-
                     </v-card-actions>
                 </v-card>
             </v-dialog>
-
-
 
             <v-dialog
                 v-model="showOpenAnswersDialog"
@@ -222,12 +206,9 @@
                         </v-btn>
                     </v-card-actions>
                 </v-card>
-
             </v-dialog>
 
-
         </v-container>
-
         <!--Inicia tabla resultados individuales por grupo-->
         <v-container fluid v-if="resultsPerGroup">
             <div class="d-flex flex-column align-end mb-5">
@@ -235,16 +216,13 @@
             </div>
 
             <v-container class="d-flex flex-column align-end mr-5">
-
                     <v-btn
                         color="primario"
                         class="white--text"
                         @click="activateResultsPerServiceAreas"
-
                     >
                         Visualizar resultados por Área de servicio
                     </v-btn>
-
             </v-container>
             <v-toolbar
                 dark
@@ -401,7 +379,6 @@
                 v-model="showOpenAnswersDialog"
                 persistent
             >
-
                 <v-card>
                     <v-card-text v-if="openAnswersStudents.length >0">
                         <h2 class="black--text pt-5" style="text-align: center"> Visualizando comentarios hacia el docente:
@@ -415,11 +392,9 @@
 
                     </v-card-text>
 
-
                     <v-card-text v-else>
                         <h2 class="black--text pt-5" style="text-align: center"> No hay comentarios disponibles para el grupo de este docente</h2>
                     </v-card-text>
-
 
                     <v-card-actions>
                         <v-btn
@@ -439,7 +414,6 @@
             :show="confirmSavePDF"
             @canceled-dialog="confirmSavePDF = false"
             @confirmed-dialog="savePDF()"
-
         >
             <template v-slot:title>
                 Ahora serás redirigido a la pantalla para guardar el PDF
@@ -495,7 +469,6 @@ export default {
                 {text: 'Visualizar Comentarios', value: 'op_answers', sortable: false},
             ],
 
-
             serviceAreaGroupsViewHeaders: [
                 {text: 'Profesor', value: 'name'},
                 {text: 'Asignatura', value: 'group_name'},
@@ -513,7 +486,6 @@ export default {
                 {text: 'Graficar Resultados', value: 'graph', sortable: false},
                 {text: 'Visualizar Comentarios', value: 'op_answers', sortable: false},
             ],
-
 
             //Display data
 
@@ -600,7 +572,6 @@ export default {
         },
 
         matchProperty: function (array, propertyPath, reference) {
-
             return array.filter((item) => {
                 const propertyArr = propertyPath.split(".");
                 const propertyValue = propertyArr.reduce((obj, key) => {
@@ -612,7 +583,6 @@ export default {
 
 
         getServiceAreas: async function (){
-
             let request = await axios.get(route('api.serviceAreas.index', {assessmentPeriodId: this.assessmentPeriod}));
             this.serviceAreas = this.sortArrayAlphabetically(request.data);
             console.log(this.serviceAreas, 'service areas');
@@ -644,12 +614,11 @@ export default {
         },
 
         getServiceAreaGroupsTeacherResults: async function (){
-
             let url = route('serviceAreas.getResultsPerGroup', {assessmentPeriodId: this.assessmentPeriod});
             let request = await axios.get(url);
             this.assessments = request.data
             this.isLoading = false
-            console.log(request.data, 'resultsss');
+            console.log(request.data, 'results for group');
 
         },
 
@@ -669,17 +638,14 @@ export default {
 
 
         async setDialogToShowOpenAnswers(teacher){
-
             this.selectedTeacherOpenAnswers = teacher.name;
             this.showOpenAnswersDialog = true
             console.log(teacher, "teacherrr")
             if(this.resultsPerGroup == false){
-
                 await this.getOpenAnswersFromStudents(teacher.teacherId, teacher.service_area_code);
             }
 
             else{
-
                 this.selectedTeacherOpenAnswers = teacher.name;
                 this.showOpenAnswersDialog = true
                 this.selectedGroupNumberOpenAnswers = teacher.group_number;
@@ -689,14 +655,12 @@ export default {
         },
 
         async setDialogToShowOpenAnswersFromGroups(teacher){
-
             this.selectedTeacherOpenAnswers = teacher.name;
             this.showOpenAnswersDialog = true
             this.selectedGroupNumberOpenAnswers = teacher.group_number;
             this.selectedGroupNameOpenAnswers = teacher.group_name
             console.log(teacher, "teacherrr")
             await this.getOpenAnswersFromStudentsFromGroup(teacher.teacherId, teacher.service_area_code, teacher.group_id);
-
         },
 
         capitalize($field){
@@ -752,33 +716,24 @@ export default {
         getTeachingLadderNameByParameter: async function (teachingLadderCode){
 
             let request = await axios.get(route('api.assessmentPeriods.teachingLadders'));
-
             let teachingLadders = request.data
-
             teachingLadders.forEach(teachingLadder =>{
-
                 if(teachingLadder == 'NIN'){
-
                     this.finalTeachingLadders.unshift({name : 'Ninguno',
                         identifier:teachingLadder})
                 }
-
                 if(teachingLadder == 'AUX'){
-
                     this.finalTeachingLadders.unshift({name : 'Auxiliar',
                         identifier:teachingLadder})
                 }
-
                 if(teachingLadder == 'ASI'){
                     this.finalTeachingLadders.unshift({name : 'Asistente',
                         identifier:teachingLadder})
                 }
-
                 if(teachingLadder == 'ASO'){
                     this.finalTeachingLadders.unshift({name : 'Asociado',
                         identifier:teachingLadder})
                 }
-
                 if(teachingLadder == 'TIT'){
                     this.finalTeachingLadders.unshift({name : 'Titular',
                         identifier:teachingLadder})
@@ -801,7 +756,6 @@ export default {
         },
 
         async getResponseIdealsCompetences(teachingLadder){
-
             let url = route('teacher.responseIdeals.get');
             let request = await axios.post(url, {teachingLadder: teachingLadder})
             if(request.data.length === 0){
@@ -818,7 +772,6 @@ export default {
 
 
         getServiceAreasDatasets(teacher){
-
             let teacherServiceAreaArray = this.filteredItems.filter((item) => {
                 return item.name == teacher.name
             })
@@ -891,9 +844,7 @@ export default {
                 })
             }
             else{
-
                 excelInfo = this.filteredItems.map(item =>{
-
                     return {
                         Nombre :item.name,
                         Asignatura: item.group_name,
@@ -904,7 +855,9 @@ export default {
                         PromedioC3: item.third_competence_average,
                         PromedioC4: item.fourth_competence_average,
                         PromedioC5: item.fifth_competence_average,
-                        PromedioC6: item.sixth_competence_average
+                        PromedioC6: item.sixth_competence_average,
+                        ActoresInvolucrados: item.students_amount_reviewers,
+                        ActoresTotales: item.students_amount_on_group,
                     }
                 })
             }
