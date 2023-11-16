@@ -55,7 +55,6 @@
                                 prepend-inner-icon="mdi-account-search"
                                 label="Docente"
                             ></v-autocomplete>
-
                         </v-col>
 
                         <v-col cols="2">
@@ -280,7 +279,6 @@ export default {
             ],
 
             //Display data
-
             deletedFormId: 0,
             assessments: [],
             assessmentPeriod: '',
@@ -429,7 +427,7 @@ export default {
             let url = route('formAnswers.finalGrades', {assessmentPeriodId: this.assessmentPeriod});
             let request = await axios.get(url);
             let finalGrades = request.data;
-            console.log(finalGrades, 'answers from students');
+            console.log(finalGrades, 'promedio final');
 
             finalGrades.forEach(answer =>{
                 answer.unit_role = 'promedio final'
