@@ -147,24 +147,22 @@ class FormAnswers extends Model
     public static function getFinalGradesFromTeachers(int $assessmentPeriodId = null): \Illuminate\Support\Collection
     {
         $teacherRoleId = Role::getTeacherRoleId();
-
         if ($assessmentPeriodId === null){
             $assessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
         }
 
         return DB::table('teachers_360_final_average as t360')->select(['t360.first_final_aggregate_competence_average as first_competence_average',
-            't360.second_final_aggregate_competence_average as second_competence_average',
-            't360.third_final_aggregate_competence_average as third_competence_average',
-            't360.fourth_final_aggregate_competence_average as fourth_competence_average',
-            't360.fifth_final_aggregate_competence_average as fifth_competence_average',
-            't360.sixth_final_aggregate_competence_average as sixth_competence_average',
-            't360.involved_actors', 't360.total_actors', 't.name as name', 't.id as teacherId', 'v2_unit_user.unit_identifier',
+            't360.second_final_aggregate_competence_average as second_competence_average', 't360.third_final_aggregate_competence_average as third_competence_average',
+            't360.fourth_final_aggregate_competence_average as fourth_competence_average', 't360.fifth_final_aggregate_competence_average as fifth_competence_average',
+            't360.sixth_final_aggregate_competence_average as sixth_competence_average', 't360.involved_actors',
+            't360.total_actors', 't.name as name', 't.id as teacherId', 'v2_unit_user.unit_identifier',
             'v2_units.name as unitName', 'tsp.updated_at as submitted_at'])
             ->join('teachers_students_perspectives as tsp', 'tsp.teacher_id','=','t360.teacher_id')
             ->join('users as t', 'tsp.teacher_id', '=', 't.id')
             ->join('v2_unit_user','t.id', '=', 'v2_unit_user.user_id')
             ->join('v2_units', 'v2_unit_user.unit_identifier','=', 'v2_units.identifier')
             ->where('v2_unit_user.role_id', '=', $teacherRoleId)
+            ->where('tsp.assessment_period_id', '=', $assessmentPeriodId)
             ->where('v2_units.assessment_period_id', '=', $assessmentPeriodId)
             ->where('t360.assessment_period_id', '=', $assessmentPeriodId)->get();
     }
