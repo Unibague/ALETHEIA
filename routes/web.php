@@ -632,6 +632,7 @@ Route::get('/testReport', function () {
                 ->where('f.type','=','otros')
                 ->where('fa.assessment_period_id', '=', $activeAssessmentPeriodId)
                 ->where('v2_unit_user.role_id', '=', $teacherRoleId)
+                ->where('v2_units.assessment_period_id', '=', $activeAssessmentPeriodId)
                 ->where('tsp.assessment_period_id', '=', $activeAssessmentPeriodId)
                 ->where('t.id', '=', $uniqueTeacherId)
                 ->get();

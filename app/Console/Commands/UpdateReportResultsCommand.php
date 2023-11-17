@@ -272,7 +272,8 @@ class UpdateReportResultsCommand extends Command
                     $final_fifth_aggregate_competence_average = number_format($final_fifth_aggregate_competence_average, 1);
                     $final_sixth_aggregate_competence_average = number_format($final_sixth_aggregate_competence_average, 1);
 
-                    DB::table('teachers_service_areas_results')->updateOrInsert(['teacher_id' => $uniqueTeacherId, 'service_area_code' =>$uniqueServiceAreaCode,'assessment_period_id' => $activeAssessmentPeriodId],
+                    DB::table('teachers_service_areas_results')->updateOrInsert(['teacher_id' => $uniqueTeacherId, 'service_area_code' =>$uniqueServiceAreaCode,
+                        'assessment_period_id' => $activeAssessmentPeriodId],
                         ['first_final_aggregate_competence_average' => $final_first_aggregate_competence_average,
                             'second_final_aggregate_competence_average' => $final_second_aggregate_competence_average,
                             'third_final_aggregate_competence_average' => $final_third_aggregate_competence_average,
@@ -324,6 +325,7 @@ class UpdateReportResultsCommand extends Command
                     ->where('f.type','=','otros')
                     ->where('fa.assessment_period_id', '=', $activeAssessmentPeriodId)
                     ->where('v2_unit_user.role_id', '=', $teacherRoleId)
+                    ->where('v2_units.assessment_period_id', '=', $activeAssessmentPeriodId)
                     ->where('tsp.assessment_period_id', '=', $activeAssessmentPeriodId)
                     ->where('t.id', '=', $uniqueTeacherId)
                     ->get();

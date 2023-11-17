@@ -193,13 +193,19 @@
                         <h2 class="black--text pt-5" style="text-align: center"> Visualizando comentarios hacia el
                             docente: {{ this.capitalize(this.selectedTeacherOpenAnswers) }}</h2>
                         <h3 class="black--text pt-5"> PREGUNTA:  {{openAnswersStudents[0] == null ? '' : openAnswersStudents[0].question}}</h3>
+
+                        <div v-if="openAnswersColleagues.length > 0">
                         <h3 class="black--text pt-5"> Comentarios por parte de profesores:</h3>
-                        <div v-for="colleagueAnswer in openAnswersColleagues" class="mt-3">
+                        <div v-for="colleagueAnswer in openAnswersColleagues" class="mt-3" >
                             <h4> {{colleagueAnswer.name}} ({{colleagueAnswer.unit_role}}): {{ colleagueAnswer.answer }}</h4>
                         </div>
+                        </div>
+
+                        <div v-if="openAnswersStudents.length > 0">
                         <h3 class="black--text pt-5 mt-4"> Comentarios por parte de estudiantes:</h3>
                         <div v-for="studentAnswer in openAnswersStudents" class="mt-3">
                             <h4> {{ studentAnswer.answer }}</h4>
+                        </div>
                         </div>
 
                     </v-card-text>
@@ -439,7 +445,7 @@ export default {
         },
 
         getOpenAnswersFromStudents: async function (teacherId){
-            let url = route('formAnswers.teachers.openAnswersStudents', {assessmentPeriodId: this.assessmentPeriod});
+            let url = route('formAnswers.teachers.openAnswersStudents', {assessmentPeriodId: this.assessmentPeriod, normalHourType: 'yes'});
             let request = await axios.post(url, {teacherId: teacherId});
             this.openAnswersStudents = request.data;
         },
@@ -448,6 +454,7 @@ export default {
             let url = route('formAnswers.teachers.openAnswersColleagues', {assessmentPeriodId: this.assessmentPeriod});
             let request = await axios.post(url, {teacherId: teacherId});
             this.openAnswersColleagues = request.data;
+            console.log(this.openAnswersColleagues, 'respuestas de colegas');
         },
 
         getRoles (){
@@ -507,9 +514,14 @@ export default {
 
         async setDialogToShowOpenAnswers(teacher){
             this.selectedTeacherOpenAnswers = teacher.name;
+            console.log(teacher, 'INFORMACION DE ESTA FILA');
             this.showOpenAnswersDialog = true
-            await this.getOpenAnswersFromStudents(teacher.teacherId)
-            await this.getOpenAnswersFromColleagues(teacher.teacherId);
+            if(teacher.unit_role === 'estudiante'){
+                await this.getOpenAnswersFromStudents(teacher.teacherId)
+            }
+            else{
+                await this.getOpenAnswersFromColleagues(teacher.teacherId);
+            }
         },
 
         fillCompetencesArray(roleArray) {
@@ -670,6 +682,7 @@ export default {
 
         setDialogToCancelOpenAnswers (){
             this.showOpenAnswersDialog = false;
+            this.openAnswersColleagues = [];
             this.openAnswersStudents= [];
         },
 

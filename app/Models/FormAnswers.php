@@ -168,13 +168,15 @@ class FormAnswers extends Model
     }
 
 
-    public static function getOpenAnswersFromStudents($teacherId, $serviceArea, int $assessmentPeriodId = null)
+    public static function getOpenAnswersFromStudents($teacherId, $serviceArea, int $assessmentPeriodId = null, $normalHourType)
     {
         $openAnswersFromStudents = [];
 
         if ($assessmentPeriodId === null){
             $assessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
         }
+
+//        dd($normalHourType);
 
         if($serviceArea !== null){
             $answersFromStudents = DB::table('form_answers as fa')->select(['answers'])->where('fa.teacher_id', '=', $teacherId)
@@ -186,9 +188,20 @@ class FormAnswers extends Model
         }
 
         else{
-            $answersFromStudents = DB::table('form_answers as fa')->select(['answers'])->where('fa.teacher_id', '=', $teacherId)
-                ->join('forms', 'fa.form_id','=', 'forms.id')->where('forms.type', '=', 'estudiantes')
-                ->where('fa.assessment_period_id', '=', $assessmentPeriodId)->get();
+
+            if ($normalHourType){
+                $answersFromStudents = DB::table('form_answers as fa')->select(['answers'])->where('fa.teacher_id', '=', $teacherId)
+                    ->join('forms', 'fa.form_id','=', 'forms.id')->join('groups as g', 'g.group_id', '=', 'fa.group_id')
+                    ->where('g.hour_type', '=', 'normal')
+                    ->where('forms.type', '=', 'estudiantes')
+                    ->where('fa.assessment_period_id', '=', $assessmentPeriodId)->get();
+            }
+
+            else{
+                $answersFromStudents = DB::table('form_answers as fa')->select(['answers'])->where('fa.teacher_id', '=', $teacherId)
+                    ->join('forms', 'fa.form_id','=', 'forms.id')->where('forms.type', '=', 'estudiantes')
+                    ->where('fa.assessment_period_id', '=', $assessmentPeriodId)->get();
+            }
         }
 
         foreach ($answersFromStudents as $answerFromStudent){
