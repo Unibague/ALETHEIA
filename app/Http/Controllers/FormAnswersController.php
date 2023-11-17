@@ -65,7 +65,8 @@ class FormAnswersController extends Controller
         $teacherId = $request->input('teacherId');
         $serviceArea = $request->input('serviceArea');
         $assessmentPeriodId = $request->input('assessmentPeriodId');
-        return response()->json(FormAnswers::getOpenAnswersFromStudents($teacherId, $serviceArea, $assessmentPeriodId));
+        $normalHourType = $request->input('normalHourType');
+        return response()->json(FormAnswers::getOpenAnswersFromStudents($teacherId, $serviceArea, $assessmentPeriodId, $normalHourType));
     }
 
     public function getOpenAnswersStudentsFromGroup(Request $request): JsonResponse
