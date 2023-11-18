@@ -74,7 +74,9 @@ class FormAnswers extends Model
     {
         $activeAssessmentPeriodsId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
         return DB::table('form_answers as fa')
-            ->select(['fa.id', 'fa.submitted_at', 'u.name as studentName', 't.name as teacherName','g.name as groupName', 'fa.first_competence_average','fa.second_competence_average','fa.third_competence_average','fa.fourth_competence_average','fa.fifth_competence_average','fa.sixth_competence_average'])
+            ->select(['fa.id', 'fa.submitted_at', 'u.name as studentName', 't.name as teacherName','g.name as groupName',
+                'fa.first_competence_average','fa.second_competence_average','fa.third_competence_average','fa.fourth_competence_average',
+                'fa.fifth_competence_average','fa.sixth_competence_average'])
             ->join('forms as f', 'fa.form_id', '=', 'f.id')
             ->join('users as u', 'fa.user_id', '=', 'u.id')
             ->join('users as t', 'fa.teacher_id', '=', 't.id')
