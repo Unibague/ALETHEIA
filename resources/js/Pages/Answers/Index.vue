@@ -6,7 +6,6 @@
         <v-container>
             <div class="d-flex flex-column align-end mb-5">
                 <h2 class="align-self-start">Gestionar respuestas de formularios</h2>
-
             </div>
 
             <!--Inicia tabla-->
@@ -32,18 +31,19 @@
                     }"
                     class="elevation-1"
                 >
-                    <template v-slot:item.actions="{ item }">
 
+                    <template v-slot:item.first_competence_average="{ item }">
+                        {{item.first_competence_average % 1 !== 0 ? item.first_competence_average.toFixed(1) : item.first_competence_average}}
+                    </template>
+
+                    <template v-slot:item.actions="{ item }">
                         <InertiaLink as="v-icon" class="primario--text"
                                      :href="route('answers.show.view',{answer:item.id})">
                             mdi-file-search
                         </InertiaLink>
-
                     </template>
-
                 </v-data-table>
             </v-card>
-
         </v-container>
 
     </AuthenticatedLayout>
