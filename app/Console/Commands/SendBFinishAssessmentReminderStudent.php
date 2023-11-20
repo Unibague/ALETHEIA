@@ -78,10 +78,10 @@ class SendBFinishAssessmentReminderStudent extends Command
         }
 
         if (count($reference) > 0) {
-            $issue = 'Lote de Estudiantes previos a empezar evaluación docente';
+            $issue = 'Lote de Estudiantes previos a finalizar evaluación docente';
             $confirmationEmail = new \App\Mail\ConfirmationFinishSend($issue);
             Mail::bcc(['juanes01.gonzalez@gmail.com'])->send($confirmationEmail);
-        }   
+        }
 
         return 0;
     }

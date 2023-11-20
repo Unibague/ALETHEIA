@@ -68,13 +68,14 @@
 
 @endif
 
+<p>Para realizar la evaluación ingrese a <span style="text-underline: #00acc1">https://aletheia.unibague.edu.co/ </span> </p>
+<p>Si tiene alguna inquietud, puede escribir al correo <span style="text-underline: #00acc1">vicerrectoria.desempeno@unibague.edu.co</p>
 
-<p style="margin-bottom: 100px">En caso de cualquier inquietud o pregunta, puede enviar un correo a: <br style="text-underline: #00acc1"> vicerrectoria.desempeno@unibague.edu.co</p>
 
-
-    <div style="margin-top: 30px">
-    <p>Vicerrectoría Universidad de Ibagué.
-    <br> Tel.: (57) + 8 2760010 ext.: 3004</p>
+<div style="margin-top: 30px">
+<p> Saludos cordiales,
+<br> Vicerrectoría Universidad de Ibagué.
+<br> Tel.: (57) + 8 2760010 ext.: 3004</p>
 
 <img src="{{$message->embed(public_path().'/images/reminderEmailLogo.png')}}" style="max-width:80%; object-fit: contain; margin-top: 0px">
 

@@ -20,11 +20,9 @@
 
     <p> Recuerde que usted tiene plazo máximo hasta el <strong> {{$data['end_date']}} </strong> para el diligenciamiento de su <strong> autoevaluación </strong> como docente</p>
 
-    <p> Para la universidad es de suma importancia contar con su colaboración y apoyo durante este proceso evaluativo. </p>
+    <p> Para la Universidad es de suma importancia contar con su colaboración y apoyo durante este proceso evaluativo. </p>
 
 @endif
-
-
 
 @if($data['role'] === 'Jefe de Evaluación 360°' || $data['role'] === 'Par de Evaluación 360°' )
 
@@ -36,7 +34,7 @@
 <p style="line-height: 70%"> - {{$teacher}}</p>
 @endforeach
 
-<p> Para la universidad es de suma importancia contar con su colaboración y apoyo durante este proceso evaluativo. </p>
+<p> Para la Universidad es de suma importancia contar con su colaboración y apoyo durante este proceso evaluativo. </p>
 
 <p> Recuerde que usted tiene plazo máximo hasta el <strong> {{$data['end_date']}} para realizar la evaluación de estos docentes</strong> </p>
 
@@ -51,18 +49,19 @@
         <p style="line-height: 90%"> Asignatura: <strong> {{$teacher->group_name}} </strong> -  Profesor:  <strong>{{$teacher->teacher_name}}</strong></p>
     @endforeach
 
-    <p> Para la universidad es de suma importancia contar con su colaboración y apoyo durante este proceso evaluativo. </p>
+    <p> Para la Universidad es de suma importancia contar con su colaboración y apoyo durante este proceso evaluativo. </p>
 
     <p> Recuerde que usted tiene plazo máximo hasta el <strong> {{$data['end_date']}} </strong> para realizar la evaluación de estos docentes </p>
 
 @endif
 
-<p>  Si tiene alguna inquietud, escribir correo a: <br style="text-underline: #00acc1"> vicerrectoria.desempeno@unibague.edu.co</p>
+<p>Para realizar la evaluación ingrese a <span style="text-underline: #00acc1"> https://aletheia.unibague.edu.co/ </span> </p>
+<p>Si tiene alguna inquietud, puede escribir al correo <span style="text-underline: #00acc1"> vicerrectoria.desempeno@unibague.edu.co</p>
 
 <div style="margin-top: 30px">
 <p> Saludos cordiales,
-    <br> Vicerrectoría Universidad de Ibagué.
-    <br> Tel.: (57) + 8 2760010 ext.: 3004</p>
+<br> Vicerrectoría Universidad de Ibagué.
+<br> Tel.: (57) + 8 2760010 ext.: 3004</p>
 
 <img src="{{$message->embed(public_path().'/images/reminderEmailLogo.png')}}" style="max-width:80%;  margin-top: 0px">
 
@@ -73,7 +72,5 @@
 </section>
 
 </body>
-
-
 
 </html>
