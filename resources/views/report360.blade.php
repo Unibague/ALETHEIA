@@ -6,27 +6,25 @@
 <body class="mx-5 my-5">
 
 <img src="/images/whiteLogo.png"
-     style="max-height: 300px; max-width:300px; object-fit: contain">
-
+     style="max-height: 300px; max-width:300px; object-fit: contain" alt="Logo_universidad">
 
 <p  style="margin-top: 30px"> Sistema de Información para evaluación docente: <strong> ALETHEIA </strong></p>
 
 <p> Periodo de evaluación: <strong> {{$assessmentPeriodName}} </strong> </p>
 
-<p> <strong> Reporte por áreas de servicio </strong> </p>
+<p> <strong> Reporte evaluación 360° </strong> </p>
 
-<p style="margin-bottom: 30px"> Visualizando desempeño por área(s) de servicio del docente: <strong> {{ucwords($teacherName)}}: </strong></p>
+<p style="margin-bottom: 30px"> Visualizando desempeño en evaluación 360° del docente: <strong> {{ucwords($teacherName)}} </strong></p>
 
 <table class="table" style="max-width: 85%; margin: auto" >
     <thead>
     <tr>
         <th scope="col">Rol</th>
-        <th scope="col">Área de servicio</th>
         @foreach($labels as $label)
         <th scope="col">{{$label}}</th>
         @endforeach
-        <th scope="col"> Estudiantes involucrados</th>
-        <th scope="col"> Estudiantes totales</th>
+        <th scope="col"> Actores involucrados</th>
+        <th scope="col"> Actores totales</th>
     </tr>
     </thead>
 
@@ -34,8 +32,7 @@
 
     @foreach($teacherResults as $teacherResult)
     <tr>
-        <td style="text-transform: capitalize">Estudiante</td>
-        <td>{{$teacherResult->service_area_name}}</td>
+        <td style="text-transform: capitalize">{{$teacherResult->unit_role}}</td>
         <td>{{$teacherResult->first_competence_average}}</td>
         <td>{{$teacherResult->second_competence_average}}</td>
         <td>{{$teacherResult->third_competence_average}}</td>
@@ -43,23 +40,23 @@
         <td>{{$teacherResult->fifth_competence_average}}</td>
         <td>{{$teacherResult->sixth_competence_average}}</td>
         <td>{{$teacherResult->aggregate_students_amount_reviewers}}</td>
-        <td>{{$teacherResult->aggregate_students_amount_on_service_area}}</td>
+        <td>{{$teacherResult->aggregate_students_amount_on_360_groups}}</td>
     </tr>
     @endforeach
     </tbody>
 </table>
 
-<div style="margin-top: 20px" >
+<div style="margin-top: 20px; margin-bottom: 20px">
     <img src="https://quickchart.io/chart?c={{$chart}}" style="max-width: 80%; margin-left: 5%; margin-top: 5%" >
 </div>
 
 
 <h3> Descripción por grupos </h3>
+
 <table class="table" style="max-width: 85%; margin-top: 50px" >
     <thead>
     <tr>
         <th scope="col">Asignatura</th>
-        <th scope="col">Área de servicio</th>
         <th scope="col">Número de grupo</th>
         @foreach($labels as $label)
             <th scope="col">{{$label}}</th>
@@ -68,12 +65,12 @@
         <th scope="col"> Actores totales</th>
     </tr>
     </thead>
+
     <tbody>
-    @foreach($serviceAreasGroups as $serviceAreaGroups)
-        @foreach($serviceAreaGroups as $group)
+
+    @foreach($groupsResults as $group)
         <tr>
             <td style="text-transform: capitalize">{{$group->group_name}}</td>
-            <td style="text-transform: capitalize">{{$group->name}}</td>
             <td style="text-transform: capitalize">{{$group->group_number}}</td>
             <td>{{$group->first_competence_average}}</td>
             <td>{{$group->second_competence_average}}</td>
@@ -84,56 +81,54 @@
             <td>{{$group->students_amount_reviewers}}</td>
             <td>{{$group->students_amount_on_group}}</td>
         </tr>
-        @endforeach
     @endforeach
     </tbody>
 </table>
 
 
+@if(count($openAnswersFromTeachers) > 0)
+    <div style="margin-top: 30px">
+    <h3> Comentarios del jefe, par y de autoevaluación</h3>
+    @foreach($openAnswersFromTeachers as $question)
+        <h4 class="black--text pt-3"> Pregunta: </h4>
+        <h5 style="font-weight: bold">{{$question->question_name}}</h5>
+        <div style="margin-left: 20px">
+        @foreach($question->answers as $person)
+            <h4> {{$person->name}} - ({{$person->unit_role}})</h4>
+            @foreach($person->answers as $answer)
+                <p>{{$answer}}</p>
+            @endforeach
+        @endforeach
+        </div>
+    @endforeach
+{{--    <h3> Comentarios por parte de jefe y/o par</h3>
+    <div style="margin-top: 30px">
+    @foreach($openAnswersFromTeachers as $answer)
+        <p> <span style="font-weight: bold ">{{$answer->name}} ({{$answer->unit_role}}): </span> {{$answer->answer}}</p>
+    @endforeach
+    </div>--}}
+</div>
+    @endif
+
+
 @if(count($openAnswersFromStudents) > 0)
     <div style="margin-top: 30px">
-        <h3> Comentarios de parte de Estudiantes</h3>
-        @foreach($openAnswersFromStudents as $question)
+    <h3> Comentarios de parte de Estudiantes</h3>
+    @foreach($openAnswersFromStudents as $question)
             <h4 class="black--text pt-3"> Pregunta: </h4>
             <h5 style="font-weight: bold">{{$question->question_name}}</h5>
             <div style="margin-left: 20px">
-                @foreach($question->service_areas as $service_area)
-                    <p class="pt-3">Área de Servicio: <span style="font-weight: bold;" > {{$service_area->service_area_name}} </span></p>
-                    <div style="margin-left: 30px">
-                    @foreach($service_area->groups as $group)
-                        <p><span style="font-weight: bold "> {{$group->group_name}} - Grupo {{$group->group_number}}</span></p>
-                            <div style="margin-left: 40px">
-                        @foreach($group->answers as $answer)
-                            <p>- {{$answer}} </p>
-                        @endforeach
-                            </div>
-                    @endforeach
-                    </div>
-                @endforeach
-            </div>
-        @endforeach
-    </div>
-@endif
-
-
-
-
-{{--
-@if(count($openAnswersFromStudents) > 0)
-    <div style="margin-top: 30px">
-        <h3> Comentarios por parte de estudiantes</h3>
-        @foreach($openAnswersFromStudents as $serviceArea)
-            <h3 style="margin-top: 25px"> <strong> {{$serviceArea->service_area_name}}</strong></h3>
-            @foreach($serviceArea->groups as $group)
-                <p><span style="margin-left: 20px; font-weight: bold"> {{$group->group_name}} - Grupo {{$group->group_number}}</span></p>
-                @foreach($group->answers as $groupAnswer)
-                    <p> <span style=" margin-left: 40px; "> - {{$groupAnswer}}</span></p>
+            @foreach($question->groups as $group)
+                <p><span style="font-weight: bold "> {{$group->group_name}} - Grupo {{$group->group_number}}</span></p>
+                @foreach($group->answers as $answer)
+                    <p>- {{$answer}} </p>
                 @endforeach
             @endforeach
-        @endforeach
+            </div>
+    @endforeach
     </div>
 @endif
---}}
+
 
 <h5 style="margin-top: 100px" > Reporte generado en: {{$timestamp}}</h5>
 </body>
@@ -141,7 +136,7 @@
 
 <script>
     window.addEventListener('load', function (){
-        window.print();
+            window.print();
     })
 </script>
 

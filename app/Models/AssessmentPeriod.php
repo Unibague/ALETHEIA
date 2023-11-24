@@ -156,4 +156,25 @@ class AssessmentPeriod extends Model
     }
 
 
+    public static function getAllAssessmentPeriodsAsArray(){
+       $assessmentPeriods = self::all();
+       return array_unique(array_column($assessmentPeriods->toArray(), 'id'));
+    }
+
+    public static function getConcatenatedUnits($units){
+        $assessmentPeriods = self::getAllAssessmentPeriodsAsArray();
+        $finalUnits = [];
+
+        foreach ($assessmentPeriods as $assessmentPeriod){
+            foreach ($units as $unit){
+                $concatenado = $unit . '-' . $assessmentPeriod;
+                $finalUnits[] = $concatenado;
+            }
+        }
+        return $finalUnits;
+    }
+
+
+
+
 }

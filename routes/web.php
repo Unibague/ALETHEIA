@@ -145,8 +145,9 @@ Route::get('/reports/showServiceAreaGroup', [\App\Http\Controllers\ReportsContro
 Route::get('/reports/chart/{chartInfo}/teacher/{teacherResults}/downloadPdf', [\App\Http\Controllers\ReportsController::class, 'downloadPDF'])->middleware(['auth'])->name('reports.index.downloadPdf');
 Route::get('/reports/serviceArea/chart/{chartInfo}/teacher/{teacherResults}/downloadPdf', [\App\Http\Controllers\ReportsController::class, 'downloadServiceAreaPDF'])->middleware(['auth'])->name('reports.serviceArea.index.downloadPdf');
 
-Route::post('/reports/360Assessment/downloadPdf', [\App\Http\Controllers\ReportsController::class, 'download360'])->middleware(['auth'])->name('reports.savePDFF');
-Route::post('/reports/serviceAreasAssessment/downloadPdf', [\App\Http\Controllers\ReportsController::class, 'downloadServiceAreasAssessment'])->middleware(['auth'])->name('reports.serviceAreas.savePDF');
+Route::post('/reports/360Assessment/downloadPdf', [\App\Http\Controllers\ReportsController::class, 'download360Report'])->middleware(['auth'])->name('reports.assessment360');
+Route::post('/reports/serviceAreasAssessment/downloadPdf', [\App\Http\Controllers\ReportsController::class, 'downloadServiceAreasReport'])
+    ->middleware(['auth'])->name('reports.serviceAreas');
 
 /* >>>>>>>>>>>>>>>>>>>>>>>>Reminders routes <<<<<<<<<<<<<<<<<<<<<<<<<<<< */
 Route::inertia('/reminders', 'Reminders/Index')->middleware(['auth', 'isAdmin'])->name('reminders.index');
@@ -351,7 +352,6 @@ Route::get('/fulfillServiceAreasResultsTable', function () {
 
 Route::get('/testReport', function () {
 
-
     $activeAssessmentPeriodId = \App\Models\AssessmentPeriod::getActiveAssessmentPeriod()->id;
 
     $teachers = DB::table('form_answers as fa')->select(['fa.teacher_id'])->join('forms as f', 'fa.form_id', '=', 'f.id')
@@ -375,6 +375,7 @@ Route::get('/testReport', function () {
 
             $uniqueGroupsId = array_column($groupsFromTeacher, 'group_id');
             $uniqueGroupsId = array_unique($uniqueGroupsId);
+
 
             foreach ($uniqueGroupsId as $uniqueGroupId) {
                 $final_first_competence_average = 0;
@@ -406,8 +407,17 @@ Route::get('/testReport', function () {
                     ->where('fa.assessment_period_id', '=', $activeAssessmentPeriodId)
                     ->where('fa.group_id', '=', $uniqueGroupId)->get()->toArray();
 
+//                $studentsAmount = count(DB::table('group_user as gu')->where('gu.group_id', '=', $uniqueGroupId)
+//                    ->where('has_answer','=', 1)
+//                    ->get());
+
+
+
                 $studentsAmount = count($answersFromGroup);
 
+//                if($uniqueGroupId ===11553){
+//                    dd($studentsAmount, $answersFromGroup);
+//                }
                 foreach ($answersFromGroup as $key => $answerFromGroup) {
 
                     $final_first_competence_average += $answerFromGroup->first_competence_average;
@@ -447,8 +457,9 @@ Route::get('/testReport', function () {
             }
         }
 
+
         //Now, we are going to calculate the final results on groups for teachers on 360 assessment, this is, only taking into account groups with hour_type = normal
-        $finalResultsFromTeachersOnGroups = DB::table('group_results as gr')->select(['gr.teacher_id'])->where('hour_type', '=', 'normal')
+        $finalResultsFromTeachersOnGroups = DB::table('group_results as gr')->select(['gr.teacher_id'])
             ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->get()->toArray();
 
         $uniqueTeachers = array_column($finalResultsFromTeachersOnGroups, 'teacher_id');
@@ -458,7 +469,7 @@ Route::get('/testReport', function () {
         foreach ($uniqueTeachers as $uniqueTeacher){
 
             $finalResultsFromTeacherOnGroups = DB::table('group_results as gr')->where('teacher_id', '=', $uniqueTeacher)
-                ->where('hour_type', '=', 'normal')->where('assessment_period_id', '=', $activeAssessmentPeriodId)->get();
+                ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->get();
 
             $groupsAmount = count($finalResultsFromTeacherOnGroups);
 
@@ -652,9 +663,7 @@ Route::get('/testReport', function () {
                 ->where('teacher_id', '=', $uniqueTeacherId)->where('assessment_period_id', '=', $activeAssessmentPeriodId)->get()->first();
 
             $studentsAnswers->unit_role = "estudiante";
-
             $peerBossAutoAssessmentAnswers [] = $studentsAnswers;
-
             $allAssessments = $peerBossAutoAssessmentAnswers;
 
             foreach ($allAssessments as $assessment){
@@ -667,7 +676,6 @@ Route::get('/testReport', function () {
                     $fifthCompetenceTotal += $assessment->fifth_competence_average*$peerPercentage;
                     $sixthCompetenceTotal += $assessment->sixth_competence_average*$peerPercentage;
                 }
-
 
                 if($assessment->unit_role === "jefe"){
                     $firstCompetenceTotal += $assessment->first_competence_average*$bossPercentage;
@@ -703,6 +711,7 @@ Route::get('/testReport', function () {
                 }
 
             }
+
 
             $firstCompetenceTotal = number_format($firstCompetenceTotal, 1);
             $secondCompetenceTotal = number_format($secondCompetenceTotal, 1);

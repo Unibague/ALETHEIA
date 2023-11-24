@@ -13,11 +13,7 @@ class Reports extends Model
 {
     use HasFactory;
 
-
     public static function downloadPDF($teacherRolesAssessments){
-
-
-
 
     }
 
@@ -27,8 +23,5 @@ class Reports extends Model
 
         return Inertia::render('Reports/Ingenieria', ['token' => $token]);
     }
-
-
-
 
 }

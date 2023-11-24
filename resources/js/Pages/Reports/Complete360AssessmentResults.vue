@@ -97,6 +97,7 @@
                 <v-data-table
                     :search="search"
                     loading-text="Cargando, por favor espere..."
+                    :no-data-text="noDataText"
                     :loading="isLoading"
                     :headers="headers"
                     :items="filteredItems"
@@ -189,25 +190,40 @@
                 persistent
             >
                 <v-card>
-                    <v-card-text>
-                        <h2 class="black--text pt-5" style="text-align: center"> Visualizando comentarios hacia el
-                            docente: {{ this.capitalize(this.selectedTeacherOpenAnswers) }}</h2>
-                        <h3 class="black--text pt-5"> PREGUNTA:  {{openAnswersStudents[0] == null ? '' : openAnswersStudents[0].question}}</h3>
+                    <v-card-text v-if="openAnswersColleagues.length > 0 || openAnswersStudents.length > 0">
+                            <h2 class="black--text pt-5" style="text-align: center"> Visualizando comentarios hacia el docente: {{ this.capitalize(this.selectedTeacherOpenAnswers) }}</h2>
 
-                        <div v-if="openAnswersColleagues.length > 0">
-                        <h3 class="black--text pt-5"> Comentarios por parte de profesores:</h3>
-                        <div v-for="colleagueAnswer in openAnswersColleagues" class="mt-3" >
-                            <h4> {{colleagueAnswer.name}} ({{colleagueAnswer.unit_role}}): {{ colleagueAnswer.answer }}</h4>
-                        </div>
-                        </div>
+                            <div v-if="openAnswersStudents.length > 0">
+                                <div v-for="studentAnswer in openAnswersStudents" class="mt-3">
+                                    <h3 class="black--text pt-5"> PREGUNTA:  {{studentAnswer.question_name}}</h3>
+                                    <div v-for="group in studentAnswer.groups" class="mt-3">
+                                        <h3 class="black--text pt-5"> {{group.group_name}} - Grupo {{group.group_number}}</h3>
+                                        <div v-for="studentGroupAnswer in group.answers" class="mt-3">
+                                            <h4>- {{studentGroupAnswer}}</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
-                        <div v-if="openAnswersStudents.length > 0">
-                        <h3 class="black--text pt-5 mt-4"> Comentarios por parte de estudiantes:</h3>
-                        <div v-for="studentAnswer in openAnswersStudents" class="mt-3">
-                            <h4> {{ studentAnswer.answer }}</h4>
-                        </div>
-                        </div>
+                            <div v-if="openAnswersColleagues.length > 0">
+                                <h3 class="black--text pt-5"> Comentarios por parte de profesores:</h3>
+                                <div v-for="question in openAnswersColleagues" class="mt-3">
+                                    <h4 class="black--text pt-3"> Pregunta: </h4>
+                                    <h4 style="font-weight: bold">{{question.question_name}}</h4>
+                                    <div style="margin-left: 20px">
+                                        <div v-for="person in question.answers" class="mt-3">
+                                            <h4 class="black--text"> {{person.name}} - ({{person.unit_role}}): </h4>
+                                            <div v-for="answer in person.answers" class="mt-3">
+                                                <h4> {{answer}}</h4>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                    </v-card-text>
 
+                    <v-card-text v-else>
+                        <h2 class="black--text pt-5" style="text-align: center"> No hay comentarios disponibles para este docente</h2>
                     </v-card-text>
 
                     <v-card-actions>
@@ -234,7 +250,7 @@
                 Ahora serás redirigido a la pantalla para guardar el PDF
             </template>
 
-            Una vez allí, lo único que debes hacer es darle click al botón de <strong class="black--text"> Guardar </strong> en la parte inferior derecha de tu pantalla y tendrás el archivo
+            Una vez allí, lo único que debes hacer es darle click al botón de <strong class="black--text"> Guardar </strong> en la parte inferior derecha de tu pantal.la
 
             <template v-slot:confirm-button-text>
                 Descargar PDF
@@ -292,6 +308,7 @@ export default {
             unit: '',
             units:[],
             teacher: '',
+            selectedTeacher: '',
             teachers:[],
             selectedTeacherToGraph: '',
             selectedTeacherOpenAnswers: '',
@@ -321,11 +338,13 @@ export default {
             showOpenAnswersDialog: false,
             isLoading: true,
             individualView: true,
+            noDataText: 'Para comenzar, selecciona un periodo de evaluación y la unidad que deseas visualizar'
         }
     },
 
     props: {
         propsUnits: Array,
+        assessmentPeriodsArray: Array,
         token: String
     },
 
@@ -351,6 +370,7 @@ export default {
             if (this.propsUnits === undefined){
                 this.individualView = false;
             }
+            console.log(this.propsUnits);
         },
 
         getAssessmentPeriods: async function () {
@@ -445,9 +465,10 @@ export default {
         },
 
         getOpenAnswersFromStudents: async function (teacherId){
-            let url = route('formAnswers.teachers.openAnswersStudents', {assessmentPeriodId: this.assessmentPeriod, normalHourType: 'yes'});
+            let url = route('formAnswers.teachers.openAnswersStudents', {assessmentPeriodId: this.assessmentPeriod});
             let request = await axios.post(url, {teacherId: teacherId});
             this.openAnswersStudents = request.data;
+            console.log(this.openAnswersStudents);
         },
 
         getOpenAnswersFromColleagues: async function (teacherId){
@@ -455,6 +476,65 @@ export default {
             let request = await axios.post(url, {teacherId: teacherId});
             this.openAnswersColleagues = request.data;
             console.log(this.openAnswersColleagues, 'respuestas de colegas');
+        },
+
+
+        async setDialogToShowChart(teacher){
+            this.showChartDialog = true
+            this.selectedTeacher = teacher;
+            await this.getResponseIdealsDataset(teacher);
+            this.getRolesDatasets(teacher);
+            this.getGraph();
+            this.getChartAsObject()
+        },
+
+        async setDialogToShowOpenAnswers(teacher){
+            this.selectedTeacherOpenAnswers = teacher.name;
+            this.showOpenAnswersDialog = true
+            if(teacher.unit_role === 'estudiante'){
+                await this.getOpenAnswersFromStudents(teacher.teacherId)
+            }
+            else{
+                await this.getOpenAnswersFromColleagues(teacher.teacherId);
+            }
+        },
+
+        async savePDF(){
+            this.confirmSavePDF = false;
+            this.datasets.forEach(dataset =>{
+                dataset.fill = {target: 'origin',
+                    above: 'rgb(255, 255, 255)',
+                    below: 'rgb(255, 255, 255)'}
+            })
+            console.log(this.selectedTeacher);
+            var winName='MyWindow';
+            var winURL= route('reports.assessment360');
+            var windowOption='resizable=yes,height=600,width=800,location=0,menubar=0,scrollbars=1';
+            var params = { _token: this.token,
+                chart: JSON.stringify(this.getChartAsObject()),
+                teacherResults: JSON.stringify(this.filteredItems),
+                teacherId: this.selectedTeacher.teacherId,
+                assessmentPeriodId: this.assessmentPeriod
+            };
+
+            var form = document.createElement("form");
+            form.setAttribute("method", "post");
+            form.setAttribute("action", winURL);
+            form.setAttribute("target",winName);
+            for (var i in params) {
+                if (params.hasOwnProperty(i)) {
+                    var input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = i;
+                    input.value = params[i];
+                    form.appendChild(input);
+                }
+            }
+            document.body.appendChild(form);
+            window.open('', winName, windowOption);
+            form.target = winName;
+            form.submit();
+            document.body.removeChild(form);
         },
 
         getRoles (){
@@ -469,10 +549,6 @@ export default {
         sortArrayAlphabetically(array){
             return array.sort( (p1, p2) =>
                 (p1.name > p2.name) ? 1 : (p1.name > p2.name) ? -1 : 0);
-        },
-
-        async filterByAssessmentPeriod(){
-
         },
 
         getFilteredAssessmentsByUnit(assessments = null) {
@@ -502,26 +578,6 @@ export default {
                 assessments = this.assessments;
             }
             return this.matchProperty(assessments, 'unit_role', this.role)
-        },
-
-        async setDialogToShowChart(teacher){
-            this.showChartDialog = true
-            await this.getResponseIdealsDataset(teacher);
-            this.getRolesDatasets(teacher);
-            this.getGraph();
-            this.getChartAsObject()
-        },
-
-        async setDialogToShowOpenAnswers(teacher){
-            this.selectedTeacherOpenAnswers = teacher.name;
-            console.log(teacher, 'INFORMACION DE ESTA FILA');
-            this.showOpenAnswersDialog = true
-            if(teacher.unit_role === 'estudiante'){
-                await this.getOpenAnswersFromStudents(teacher.teacherId)
-            }
-            else{
-                await this.getOpenAnswersFromColleagues(teacher.teacherId);
-            }
         },
 
         fillCompetencesArray(roleArray) {
@@ -661,7 +717,6 @@ export default {
         },
 
         orderData(a,b){
-
             if ( a.name < b.name ){
                 return -1;
             }
@@ -722,44 +777,6 @@ export default {
                 tempLink.setAttribute('download', 'ResultadosEvaluaciónDocente360.csv');
                 tempLink.click();
 
-        },
-
-        async savePDF(){
-            this.confirmSavePDF = false;
-
-            this.datasets.forEach(dataset =>{
-                dataset.fill = {target: 'origin',
-                    above: 'rgb(255, 255, 255)',
-                    below: 'rgb(255, 255, 255)'}
-            })
-
-            var winName='MyWindow';
-            var winURL= route('reports.savePDFF');
-            var windowOption='resizable=yes,height=600,width=800,location=0,menubar=0,scrollbars=1';
-            var params = { _token: this.token,
-                chart: JSON.stringify(this.getChartAsObject()),
-                teacherResults: JSON.stringify(this.filteredItems),
-                assessmentPeriodId: this.assessmentPeriod
-            };
-
-            var form = document.createElement("form");
-            form.setAttribute("method", "post");
-            form.setAttribute("action", winURL);
-            form.setAttribute("target",winName);
-            for (var i in params) {
-                if (params.hasOwnProperty(i)) {
-                    var input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = i;
-                    input.value = params[i];
-                    form.appendChild(input);
-                }
-            }
-            document.body.appendChild(form);
-            window.open('', winName, windowOption);
-            form.target = winName;
-            form.submit();
-            document.body.removeChild(form);
         },
 
         getGraph(){
