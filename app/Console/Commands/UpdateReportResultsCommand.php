@@ -57,7 +57,6 @@ class UpdateReportResultsCommand extends Command
             $uniqueTeachers = array_unique($uniqueTeachers);
 
             foreach ($uniqueTeachers as $uniqueTeacher) {
-
                 $groupsFromTeacher = DB::table('form_answers as fa')->select(['fa.group_id'])
                     ->join('forms as f', 'fa.form_id', '=', 'f.id')->join('groups', 'fa.group_id', '=', 'groups.group_id')
                     ->where('f.type', '=', 'estudiantes')->where('fa.teacher_id', '=', $uniqueTeacher)
@@ -97,6 +96,8 @@ class UpdateReportResultsCommand extends Command
                         ->where('f.type', '=', 'estudiantes')->where('fa.teacher_id', '=', $uniqueTeacher)
                         ->where('fa.assessment_period_id', '=', $activeAssessmentPeriodId)
                         ->where('fa.group_id', '=', $uniqueGroupId)->get()->toArray();
+
+
 
                     $studentsAmount = count($answersFromGroup);
 

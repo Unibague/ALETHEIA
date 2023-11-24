@@ -188,14 +188,24 @@
                 persistent
             >
                 <v-card>
-                    <v-card-text>
+                    <v-card-text v-if="openAnswersStudents.length >0">
                         <h2 class="black--text pt-5" style="text-align: center"> Visualizando comentarios hacia el docente: {{ this.capitalize(this.selectedTeacherOpenAnswers) }}</h2>
-                        <h3 class="black--text pt-5"> PREGUNTA:  {{openAnswersStudents[0] == null ? '' : openAnswersStudents[0].question}}</h3>
-                        <h3 class="black--text pt-5 mt-4"> Comentarios por parte de estudiantes:</h3>
-                        <div v-for="studentAnswer in openAnswersStudents" class="mt-3">
-                            <h4> {{ studentAnswer.answer }}</h4>
+                        <div v-for="question in openAnswersStudents" class="mt-3">
+                            <h4 class="black--text pt-5"> Área de servicio:  {{question.service_area_name}}</h4>
+                            <h3 class="black--text pt-5 ml-2"> PREGUNTA:  {{question.question_name}}</h3>
+                            <div v-for="group in question.groups" class="mt-3">
+                                <h3 class="black--text pt-5 ml-4"> {{group.group_name}} - Grupo {{group.group_number}}</h3>
+                                <div v-for="answer in group.answers" class="mt-3">
+                                    <h4 class="ml-7">- {{answer}}</h4>
+                                </div>
+                            </div>
                         </div>
                     </v-card-text>
+
+                    <v-card-text v-else>
+                        <h2 class="black--text pt-5" style="text-align: center"> No hay comentarios disponibles para el área de servicio de este docente</h2>
+                    </v-card-text>
+
                     <v-card-actions>
                         <v-btn
                             color="primario"
@@ -381,15 +391,27 @@
             >
                 <v-card>
                     <v-card-text v-if="openAnswersStudents.length >0">
-                        <h2 class="black--text pt-5" style="text-align: center"> Visualizando comentarios hacia el docente:
-                            {{ this.capitalize(this.selectedTeacherOpenAnswers)}}</h2>
-                        <h2 class="black--text pt-3 pb-4" style="text-align: center">{{this.selectedGroupNameOpenAnswers}} - Grupo: {{this.selectedGroupNumberOpenAnswers}}</h2>
-                        <h3 class="black--text pt-5"> PREGUNTA:  {{openAnswersStudents[0] == null ? '' : openAnswersStudents[0].question}}</h3>
-                        <h3 class="black--text pt-5 mt-4"> Comentarios por parte de estudiantes:</h3>
-                        <div v-for="studentAnswer in openAnswersStudents" class="mt-3">
-                            <h4> {{ studentAnswer.answer }}</h4>
+                        <h2 class="black--text pt-5" style="text-align: center"> Visualizando comentarios hacia el docente: {{ this.capitalize(this.selectedTeacherOpenAnswers) }}</h2>
+                        <div v-for="question in openAnswersStudents" class="mt-3">
+                            <h4 class="black--text pt-5"> Área de servicio:  {{question.service_area_name}}</h4>
+                            <h3 class="black--text pt-5 ml-2"> PREGUNTA:  {{question.question_name}}</h3>
+                            <div v-for="group in question.groups" class="mt-3">
+                                <h3 class="black--text pt-5 ml-4"> {{group.group_name}} - Grupo {{group.group_number}}</h3>
+                                <div v-for="answer in group.answers" class="mt-3">
+                                    <h4 class="ml-7">- {{answer}}</h4>
+                                </div>
+                            </div>
                         </div>
 
+
+<!--                        <h2 class="black&#45;&#45;text pt-5" style="text-align: center"> Visualizando comentarios hacia el docente:
+                            {{ this.capitalize(this.selectedTeacherOpenAnswers)}}</h2>
+                        <h2 class="black&#45;&#45;text pt-3 pb-4" style="text-align: center">{{this.selectedGroupNameOpenAnswers}} - Grupo: {{this.selectedGroupNumberOpenAnswers}}</h2>
+                        <h3 class="black&#45;&#45;text pt-5"> PREGUNTA:  {{openAnswersStudents[0] == null ? '' : openAnswersStudents[0].question}}</h3>
+                        <h3 class="black&#45;&#45;text pt-5 mt-4"> Comentarios por parte de estudiantes:</h3>
+                        <div v-for="studentAnswer in openAnswersStudents" class="mt-3">
+                            <h4> {{ studentAnswer.answer }}</h4>
+                        </div>-->
                     </v-card-text>
 
                     <v-card-text v-else>
@@ -495,6 +517,7 @@ export default {
             serviceArea: '',
             serviceAreas:[],
             teacher: '',
+            selectedTeacher: '',
             teachers:[],
             selectedTeacherToGraph: '',
             dataToGraph: [],
@@ -663,6 +686,55 @@ export default {
             await this.getOpenAnswersFromStudentsFromGroup(teacher.teacherId, teacher.service_area_code, teacher.group_id);
         },
 
+        async setDialogToShowChart(teacher){
+            this.showChartDialog = true
+            console.log(teacher, 'jefjewfjefj')
+            this.selectedTeacher = teacher;
+            await this.getResponseIdealsDataset(teacher);
+            this.getServiceAreasDatasets(teacher);
+            this.getGraph();
+        },
+
+        async savePDF(){
+            this.confirmSavePDF = false;
+            this.datasets.forEach(dataset =>{
+                dataset.fill = {target: 'origin',
+                    above: 'rgb(255, 255, 255)',
+                    below: 'rgb(255, 255, 255)'}
+            })
+
+            var winName='MyWindow';
+            var winURL= route('reports.serviceAreas');
+            var windowOption='resizable=yes,height=600,width=800,location=0,menubar=0,scrollbars=1';
+            var params = { _token: this.token,
+                chart: JSON.stringify(this.getChartAsObject()),
+                teacherResults: JSON.stringify(this.filteredItems),
+                teacherId: this.selectedTeacher.teacherId,
+                assessmentPeriodId: this.assessmentPeriod
+            };
+
+            var form = document.createElement("form");
+            form.setAttribute("method", "post");
+            form.setAttribute("action", winURL);
+            form.setAttribute("target",winName);
+            for (var i in params) {
+                if (params.hasOwnProperty(i)) {
+                    var input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = i;
+                    input.value = params[i];
+                    form.appendChild(input);
+                }
+            }
+            document.body.appendChild(form);
+            window.open('', winName, windowOption);
+            form.target = winName;
+            form.submit();
+            document.body.removeChild(form);
+        },
+
+
+
         capitalize($field){
             return $field.toLowerCase().split(' ').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
         },
@@ -697,20 +769,11 @@ export default {
         },
 
 
-        async setDialogToShowChart(teacher){
-            this.showChartDialog = true
-            console.log(teacher, 'jefjewfjefj')
-            await this.getResponseIdealsDataset(teacher);
-            this.getServiceAreasDatasets(teacher);
-            this.getGraph();
-        },
 
         fillCompetencesArray(roleArray) {
-
             let array = [roleArray.first_competence_average, roleArray.second_competence_average, roleArray.third_competence_average,
                 roleArray.fourth_competence_average, roleArray.fifth_competence_average, roleArray.sixth_competence_average]
             return array;
-
         },
 
         getTeachingLadderNameByParameter: async function (teachingLadderCode){
@@ -883,44 +946,6 @@ export default {
         },
 
 
-        async savePDF(){
-            this.confirmSavePDF = false;
-            this.datasets.forEach(dataset =>{
-
-                dataset.fill = {target: 'origin',
-                    above: 'rgb(255, 255, 255)',
-                    below: 'rgb(255, 255, 255)'}
-            })
-
-            var winName='MyWindow';
-            var winURL= route('reports.serviceAreas.savePDF');
-            var windowOption='resizable=yes,height=600,width=800,location=0,menubar=0,scrollbars=1';
-            var params = { _token: this.token,
-                chart: JSON.stringify(this.getChartAsObject()),
-                teacherResults: JSON.stringify(this.filteredItems),
-                assessmentPeriodId: this.assessmentPeriod
-            };
-
-            var form = document.createElement("form");
-            form.setAttribute("method", "post");
-            form.setAttribute("action", winURL);
-            form.setAttribute("target",winName);
-            for (var i in params) {
-                if (params.hasOwnProperty(i)) {
-                    var input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = i;
-                    input.value = params[i];
-                    form.appendChild(input);
-                }
-            }
-            document.body.appendChild(form);
-            window.open('', winName, windowOption);
-            form.target = winName;
-            form.submit();
-            document.body.removeChild(form);
-        },
-
 
         getGraph(){
 
@@ -991,7 +1016,6 @@ export default {
 
 
         getChartAsObject(){
-
             return this.chart.config._config;
         },
 

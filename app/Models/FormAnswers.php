@@ -119,10 +119,6 @@ class FormAnswers extends Model
         $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
         $teacherRoleId = Role::getTeacherRoleId();
 
-        /*      'tsp.first_final_aggregate_competence_average',
-                      'tsp.second_final_aggregate_competence_average', 'tsp.third_final_aggregate_competence_average', 'tsp.fourth_final_aggregate_competence_average',
-                      'tsp.fifth_final_aggregate_competence_average', 'tsp.sixth_final_aggregate_competence_average'*/
-
         if ($assessmentPeriodId === null){
             $assessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
         }
@@ -142,8 +138,6 @@ class FormAnswers extends Model
             ->where('v2_units.assessment_period_id', '=', $assessmentPeriodId)
             ->where('tsp.assessment_period_id', '=', $assessmentPeriodId)
             ->get();
-
-
     }
 
     public static function getFinalGradesFromTeachers(int $assessmentPeriodId = null): \Illuminate\Support\Collection
@@ -170,18 +164,16 @@ class FormAnswers extends Model
     }
 
 
-    public static function getOpenAnswersFromStudents($teacherId, $serviceArea, int $assessmentPeriodId = null, $normalHourType)
+    public static function getOpenAnswersFromStudentsView($teacherId, $serviceArea, int $assessmentPeriodId = null)
     {
         $openAnswersFromStudents = [];
 
         if ($assessmentPeriodId === null){
             $assessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
         }
-
 //        dd($normalHourType);
-
         if($serviceArea !== null){
-            $answersFromStudents = DB::table('form_answers as fa')->select(['answers'])->where('fa.teacher_id', '=', $teacherId)
+            $answersFromStudents = DB::table('form_answers as fa')->select(['fa.answers', 'groups.name', 'groups.group', 'groups.group_id'])->where('fa.teacher_id', '=', $teacherId)
                 ->join('forms', 'fa.form_id','=', 'forms.id')->where('forms.type', '=', 'estudiantes')
                 ->join('groups', 'groups.group_id', '=', 'fa.group_id')
                 ->join('service_areas as sa', 'groups.service_area_code', '=', 'sa.code')
@@ -190,37 +182,122 @@ class FormAnswers extends Model
         }
 
         else{
-
-            if ($normalHourType){
-                $answersFromStudents = DB::table('form_answers as fa')->select(['answers'])->where('fa.teacher_id', '=', $teacherId)
-                    ->join('forms', 'fa.form_id','=', 'forms.id')->join('groups as g', 'g.group_id', '=', 'fa.group_id')
-                    ->where('g.hour_type', '=', 'normal')
-                    ->where('forms.type', '=', 'estudiantes')
-                    ->where('fa.assessment_period_id', '=', $assessmentPeriodId)->get();
-            }
-
-            else{
-                $answersFromStudents = DB::table('form_answers as fa')->select(['answers'])->where('fa.teacher_id', '=', $teacherId)
-                    ->join('forms', 'fa.form_id','=', 'forms.id')->where('forms.type', '=', 'estudiantes')
-                    ->where('fa.assessment_period_id', '=', $assessmentPeriodId)->get();
-            }
+            $answersFromStudents = DB::table('form_answers as fa')->select(['fa.answers','g.name', 'g.group', 'g.group_id'])->where('fa.teacher_id', '=', $teacherId)
+                ->join('forms', 'fa.form_id','=', 'forms.id')
+                ->join('groups as g', 'g.group_id', '=', 'fa.group_id')->where('forms.type', '=', 'estudiantes')
+                ->where('fa.assessment_period_id', '=', $assessmentPeriodId)->get();
         }
 
         foreach ($answersFromStudents as $answerFromStudent){
-            $answerFromStudent = $answerFromStudent->answers;
-            $allAnswers = json_decode($answerFromStudent);
+            $openAnswerFromStudent = $answerFromStudent->answers;
+            $allAnswers = json_decode($openAnswerFromStudent);
             foreach ($allAnswers as $singleAnswer){
-                if($singleAnswer->type == 'abierta'){
+//                && $singleAnswer->answer !== "." && $singleAnswer->answer !== "No" && $singleAnswer->answer !== "Ninguna"
+                if($singleAnswer->type == 'abierta' && !in_array($singleAnswer->answer, $openAnswersFromStudents, true ) ){
                     $openAnswersFromStudents [] = (object)[
                         'question' => $singleAnswer->name,
-                        'answer' => $singleAnswer->answer];
+                        'answer' => $singleAnswer->answer,
+                        'group_name' => $answerFromStudent->name,
+                        'group_number' => $answerFromStudent->group,
+                    ];
+                }
+            }
+        }
+
+        return $openAnswersFromStudents;
+    }
+
+    public static function getOpenAnswersFromStudentsFromGroupView($teacherId, $serviceArea, $groupId, int $assessmentPeriodId = null)
+    {
+        $openAnswersFromStudents = [];
+
+        if ($assessmentPeriodId === null){
+            $assessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        }
+
+        if($serviceArea !== null) {
+            $answersFromStudents = DB::table('form_answers as fa')->select(['answers'])->where('fa.teacher_id', '=', $teacherId)
+                ->where('fa.group_id', '=', $groupId)->join('forms', 'fa.form_id', '=', 'forms.id')->where('forms.type', '=', 'estudiantes')
+                ->join('groups', 'groups.group_id', '=', 'fa.group_id')
+                ->join('service_areas as sa', 'groups.service_area_code', '=', 'sa.code')
+                ->where('sa.assessment_period_id', '=', $assessmentPeriodId)
+                ->where('fa.assessment_period_id', '=', $assessmentPeriodId)->where('sa.code', '=', $serviceArea)->get();
+        }
+        else{
+            $answersFromStudents = DB::table('form_answers as fa')->select(['answers'])->where('fa.teacher_id', '=', $teacherId)
+                ->where('fa.teacher_id', '=', $teacherId)->where('fa.group_id', '=', $groupId)
+                ->join('forms', 'fa.form_id', '=', 'forms.id')->where('forms.type', '=', 'estudiantes')
+                ->where('fa.assessment_period_id', '=', $assessmentPeriodId)->get();
+        }
+
+        foreach ($answersFromStudents as $answerFromStudent) {
+            $answerFromStudent = $answerFromStudent->answers;
+            $allAnswers = json_decode($answerFromStudent);
+            foreach ($allAnswers as $singleAnswer) {
+                if (isset($singleAnswer->type)) {
+                    if ($singleAnswer->type == 'abierta' && !in_array($singleAnswer->answer, $openAnswersFromStudents, true )) {
+                        $openAnswersFromStudents [] = (object)[
+                            'question' => $singleAnswer->name,
+                            'answer' => $singleAnswer->answer];
+                    }
+                }
+            }
+        }
+        return $openAnswersFromStudents;
+    }
+
+
+    public static function getOpenAnswersFromColleagues($teacherId, int $assessmentPeriodId = null)
+    {
+
+        if ($assessmentPeriodId === null){
+            $assessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        }
+        $answersFromColleagues = DB::table('form_answers as fa')->select(['fa.answers', 'forms.unit_role', 'users.name as colleague_name'])
+            ->where('fa.teacher_id', '=', $teacherId)
+            ->join('forms', 'fa.form_id', '=', 'forms.id')->where('forms.type', '=', 'otros')
+            ->join('users', 'users.id', '=', 'fa.user_id')
+            ->where('fa.assessment_period_id', '=', $assessmentPeriodId)->get();
+
+
+        return self::organizeColleaguesAnswers($answersFromColleagues, $teacherId, $assessmentPeriodId);
+    }
+
+    public static function getOpenAnswersFromStudents($teacherId, $serviceArea, int $assessmentPeriodId = null)
+    {
+        $openAnswersFromStudents = [];
+
+        if ($assessmentPeriodId === null){
+            $assessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        }
+//        dd($normalHourType);
+        if($serviceArea !== null){
+            $answersFromStudents = DB::table('form_answers as fa')->select(['fa.answers', 'groups.name', 'groups.group', 'groups.group_id'])->where('fa.teacher_id', '=', $teacherId)
+                ->join('forms', 'fa.form_id','=', 'forms.id')->where('forms.type', '=', 'estudiantes')
+                ->join('groups', 'groups.group_id', '=', 'fa.group_id')
+                ->join('service_areas as sa', 'groups.service_area_code', '=', 'sa.code')
+                ->where('sa.assessment_period_id', '=', $assessmentPeriodId)
+                ->where('fa.assessment_period_id', '=', $assessmentPeriodId)->where('sa.code', '=', $serviceArea)->get();
+        }
+
+       foreach ($answersFromStudents as $answerFromStudent){
+            $openAnswerFromStudent = $answerFromStudent->answers;
+            $allAnswers = json_decode($openAnswerFromStudent);
+            foreach ($allAnswers as $singleAnswer){
+//                && $singleAnswer->answer !== "." && $singleAnswer->answer !== "No" && $singleAnswer->answer !== "Ninguna"
+                if($singleAnswer->type == 'abierta' && !in_array($singleAnswer->answer, $openAnswersFromStudents, true ) ){
+                    $openAnswersFromStudents [] = (object)[
+                        'question' => $singleAnswer->name,
+                        'answer' => $singleAnswer->answer,
+                        'group_name' => $answerFromStudent->name,
+                        'group_number' => $answerFromStudent->group,
+                        ];
                 }
             }
         }
 
        return $openAnswersFromStudents;
     }
-
 
     public static function getOpenAnswersFromStudentsFromGroup($teacherId, $serviceArea, $groupId, int $assessmentPeriodId = null)
     {
@@ -240,61 +317,381 @@ class FormAnswers extends Model
                 ->where('fa.assessment_period_id', '=', $assessmentPeriodId)->where('sa.code', '=', $serviceArea)->get();
         }
         else{
-                $answersFromStudents = DB::table('form_answers as fa')->select(['answers'])->where('fa.teacher_id', '=', $teacherId)
-                    ->where('fa.teacher_id', '=', $teacherId)->where('fa.group_id', '=', $groupId)
-                    ->join('forms', 'fa.form_id', '=', 'forms.id')->where('forms.type', '=', 'estudiantes')
-                    ->where('fa.assessment_period_id', '=', $assessmentPeriodId)->get();
-            }
+            $answersFromStudents = DB::table('form_answers as fa')->select(['answers'])->where('fa.teacher_id', '=', $teacherId)
+                ->where('fa.teacher_id', '=', $teacherId)->where('fa.group_id', '=', $groupId)
+                ->join('forms', 'fa.form_id', '=', 'forms.id')->where('forms.type', '=', 'estudiantes')
+                ->where('fa.assessment_period_id', '=', $assessmentPeriodId)->get();
+        }
 
-            foreach ($answersFromStudents as $answerFromStudent) {
-                $answerFromStudent = $answerFromStudent->answers;
-                $allAnswers = json_decode($answerFromStudent);
-                foreach ($allAnswers as $singleAnswer) {
-                    if (isset($singleAnswer->type)) {
-                        if ($singleAnswer->type == 'abierta') {
-                            $openAnswersFromStudents [] = (object)[
-                                'question' => $singleAnswer->name,
-                                'answer' => $singleAnswer->answer];
-                        }
+        foreach ($answersFromStudents as $answerFromStudent) {
+            $answerFromStudent = $answerFromStudent->answers;
+            $allAnswers = json_decode($answerFromStudent);
+            foreach ($allAnswers as $singleAnswer) {
+                if (isset($singleAnswer->type)) {
+                    if ($singleAnswer->type == 'abierta' && !in_array($singleAnswer->answer, $openAnswersFromStudents, true )) {
+                        $openAnswersFromStudents [] = (object)[
+                            'question' => $singleAnswer->name,
+                            'answer' => $singleAnswer->answer];
                     }
                 }
             }
-            return $openAnswersFromStudents;
+        }
+        return $openAnswersFromStudents;
+    }
+
+
+    public static function getOpenAnswersFromStudents360Report($teacherId, int $assessmentPeriodId = null)
+    {
+        $finalDataFromTeacher = [];
+        if ($assessmentPeriodId === null){
+            $assessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
         }
 
-   public static function getOpenAnswersFromColleagues($teacherId, int $assessmentPeriodId = null)
-   {
-       $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
-       $openAnswersFromColleagues= [];
+        //Get all the answers
+        $answersFromStudents = DB::table('form_answers as fa')->select(['fa.answers', 'g.name', 'g.group', 'g.group_id'])
+            ->where('fa.teacher_id', '=', $teacherId)
+            ->where('forms.type', '=', 'estudiantes')
+            ->where('fa.assessment_period_id', '=', $assessmentPeriodId)
+            ->join('forms', 'fa.form_id','=', 'forms.id')
+            ->join('groups as g', 'g.group_id', '=', 'fa.group_id')->get()->toArray();
 
-       if ($assessmentPeriodId === null){
-           $assessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
-       }
-       $answersFromColleagues = DB::table('form_answers as fa')->select(['fa.answers', 'forms.unit_role', 'users.name as colleague_name'])->where('fa.teacher_id', '=', $teacherId)
-           ->join('forms', 'fa.form_id', '=', 'forms.id')->where('forms.type', '=', 'otros')
-           ->join('users', 'users.id', '=', 'fa.user_id')
-           ->where('fa.assessment_period_id', '=', $assessmentPeriodId)->get();
+        return self::organizeStudentsAnswers($answersFromStudents, $teacherId, $assessmentPeriodId);
+    }
 
-       foreach ($answersFromColleagues as $answerFromColleague) {
-           $roleFromColleague = $answerFromColleague->unit_role;
-           $colleagueName = $answerFromColleague->colleague_name;
-           $answerFromColleague = $answerFromColleague->answers;
-           $allAnswers = json_decode($answerFromColleague);
-           foreach ($allAnswers as $singleAnswer) {
-               if ($singleAnswer->type == 'abierta') {
 
-                   $openAnswersFromColleagues [] = (object)[
-                       'question' => $singleAnswer->name,
-                       'answer' => $singleAnswer->answer,
-                       'unit_role' => $roleFromColleague,
-                       'name' => $colleagueName];
+
+    public static function getOpenAnswersFromStudentsServiceAreasReport($teacherId, $serviceAreas, int $assessmentPeriodId = null)
+    {
+        $finalDataFromTeacher = [];
+        if ($assessmentPeriodId === null){
+            $assessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        }
+
+        $finalOpenQuestions = [];
+
+        foreach ($serviceAreas as $serviceArea) {
+            $answersFromStudents = DB::table('form_answers as fa')->select(['fa.answers', 'groups.name', 'groups.group', 'groups.group_id'])
+                ->where('fa.teacher_id', '=', $teacherId)
+                ->join('forms', 'fa.form_id','=', 'forms.id')->where('forms.type', '=', 'estudiantes')
+                ->join('groups', 'groups.group_id', '=', 'fa.group_id')
+                ->join('service_areas as sa', 'groups.service_area_code', '=', 'sa.code')
+                ->where('sa.assessment_period_id', '=', $assessmentPeriodId)
+                ->where('fa.assessment_period_id', '=', $assessmentPeriodId)->where('sa.code', '=', $serviceArea->code)->get();
+            foreach ($answersFromStudents as $answerFromStudent){
+                //Decode the answers json object and take
+                $questionsFromStudent = json_decode($answerFromStudent->answers);
+                foreach ($questionsFromStudent as $questionFromStudent){
+                    if($questionFromStudent->type === "abierta" && !in_array($questionFromStudent->name, $finalOpenQuestions, true)){
+                        $finalOpenQuestions [] = $questionFromStudent->name;
+                    }
+                }
+            }
+        }
+
+    foreach ($finalOpenQuestions as $openQuestion){
+        $finalQuestionData = new \stdClass();
+        $finalDataFromTeacherOnServiceAreas = [];
+        foreach ($serviceAreas as $serviceArea){
+            $finalDataFromServiceArea = [];
+            $answersFromStudents = DB::table('form_answers as fa')->select(['fa.answers', 'groups.name', 'groups.group', 'groups.group_id'])
+                ->where('fa.teacher_id', '=', $teacherId)
+                ->join('forms', 'fa.form_id','=', 'forms.id')->where('forms.type', '=', 'estudiantes')
+                ->join('groups', 'groups.group_id', '=', 'fa.group_id')
+                ->join('service_areas as sa', 'groups.service_area_code', '=', 'sa.code')
+                ->where('sa.assessment_period_id', '=', $assessmentPeriodId)
+                ->where('fa.assessment_period_id', '=', $assessmentPeriodId)->where('sa.code', '=', $serviceArea->code)->get();
+
+            $groupsData = self::organizeStudentsAnswersServiceArea($answersFromStudents->toArray(),$teacherId,$assessmentPeriodId, $openQuestion);
+
+            $finalDataFromServiceArea = (object)[
+                'service_area_name' => $serviceArea->name,
+                'groups'=> $groupsData
+            ];
+
+            if ($groupsData){
+                $finalDataFromTeacherOnServiceAreas [] = $finalDataFromServiceArea;
+            }
+        }
+
+        $finalQuestionData->question_name = $openQuestion;
+        $finalQuestionData->service_areas = $finalDataFromTeacherOnServiceAreas;
+        $finalDataFromTeacher [] = $finalQuestionData;
+    }
+
+//        dd($finalDataFromTeacher);
+
+        return $finalDataFromTeacher;
+    }
+
+
+    public static function getOpenAnswersFromStudentsSingleServiceAreaReport($teacherId, $serviceArea, int $assessmentPeriodId = null)
+    {
+        $finalDataFromTeacher = [];
+
+        if ($assessmentPeriodId === null){
+            $assessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        }
+
+        $serviceArea = DB::table('service_areas')->where('code', '=', $serviceArea)
+            ->where('assessment_period_id', '=', $assessmentPeriodId)->get()->first();
+
+        $finalOpenQuestions = [];
+
+            $answersFromStudents = DB::table('form_answers as fa')->select(['fa.answers', 'groups.name', 'groups.group', 'groups.group_id'])
+                ->where('fa.teacher_id', '=', $teacherId)
+                ->join('forms', 'fa.form_id','=', 'forms.id')->where('forms.type', '=', 'estudiantes')
+                ->join('groups', 'groups.group_id', '=', 'fa.group_id')
+                ->join('service_areas as sa', 'groups.service_area_code', '=', 'sa.code')
+                ->where('sa.assessment_period_id', '=', $assessmentPeriodId)
+                ->where('fa.assessment_period_id', '=', $assessmentPeriodId)->where('sa.code', '=', $serviceArea->code)->get();
+
+            foreach ($answersFromStudents as $answerFromStudent){
+                //Decode the answers json object and take
+                $questionsFromStudent = json_decode($answerFromStudent->answers);
+                foreach ($questionsFromStudent as $questionFromStudent){
+                    if($questionFromStudent->type === "abierta" && !in_array($questionFromStudent->name, $finalOpenQuestions, true)){
+                        $finalOpenQuestions [] = $questionFromStudent->name;
+                    }
+                }
+            }
+
+        foreach ($finalOpenQuestions as $openQuestion){
+            $finalQuestionData = new \stdClass();
+
+                $answersFromStudents = DB::table('form_answers as fa')->select(['fa.answers', 'groups.name', 'groups.group', 'groups.group_id'])
+                    ->where('fa.teacher_id', '=', $teacherId)
+                    ->join('forms', 'fa.form_id','=', 'forms.id')->where('forms.type', '=', 'estudiantes')
+                    ->join('groups', 'groups.group_id', '=', 'fa.group_id')
+                    ->join('service_areas as sa', 'groups.service_area_code', '=', 'sa.code')
+                    ->where('sa.assessment_period_id', '=', $assessmentPeriodId)
+                    ->where('fa.assessment_period_id', '=', $assessmentPeriodId)->where('sa.code', '=', $serviceArea->code)->get();
+
+                $groupsData = self::organizeStudentsAnswersServiceArea($answersFromStudents->toArray(),$teacherId,$assessmentPeriodId, $openQuestion);
+                $finalDataFromServiceArea = (object)[
+                    'question_name' => $openQuestion,
+                    'service_area_name' => $serviceArea->name,
+                    'groups'=> $groupsData
+                ];
+
+                if ($groupsData){
+                    $finalDataFromTeacher [] = $finalDataFromServiceArea;
+                }
+        }
+
+        return $finalDataFromTeacher;
+    }
+
+
+
+
+    public static function getOpenAnswersFromStudentsGroupsReport($teacherId, $serviceArea, $groupId, int $assessmentPeriodId = null)
+    {
+
+        $finalDataFromTeacher = [];
+
+        if ($assessmentPeriodId === null){
+            $assessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        }
+
+        $serviceArea = DB::table('service_areas')->where('code', '=', $serviceArea)
+            ->where('assessment_period_id', '=', $assessmentPeriodId)->get()->first();
+
+        $finalOpenQuestions = [];
+
+        $answersFromStudents = DB::table('form_answers as fa')->select(['fa.answers', 'groups.name', 'groups.group', 'groups.group_id'])
+            ->where('fa.teacher_id', '=', $teacherId)
+            ->join('forms', 'fa.form_id','=', 'forms.id')->where('forms.type', '=', 'estudiantes')
+            ->join('groups', 'groups.group_id', '=', 'fa.group_id')
+            ->join('service_areas as sa', 'groups.service_area_code', '=', 'sa.code')
+            ->where('groups.group_id', '=', $groupId)
+            ->where('sa.assessment_period_id', '=', $assessmentPeriodId)
+            ->where('fa.assessment_period_id', '=', $assessmentPeriodId)->where('sa.code', '=', $serviceArea->code)->get();
+
+        foreach ($answersFromStudents as $answerFromStudent){
+            //Decode the answers json object and take
+            $questionsFromStudent = json_decode($answerFromStudent->answers);
+            foreach ($questionsFromStudent as $questionFromStudent){
+                if($questionFromStudent->type === "abierta" && !in_array($questionFromStudent->name, $finalOpenQuestions, true)){
+                    $finalOpenQuestions [] = $questionFromStudent->name;
+                }
+            }
+        }
+
+        foreach ($finalOpenQuestions as $openQuestion){
+            $finalQuestionData = new \stdClass();
+
+            $answersFromStudents = DB::table('form_answers as fa')->select(['fa.answers', 'groups.name', 'groups.group', 'groups.group_id'])
+                ->where('fa.teacher_id', '=', $teacherId)
+                ->join('forms', 'fa.form_id','=', 'forms.id')->where('forms.type', '=', 'estudiantes')
+                ->join('groups', 'groups.group_id', '=', 'fa.group_id')
+                ->join('service_areas as sa', 'groups.service_area_code', '=', 'sa.code')
+                ->where('groups.group_id', '=', $groupId)
+                ->where('sa.assessment_period_id', '=', $assessmentPeriodId)
+                ->where('fa.assessment_period_id', '=', $assessmentPeriodId)->where('sa.code', '=', $serviceArea->code)->get();
+
+            $groupData = self::organizeStudentsAnswersServiceArea($answersFromStudents->toArray(),$teacherId,$assessmentPeriodId, $openQuestion);
+
+            if ($groupData){
+                $finalDataFromGroup = (object)[
+                    'question_name' => $openQuestion,
+                    'service_area_name' => $serviceArea->name,
+                    'groups'=> $groupData
+                ];
+
+                $finalDataFromTeacher [] = $finalDataFromGroup;
+            }
+        }
+
+        return $finalDataFromTeacher;
+
+    }
+
+
+   public static function organizeStudentsAnswers ($answersFromStudents, $teacherId, $assessmentPeriodId) {
+
+        $finalDataAnswers = [];
+        $finalAnswers = [];
+
+       //First let's take all the unique open questions from the forms filled by students
+        $finalOpenQuestions = [];
+        foreach ($answersFromStudents as $answerFromStudent){
+            //Decode the answers json object and take
+            $questionsFromStudent = json_decode($answerFromStudent->answers);
+            foreach ($questionsFromStudent as $questionFromStudent){
+                if($questionFromStudent->type === "abierta" && !in_array($questionFromStudent->name, $finalOpenQuestions, true)){
+                    $finalOpenQuestions [] = $questionFromStudent->name;
+                }
+            }
+        }
+
+       $groupsId =  array_unique(array_column($answersFromStudents, 'group_id'));
+       $groups = DB::table('groups as g')->whereIn('g.group_id', $groupsId)->get();
+//        dd($groups);
+
+       foreach ($finalOpenQuestions as $openQuestion){
+           foreach ($groups as $group){
+               $finalAnswersFromGroup = new \stdClass();
+               $openAnswersFromStudents = [];
+               $answersFromStudents = DB::table('form_answers as fa')->select(['fa.answers','g.name', 'g.group', 'g.group_id'])
+                   ->where('fa.teacher_id', '=', $teacherId)
+                   ->where('fa.assessment_period_id', '=', $assessmentPeriodId)
+                   ->where('g.group_id','=', $group->group_id)
+                   ->join('forms', 'fa.form_id','=', 'forms.id')
+                   ->join('groups as g', 'g.group_id', '=', 'fa.group_id')->where('forms.type', '=', 'estudiantes')->get();
+
+               foreach ($answersFromStudents as $answersFromStudent){
+                   $decodedAnswersFromStudent = json_decode($answersFromStudent->answers);
+                   foreach ($decodedAnswersFromStudent as $decodedAnswerFromStudent){
+                       if($decodedAnswerFromStudent->type === 'abierta' &&  $decodedAnswerFromStudent->name === $openQuestion
+                           &&!in_array($decodedAnswerFromStudent->answer, $openAnswersFromStudents, true)
+                           ){
+                           $openAnswersFromStudents [] = $decodedAnswerFromStudent->answer;
+                       }
+                   }
                }
+               $finalAnswersFromGroup->group_name = $group->name;
+               $finalAnswersFromGroup->group_number = $group->group;
+               $finalAnswersFromGroup->answers = $openAnswersFromStudents;
+               $finalAnswers [] = $finalAnswersFromGroup;
            }
+
+           $finalAnswersFromOpenQuestion = new \stdClass();
+           $finalAnswersFromOpenQuestion->question_name = $openQuestion;
+           $finalAnswersFromOpenQuestion->groups = $finalAnswers;
+           $finalDataAnswers [] = $finalAnswersFromOpenQuestion;
+
        }
 
-       return $openAnswersFromColleagues;
+//       dd($finalDataAnswers);
 
+       return $finalDataAnswers;
    }
+
+    public static function organizeStudentsAnswersServiceArea ($answersFromStudents, $teacherId, $assessmentPeriodId, $openQuestion) {
+
+        $groupsId =  array_unique(array_column($answersFromStudents, 'group_id'));
+        $groups = DB::table('groups as g')->whereIn('g.group_id', $groupsId)->get();
+//        dd($groups);
+        $finalAnswers = [];
+
+        foreach ($groups as $group){
+            $finalAnswersFromGroup = new \stdClass();
+            $openAnswersFromStudents = [];
+            $answersFromStudents = DB::table('form_answers as fa')->select(['fa.answers','g.name', 'g.group', 'g.group_id'])
+                ->where('fa.teacher_id', '=', $teacherId)
+                ->where('fa.assessment_period_id', '=', $assessmentPeriodId)
+                ->where('g.group_id','=', $group->group_id)
+                ->join('forms', 'fa.form_id','=', 'forms.id')
+                ->join('groups as g', 'g.group_id', '=', 'fa.group_id')->where('forms.type', '=', 'estudiantes')->get();
+
+            foreach ($answersFromStudents as $answersFromStudent){
+                $decodedAnswersFromStudent = json_decode($answersFromStudent->answers);
+//                dd($decodedAnswersFromStudent);
+                foreach ($decodedAnswersFromStudent as $decodedAnswerFromStudent){
+                    if($decodedAnswerFromStudent->type === 'abierta' &&  $decodedAnswerFromStudent->name === $openQuestion &&
+                        !in_array($decodedAnswerFromStudent->answer, $openAnswersFromStudents, true )){
+                        $openAnswersFromStudents [] = $decodedAnswerFromStudent->answer;
+                    }
+                }
+            }
+            $finalAnswersFromGroup->group_name = $group->name;
+            $finalAnswersFromGroup->group_number = $group->group;
+            $finalAnswersFromGroup->answers = $openAnswersFromStudents;
+            $finalAnswers [] = $finalAnswersFromGroup;
+        }
+
+        return $finalAnswers;
+    }
+
+
+    public static function organizeColleaguesAnswers ($answersFromColleagues, $teacherId, $assessmentPeriodId) {
+
+        $finalDataAnswers = [];
+
+        //First let's take all the unique open questions from the forms filled by teachers
+        $finalOpenQuestions = [];
+        foreach ($answersFromColleagues as $answerFromColleague){
+            //Decode the answers json object and take
+            $questionsFromColleague = json_decode($answerFromColleague->answers);
+            foreach ($questionsFromColleague as $questionFromColleague){
+                if($questionFromColleague->type === "abierta" && !in_array($questionFromColleague->name, $finalOpenQuestions, true)){
+                    $finalOpenQuestions [] = $questionFromColleague->name;
+                }
+            }
+        }
+
+        foreach ($finalOpenQuestions as $openQuestion){
+            $finalQuestionAnswers = new \stdClass();
+            $finalAnswers = [];
+            foreach ($answersFromColleagues as $answersFromColleague) {
+//                    dd($answersFromColleague);
+                $openAnswersFromColleague = [];
+                $finalAnswersFromColleague = new \stdClass();
+                $decodedAnswersFromColleague = json_decode($answersFromColleague->answers);
+                foreach ($decodedAnswersFromColleague as $decodedAnswerFromColleague) {
+                    if ($decodedAnswerFromColleague->type === 'abierta' && $decodedAnswerFromColleague->name === $openQuestion
+                        && !in_array($decodedAnswerFromColleague->answer, $openAnswersFromColleague, true)) {
+                        $openAnswersFromColleague [] = $decodedAnswerFromColleague->answer;
+                    }
+                }
+
+                if(count($openAnswersFromColleague) > 0){
+                    $finalAnswersFromColleague->answers = $openAnswersFromColleague;
+                    $finalAnswersFromColleague->unit_role= $answersFromColleague->unit_role;
+                    $finalAnswersFromColleague->name = $answersFromColleague->colleague_name;
+                    $finalAnswers [] = $finalAnswersFromColleague;
+                }
+            }
+
+            $finalQuestionAnswers->answers = $finalAnswers;
+            $finalQuestionAnswers->question_name = $openQuestion;
+            $finalDataAnswers [] = $finalQuestionAnswers;
+
+        }
+
+        return $finalDataAnswers;
+    }
+
 
     /**
      * @throws \JsonException
