@@ -23,7 +23,7 @@
         @foreach($labels as $label)
         <th scope="col">{{$label}}</th>
         @endforeach
-        <th scope="col"> Actores involucrados</th>
+        <th scope="col"> Actores que participaron</th>
         <th scope="col"> Actores totales</th>
     </tr>
     </thead>
@@ -46,14 +46,14 @@
     </tbody>
 </table>
 
-<div style="margin-top: 20px; margin-bottom: 20px">
-    <img src="https://quickchart.io/chart?c={{$chart}}" style="max-width: 80%; margin-left: 5%; margin-top: 5%" >
+<div style="margin-top: 20px; margin-bottom: 20px; width: 700px;height: 900px">
+    <img src="https://quickchart.io/chart?c={{$chart}}" style="margin-left: 5%; margin-top: 5%;" >
 </div>
 
 
-<h3> Descripción por grupos </h3>
+<p style="font-weight: bold"> Descripción por grupos </p>
 
-<table class="table" style="max-width: 85%; margin-top: 50px" >
+<table class="table" style="max-width: 85%; margin-top: 15px" >
     <thead>
     <tr>
         <th scope="col">Asignatura</th>
@@ -88,35 +88,29 @@
 
 @if(count($openAnswersFromTeachers) > 0)
     <div style="margin-top: 30px">
-    <h3> Comentarios del jefe, par y de autoevaluación</h3>
+    <p style="font-weight: bold"> Comentarios del jefe, par y de autoevaluación</p>
     @foreach($openAnswersFromTeachers as $question)
-        <h4 class="black--text pt-3"> Pregunta: </h4>
-        <h5 style="font-weight: bold">{{$question->question_name}}</h5>
+        <p class="black--text pt-2"> Pregunta: </p>
+        <p style="font-weight: bold; margin-left: 10px">{{$question->question_name}}</p>
         <div style="margin-left: 20px">
         @foreach($question->answers as $person)
-            <h4> {{$person->name}} - ({{$person->unit_role}})</h4>
+            <p style="font-weight: bold"> {{$person->name}} - ({{$person->unit_role}})</>
             @foreach($person->answers as $answer)
                 <p>{{$answer}}</p>
             @endforeach
         @endforeach
         </div>
     @endforeach
-{{--    <h3> Comentarios por parte de jefe y/o par</h3>
-    <div style="margin-top: 30px">
-    @foreach($openAnswersFromTeachers as $answer)
-        <p> <span style="font-weight: bold ">{{$answer->name}} ({{$answer->unit_role}}): </span> {{$answer->answer}}</p>
-    @endforeach
-    </div>--}}
 </div>
     @endif
 
 
 @if(count($openAnswersFromStudents) > 0)
     <div style="margin-top: 30px">
-    <h3> Comentarios de parte de Estudiantes</h3>
+    <p style="font-weight: bold"> Comentarios de Estudiantes</p>
     @foreach($openAnswersFromStudents as $question)
-            <h4 class="black--text pt-3"> Pregunta: </h4>
-            <h5 style="font-weight: bold">{{$question->question_name}}</h5>
+            <p class="black--text pt-2"> Pregunta: </p>
+            <p style="font-weight: bold; margin-left: 10px">{{$question->question_name}}</p>
             <div style="margin-left: 20px">
             @foreach($question->groups as $group)
                 <p><span style="font-weight: bold "> {{$group->group_name}} - Grupo {{$group->group_number}}</span></p>
@@ -130,7 +124,7 @@
 @endif
 
 
-<h5 style="margin-top: 100px" > Reporte generado en: {{$timestamp}}</h5>
+<h6 style="margin-top: 100px; font-weight: bold" > Reporte generado en: {{$timestamp}}</h6>
 </body>
 
 
