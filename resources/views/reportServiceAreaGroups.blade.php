@@ -8,7 +8,6 @@
 <img src="/images/whiteLogo.png"
      style="max-height: 300px; max-width:300px; object-fit: contain">
 
-
 <p  style="margin-top: 30px"> Sistema de Información para evaluación docente: <strong> ALETHEIA </strong></p>
 
 <p> Periodo de evaluación: <strong> {{$assessmentPeriodName}} </strong> </p>
@@ -26,7 +25,7 @@
         @foreach($labels as $label)
         <th scope="col">{{$label}}</th>
         @endforeach
-        <th scope="col"> Estudiantes involucrados</th>
+        <th scope="col"> Estudiantes que participaron</th>
         <th scope="col"> Estudiantes totales</th>
     </tr>
     </thead>
@@ -51,17 +50,17 @@
     </tbody>
 </table>
 
-<div style="margin-top: 20px" >
-    <img src="https://quickchart.io/chart?c={{$chart}}" style="max-width: 80%; margin-left: 5%; margin-top: 5%" >
+<div style="margin-top: 20px; width: 700px;height: 700px" >
+    <img src="https://quickchart.io/chart?c={{$chart}}" style="margin-left: 5%; margin-top: 5%" >
 </div>
 
 
 @if(count($openAnswersFromStudents) > 0)
     <div style="margin-top: 30px">
-        <h3> Comentarios de parte de Estudiantes</h3>
+        <p style="font-weight: bold; margin-top: 15px"> Comentarios de parte de Estudiantes</p>
         @foreach($openAnswersFromStudents as $question)
-            <h4 class="black--text pt-3"> Pregunta: </h4>
-            <h5 style="font-weight: bold">{{$question->question_name}}</h5>
+            <p class="black--text pt-2"> Pregunta: </p>
+            <p style="font-weight: bold">{{$question->question_name}}</p>
             <div style="margin-left: 20px">
                 @foreach($question->service_areas as $service_area)
                     <p class="pt-3">Área de Servicio: <span style="font-weight: bold;" > {{$service_area->service_area_name}} </span></p>
@@ -81,10 +80,7 @@
     </div>
 @endif
 
-
-
-<h5 style="margin-top: 100px" > Reporte generado en: {{$timestamp}}</h5>
-
+<h6 style="margin-top: 100px; font-weight: bold" > Reporte generado en: {{$timestamp}}</h6>
 
 <script>
     window.addEventListener('load', function (){

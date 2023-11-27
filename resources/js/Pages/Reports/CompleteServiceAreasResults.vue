@@ -403,15 +403,6 @@
                             </div>
                         </div>
 
-
-<!--                        <h2 class="black&#45;&#45;text pt-5" style="text-align: center"> Visualizando comentarios hacia el docente:
-                            {{ this.capitalize(this.selectedTeacherOpenAnswers)}}</h2>
-                        <h2 class="black&#45;&#45;text pt-3 pb-4" style="text-align: center">{{this.selectedGroupNameOpenAnswers}} - Grupo: {{this.selectedGroupNumberOpenAnswers}}</h2>
-                        <h3 class="black&#45;&#45;text pt-5"> PREGUNTA:  {{openAnswersStudents[0] == null ? '' : openAnswersStudents[0].question}}</h3>
-                        <h3 class="black&#45;&#45;text pt-5 mt-4"> Comentarios por parte de estudiantes:</h3>
-                        <div v-for="studentAnswer in openAnswersStudents" class="mt-3">
-                            <h4> {{ studentAnswer.answer }}</h4>
-                        </div>-->
                     </v-card-text>
 
                     <v-card-text v-else>
@@ -745,20 +736,16 @@ export default {
         },
 
         getFilteredAssessmentsByServiceArea(assessments = null) {
-
             if (assessments === null) {
                 assessments = this.assessments;
             }
-
             return assessments.filter((assessment) => {
-
                 let doesAssessmentHaveServiceArea = false;
                 if (assessment.service_area_code === this.serviceArea) {
                     doesAssessmentHaveServiceArea = true;
                 }
                 return doesAssessmentHaveServiceArea;
             });
-
         },
 
         getFilteredAssessmentsByTeacher(assessments = null) {
@@ -768,8 +755,6 @@ export default {
             return this.matchProperty(assessments, 'teacherId', this.teacher)
         },
 
-
-
         fillCompetencesArray(roleArray) {
             let array = [roleArray.first_competence_average, roleArray.second_competence_average, roleArray.third_competence_average,
                 roleArray.fourth_competence_average, roleArray.fifth_competence_average, roleArray.sixth_competence_average]
@@ -777,7 +762,6 @@ export default {
         },
 
         getTeachingLadderNameByParameter: async function (teachingLadderCode){
-
             let request = await axios.get(route('api.assessmentPeriods.teachingLadders'));
             let teachingLadders = request.data
             teachingLadders.forEach(teachingLadder =>{
@@ -843,9 +827,7 @@ export default {
             console.log(teacherServiceAreaArray, 'array of serviceareas');
 
             if (this.resultsPerGroup == false){
-
                 teacherServiceAreaArray.forEach((serviceArea, index) => {
-
                     this.datasets.push({
                         label: this.capitalize(serviceArea.service_area_name),
                         data: this.fillCompetencesArray(serviceArea),
@@ -853,9 +835,7 @@ export default {
                         borderColor: colorsArray[index],
                         borderWidth: 3
                     })
-
                 })
-
             }
 
             else{
@@ -974,6 +954,7 @@ export default {
                     scales: {
                         x:
                             {
+                                display: true,
                                 title: {
                                     display: true,
                                     text: 'Competencias',
@@ -991,7 +972,8 @@ export default {
                         y:
                             {
                                 min: 0,
-                                max:5.4,
+                                max: 5.4,
+                                display: true,
                                 title: {
                                     display: true,
                                     text: 'Valores obtenidos',
@@ -1002,18 +984,14 @@ export default {
                                         lineHeight: 1.2,
                                     },
                                 },
-
                                 ticks:{
-
                                     callback: (value, index, values) => (index == (values.length-1)) ? undefined : value,
-
                                 },
                             }
                     }
                 }
             })
         },
-
 
         getChartAsObject(){
             return this.chart.config._config;
@@ -1025,13 +1003,10 @@ export default {
     computed: {
 
         filteredItems() {
-
             let finalAssessments = this.assessments;
-
             if (this.individualView){
                 finalAssessments = this.getFilteredAssessmentsByServiceArea(finalAssessments);
             }
-
             else {
                 if (this.serviceArea !== '') {
                     finalAssessments = this.getFilteredAssessmentsByServiceArea(finalAssessments);
@@ -1041,7 +1016,6 @@ export default {
             if (this.teacher !== '') {
                 finalAssessments = this.getFilteredAssessmentsByTeacher(finalAssessments);
             }
-
             return finalAssessments;
         },
 
@@ -1061,7 +1035,6 @@ export default {
     },
 
     watch: {
-
         async assessmentPeriod(){
             await this.getServiceAreas();
             await this.getTeachers();

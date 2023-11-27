@@ -258,6 +258,9 @@ class ReportsController extends Controller
 
         $chartInfo = $request->input('chart');
         $chart = json_decode($chartInfo);
+        $chart->options->scales->yAxes= [];
+        $ticks = (object)['ticks' => (object) ['min'=>0, 'stepSize'=>1] ];
+        $chart->options->scales->yAxes [] = $ticks;
         $labels = $chart->data->labels;
         $teacherName = strtolower($teacherResults[0]->name);
         $chart = urlencode(json_encode($chart));
@@ -281,6 +284,10 @@ class ReportsController extends Controller
         $teacherName = strtolower($teacherResults[0]->name);
         $chartInfo = $request->input('chart');
         $chart = json_decode($chartInfo);
+        $chart->options->scales->yAxes= [];
+        $ticks = (object)['ticks' => (object) ['min'=>0, 'stepSize'=>1] ];
+        $chart->options->scales->yAxes [] = $ticks;
+
         $labels = $chart->data->labels;
         $chart = urlencode(json_encode($chart));
         $timestamp = Carbon::now('GMT-5');
@@ -318,6 +325,7 @@ class ReportsController extends Controller
             //Now retrieve the open answers from the groups
             $openAnswersFromStudents = FormAnswers::getOpenAnswersFromStudentsServiceAreasReport($teacherId,$serviceAreas, $assessmentPeriodId);
 
+
             return view('reportServiceAreaGroups', compact( 'assessmentPeriodName', 'chart', 'teacherResults', 'labels', 'teacherName',
                 'timestamp', 'serviceAreasGroups', 'openAnswersFromStudents'));
         }
@@ -349,6 +357,9 @@ class ReportsController extends Controller
 
         //Now retrieve the open answers from the groups
         $openAnswersFromStudents = FormAnswers::getOpenAnswersFromStudentsServiceAreasReport($teacherId,$serviceAreas, $assessmentPeriodId);
+
+
+
 
         return view('reportServiceArea', compact( 'assessmentPeriodName', 'chart', 'teacherResults', 'labels', 'teacherName',
             'timestamp', 'serviceAreasGroups', 'openAnswersFromStudents'));
