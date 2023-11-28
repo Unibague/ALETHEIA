@@ -141,7 +141,7 @@ class UpdateReportResultsCommand extends Command
             }
 
             //Now, we are going to calculate the final results on groups for teachers on 360 assessment, this is, only taking into account groups with hour_type = normal
-            $finalResultsFromTeachersOnGroups = DB::table('group_results as gr')->select(['gr.teacher_id'])->where('hour_type', '=', 'normal')
+            $finalResultsFromTeachersOnGroups = DB::table('group_results as gr')->select(['gr.teacher_id'])
                 ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->get()->toArray();
 
             $uniqueTeachers = array_column($finalResultsFromTeachersOnGroups, 'teacher_id');
@@ -150,8 +150,7 @@ class UpdateReportResultsCommand extends Command
 
             foreach ($uniqueTeachers as $uniqueTeacher){
 
-                $finalResultsFromTeacherOnGroups = DB::table('group_results as gr')->where('teacher_id', '=', $uniqueTeacher)
-                    ->where('hour_type', '=', 'normal')->where('assessment_period_id', '=', $activeAssessmentPeriodId)->get();
+                $finalResultsFromTeacherOnGroups = DB::table('group_results as gr')->where('teacher_id', '=', $uniqueTeacher)->where('assessment_period_id', '=', $activeAssessmentPeriodId)->get();
 
                 $groupsAmount = count($finalResultsFromTeacherOnGroups);
 
