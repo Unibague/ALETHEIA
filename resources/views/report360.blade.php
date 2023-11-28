@@ -51,7 +51,7 @@
 </div>
 
 
-<p style="font-weight: bold"> Descripción por grupos </p>
+<p style="font-weight: bold"> Descripción por grupos (Perspectiva del estudiante) </p>
 
 <table class="table" style="max-width: 85%; margin-top: 15px" >
     <thead>
