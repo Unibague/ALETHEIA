@@ -274,18 +274,16 @@ class UnityAssessment extends Model
 
         $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
         return self::where('unity_assessments.evaluator_id', $userId)->where('role', 'jefe')
+            ->join('assessment_periods', 'assessment_periods.id', "=", 'unity_assessments.assessment_period_id')
+            ->join('users','users.id', '=','unity_assessments.evaluated_id')
+            ->join('v2_teacher_profiles','v2_teacher_profiles.user_id',"=",'users.id')
             ->where('unity_assessments.assessment_period_id', $activeAssessmentPeriodId)
-            ->join('assessment_periods', 'assessment_periods.id','unity_assessments.assessment_period_id')
-            ->join('users','users.id', 'unity_assessments.evaluated_id')
-            ->join('v2_teacher_profiles','v2_teacher_profiles.user_id','users.id')
             ->where('v2_teacher_profiles.assessment_period_id', '=', $activeAssessmentPeriodId)
             ->where('v2_teacher_profiles.status', '=', 'activo')
             ->where('assessment_periods.boss_start_date', '<=', $date)
             ->where('assessment_periods.boss_end_date', '>=', $date)
             ->select(['users.name', 'users.id','unity_assessments.unit_identifier', 'v2_teacher_profiles.teaching_ladder',
-                'unity_assessments.pending',
-                'assessment_periods.boss_start_date',
-                'assessment_periods.boss_end_date'])->get();
+                'unity_assessments.pending', 'assessment_periods.boss_start_date', 'assessment_periods.boss_end_date'])->distinct()->get();
     }
 
 

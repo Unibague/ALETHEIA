@@ -327,34 +327,21 @@ export default {
         getPeerAssessments: async function(){
 
             let url = route('tests.index.teacherPeerTests')
-
             let request = await axios.get(url);
-
             this.peerAssessments = request.data;
-
             if(this.peerAssessments.length>0) {
-
                 this.user.peerAssessmentStartDate = this.peerAssessments[0].colleague_start_date
                 this.user.peerAssessmentEndDate = this.peerAssessments[0].colleague_end_date
-
-                /*            console.log(this.peerAssessments);*/
-
                 this.peerAssessments.forEach(peerAssessment => {
-
                     peerAssessment.name = this.capitalize(peerAssessment.name)
-
                 })
             }
         },
 
-
-
         getBossAssessments: async function(){
             let url = route('tests.index.teacherBossTests')
             let request = await axios.get(url);
-
             this.bossAssessments = request.data;
-
             if(this.bossAssessments.length>0){
                 this.user.bossAssessmentStartDate= this.bossAssessments[0].boss_start_date
                 this.user.bossAssessmentEndDate= this.bossAssessments[0].boss_end_date
@@ -363,7 +350,6 @@ export default {
                 })
             }
         },
-
 
         capitalize($field){
             return $field.toLowerCase().split(' ').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
