@@ -241,7 +241,7 @@ class UnityAssessment extends Model
                     'users.name',
                     'assessment_periods.self_start_date',
                     'assessment_periods.self_end_date'
-                    ])->get();
+                    ])->distinct()->get();
 
     }
 
@@ -263,7 +263,7 @@ class UnityAssessment extends Model
             ->select(['users.name', 'users.id','unity_assessments.unit_identifier', 'v2_teacher_profiles.teaching_ladder',
                 'unity_assessments.pending',
                 'assessment_periods.colleague_start_date',
-                'assessment_periods.colleague_end_date'])->get();
+                'assessment_periods.colleague_end_date'])->distinct()->get();
     }
 
 
