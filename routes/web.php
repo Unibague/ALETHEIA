@@ -632,25 +632,30 @@ Route::get('/testReport', function () {
             $sixthCompetenceTotal= 0;
 
             $peerBossAutoAssessmentAnswers = DB::table('form_answers as fa')
-                ->select(['t.name', 'f.unit_role', 'fa.first_competence_average','fa.second_competence_average','fa.third_competence_average',
-                    'fa.fourth_competence_average','fa.fifth_competence_average','fa.sixth_competence_average','t.id as teacherId', 'v2_unit_user.unit_identifier',
+                ->select(['u.name', 'f.unit_role', 'fa.first_competence_average','fa.second_competence_average','fa.third_competence_average',
+                    'fa.fourth_competence_average','fa.fifth_competence_average','fa.sixth_competence_average','u.id as teacherId', 'v2_unit_user.unit_identifier',
                     'v2_units.name as unitName','fa.submitted_at'])
-                ->join('forms as f', 'fa.form_id', '=', 'f.id')
-                ->join('users as t', 'fa.teacher_id', '=', 't.id')
-                ->join('teachers_students_perspectives as tsp', 'tsp.teacher_id','=','t.id')
-                ->join('v2_unit_user','tsp.teacher_id', '=', 'v2_unit_user.user_id')
+                ->join('forms as f', 'f.id', '=', 'fa.form_id')
+                ->join('users as u', 'u.id', '=', 'fa.teacher_id')
+                ->join('teachers_students_perspectives as tsp', 'tsp.teacher_id','=','u.id')
+                ->join('v2_unit_user','v2_unit_user.user_id', '=', 'tsp.teacher_id')
                 ->join('v2_units', 'v2_unit_user.unit_identifier','=', 'v2_units.identifier')
-                ->where('f.type','=','otros')
-                ->where('fa.assessment_period_id', '=', $activeAssessmentPeriodId)
+                ->where('f.assessment_period_id','=', $activeAssessmentPeriodId)->where('f.type','=','otros')
+                ->where('u.id', '=', $uniqueTeacherId)
+                ->where('tsp.assessment_period_id', '=', $activeAssessmentPeriodId)
                 ->where('v2_unit_user.role_id', '=', $teacherRoleId)
                 ->where('v2_units.assessment_period_id', '=', $activeAssessmentPeriodId)
-                ->where('tsp.assessment_period_id', '=', $activeAssessmentPeriodId)
-                ->where('t.id', '=', $uniqueTeacherId)
-                ->get();
+                ->where('fa.assessment_period_id', '=', $activeAssessmentPeriodId)->get();
+
+
+
 
             if(count($peerBossAutoAssessmentAnswers) == 0){
                 continue;
             }
+
+
+
 
             $studentsAnswers = DB::table('teachers_students_perspectives as tsp')
                 ->select(['tsp.first_final_aggregate_competence_average as first_competence_average',

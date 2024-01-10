@@ -91,7 +91,7 @@ class Unit extends Model
 
         UnityAssessment::updateOrInsert(['evaluated_id' => $userId, 'evaluator_id'=> $userId,
             'role' => 'autoevaluación', 'assessment_period_id'=> $activeAssessmentPeriod],
-            ['unit_identifier' => $unit ]);
+            ['unit_identifier' => $unit]);
     }
 
 

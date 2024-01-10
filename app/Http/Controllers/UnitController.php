@@ -265,7 +265,7 @@ class UnitController extends Controller
             ->where('role_id',$teacherRole)->select('unit_identifier')->first()->unit_identifier;
 
         $teacherAlreadyHasAssignments= UnityAssessment::where('evaluated_id', $userId)
-            ->where('role', 'jefe')->where('unit_identifier', $actualUnit)->first();
+            ->where('role', 'jefe')->where('unit_identifier', $actualUnit)->where('pending', '=', 1)->first();
 
         if($teacherAlreadyHasAssignments){
 

@@ -529,21 +529,15 @@ export default {
         transferTeacherToSelectedUnit: async function(identifier) {
 
             try{
-
                 let userId = this.selectedTeacher.id
                 let data = {
                     unitIdentifier: identifier,
                     userId: userId
                 }
-
                 console.log(data);
-
                 let request = await axios.post(route('api.units.transfer'), data);
-
                 await this.getTeachersFromCurrentUnit();
-
                 this.transferTeacherDialog = false
-
                 showSnackbar(this.snackbar, request.data.message, 'success');
             }
             catch (e) {
