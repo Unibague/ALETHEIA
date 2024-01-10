@@ -308,6 +308,7 @@ class UnityAssessment extends Model
             ->where('tp.assessment_period_id', '=', $activeAssessmentPeriodId)
             ->where('ua.unit_identifier', '=', $unitIdentifier)->distinct()->get();
 
+
         foreach ($teachersFromUnit as $teacherFromUnit){
 
             $teacherAssessments = (object) ['id' => $teacherFromUnit->id, 'functionary_profile_id' => $teacherFromUnit->teacher_profile_id,

@@ -103,7 +103,7 @@ class FormAnswers extends Model
             ->join('forms as f', 'fa.form_id', '=', 'f.id')
             ->join('users as t', 'fa.teacher_id', '=', 't.id')
             ->join('teachers_students_perspectives as tsp', 'tsp.teacher_id','=','t.id')
-            ->join('v2_unit_user','tsp.teacher_id', '=', 'v2_unit_user.user_id')
+            ->join('v2_unit_user','t.id', '=', 'v2_unit_user.user_id')
             ->join('v2_units', 'v2_unit_user.unit_identifier','=', 'v2_units.identifier')
             ->where('f.creation_assessment_period_id', '=',$assessmentPeriodId)
             ->where('f.type','=','otros')
@@ -111,7 +111,6 @@ class FormAnswers extends Model
             ->where('v2_unit_user.role_id', '=', $teacherRoleId)
             ->where('tsp.assessment_period_id', '=', $assessmentPeriodId)->orderBy('t.name', 'ASC')
             ->get();
-
 
     }
     public static function getCurrentTeacherFormAnswersFromStudents(int $assessmentPeriodId = null): \Illuminate\Support\Collection
@@ -698,10 +697,29 @@ class FormAnswers extends Model
      */
     public static function createStudentFormFromRequest(Request $request, Form $form): void
     {
-        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
-        $competencesAverage = self::getCompetencesAverage(json_decode(json_encode($request->input('answers'), JSON_THROW_ON_ERROR), false, 512, JSON_THROW_ON_ERROR));
 
-        self::create([
+        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        $competencesAverage = self::getCompetencesAverage(json_decode(json_encode($request->input('answers'), JSON_THROW_ON_ERROR),
+            false, 512, JSON_THROW_ON_ERROR));
+
+        self::firstOrCreate([
+            'user_id' => auth()->user()->id,
+            'group_id' => $request->input('groupId'),
+            'teacher_id' => $request->input('teacherId'),
+            'assessment_period_id' => $activeAssessmentPeriodId
+            ],
+            ['form_id' => $form->id,
+            'answers' => json_encode($request->input('answers')),
+            'submitted_at' => Carbon::now()->toDateTimeString(),
+            'first_competence_average' => $competencesAverage['C1'] ?? null,
+            'second_competence_average' => $competencesAverage['C2'] ?? null,
+            'third_competence_average' => $competencesAverage['C3'] ?? null,
+            'fourth_competence_average' => $competencesAverage['C4'] ?? null,
+            'fifth_competence_average' => $competencesAverage['C5'] ?? null,
+            'sixth_competence_average' => $competencesAverage['C6'] ?? null
+            ]);
+
+/*        self::create([
             'user_id' => auth()->user()->id,
             'form_id' => $form->id,
             'answers' => json_encode($request->input('answers')),
@@ -715,11 +733,28 @@ class FormAnswers extends Model
             'fifth_competence_average' => $competencesAverage['C5'] ?? null,
             'sixth_competence_average' => $competencesAverage['C6'] ?? null,
             'assessment_period_id' => $activeAssessmentPeriodId,
-        ]);
+        ]);*/
+
+        //Let's check if user already answered the test
+        $alreadyAnswered = DB::table('group_user')
+            ->where('group_id', '=', $request->input('groupId'))
+            ->where('user_id', '=', auth()->user()->id)->where('has_answer','=', 1)->first();
+
+        if($alreadyAnswered){
+            return;
+        }
 
         self::updateResponseStatusToAnswered($request->input('groupId'), auth()->user()->id);
     }
 
+    public static function updateResponseStatusToAnswered($groupId, $userId): void
+    {
+
+
+        DB::table('group_user')
+            ->where('group_id', '=', $groupId)
+            ->where('user_id', '=', $userId)->update(['has_answer' => 1]);
+    }
 
     public static function createTeacherFormFromRequest(Request $request, Form $form): void
     {
@@ -787,14 +822,6 @@ class FormAnswers extends Model
         }
         return $competences;
     }
-
-    public static function updateResponseStatusToAnswered($groupId, $userId): void
-    {
-        DB::table('group_user')
-            ->where('group_id', '=', $groupId)
-            ->where('user_id', '=', $userId)->update(['has_answer' => 1]);
-    }
-
 
     public static function updateTeacherResponseStatusToAnswered($userId, $role, $evaluatedId): void
     {
