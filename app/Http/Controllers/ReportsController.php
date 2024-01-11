@@ -21,11 +21,15 @@ class ReportsController extends Controller
     }
 
     public function show360Assessment(){
-
         $user = auth()->user();
-        $units = [];
 
-        $assessmentPeriodsAsArray = AssessmentPeriod::getAllAssessmentPeriodsAsArray();
+        $token = csrf_token();
+        if($user->hasRole("administrador")) {
+            return Inertia::render('Reports/Complete360AssessmentResults', ['token' => $token]);
+        }
+
+        $units = [];
+//        $assessmentPeriodsAsArray = AssessmentPeriod::getAllAssessmentPeriodsAsArray();
 
         if ($user->role()->name == "Resultados Evaluación"){
             //Ingenierías
@@ -45,14 +49,13 @@ class ReportsController extends Controller
                 $units = ['018', '022'];
             }
             //Dpto Civil
-            //Del Rio
-            if($user->id == 31){
+            //Olmedo
+            if($user->id == 117){
                 $units = ['028'];
             }
 //Ingenierías
 
 //Facultad Ciencias Naturales
-
             //Decana
             //Nyckyertt
             if($user->id == 183){
@@ -71,7 +74,6 @@ class ReportsController extends Controller
             if($user->id == 192){
                 $units = ['103', '106', '021', '027', '013' ,'017', '092', '024'];
             }
-
             //Departamento Administración
             //Eliana Fernanda Granada
             if($user->id == 41){
@@ -146,42 +148,36 @@ class ReportsController extends Controller
 //Centro de Idiomas
 
             $finalUnits = AssessmentPeriod::getConcatenatedUnits($units);
-            return Inertia::render('Reports/Complete360AssessmentResults', ['propsUnits' => $finalUnits]);
-        }
+            if(count($finalUnits)>0){
+                return Inertia::render('Reports/Complete360AssessmentResults', ['propsUnits' => $finalUnits]);
+            }
 
-        else{
-            $token = csrf_token();
-            return Inertia::render('Reports/Complete360AssessmentResults', ['token' => $token]);
+            return Inertia::render('Reports/Complete360AssessmentResults', ['propsUnits' => []]);
         }
-
     }
 
     public function showServiceAreasAssessment(){
 
         $user = auth()->user();
+        $token = csrf_token();
+
+        if($user->hasRole("administrador")){
+            return Inertia::render('Reports/CompleteServiceAreasResults', ['token' => $token]);
+        }
 
         if($user->role()->name == "Jefe de Área de Servicio") {
-
             $userId = auth()->user()->id;
-
             $serviceAreasArray = [];
-
             $serviceAreas = DB::table('service_area_user')->where('user_id', '=', $userId)->get();
 
             if(count($serviceAreas) > 0){
-
                 foreach ($serviceAreas as $serviceArea){
                     $serviceAreasArray [] = $serviceArea->service_area_code;
                 }
-
                 return Inertia::render('Reports/CompleteServiceAreasResults', ['propsServiceAreas' => $serviceAreasArray]);
             }
+            return Inertia::render('Reports/CompleteServiceAreasResults', ['propsServiceAreas'=> []]);
         }
-
-        $token = csrf_token();
-
-        return Inertia::render('Reports/CompleteServiceAreasResults', ['token' => $token]);
-
     }
 
 

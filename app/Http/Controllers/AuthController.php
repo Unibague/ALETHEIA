@@ -35,17 +35,13 @@ class AuthController extends Controller
     {
         $user = auth()->user();
 
-
         if ($user->role()->name == "Resultados Evaluación") {
-
             return redirect()->route('reports.show360Assessment');
         }
 
         if($user->role()->name == "Jefe de Área de Servicio") {
-
             return redirect()->route('reports.showServiceAreasAssessment');
         }
-
 
         if ($user->isAdmin()) {
             return redirect()->route('forms.index.view');

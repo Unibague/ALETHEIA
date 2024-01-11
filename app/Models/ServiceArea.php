@@ -40,12 +40,10 @@ class ServiceArea extends Model
     use HasFactory;
 
     public static function getCurrentServiceAreas(int $assessmentPeriodId = null){
-
         if ($assessmentPeriodId === null){
             $assessmentPeriodId =AssessmentPeriod::getActiveAssessmentPeriod()->id;
         }
-
-        return self::where('assessment_period_id','=', $assessmentPeriodId)->orderBy('name', 'asc')->get();
+        return self::where('assessment_period_id','=', $assessmentPeriodId)->orderBy('name')->get();
     }
 
     public static function createOrUpdateFromArray(array $serviceAreas): void
@@ -54,9 +52,7 @@ class ServiceArea extends Model
         $assessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
 
         foreach ($serviceAreas as $serviceArea) {
-
             $upsertData[] = [
-
                 'code' => $serviceArea->code,
                 'name' => $serviceArea->name,
                 'assessment_period_id' => $assessmentPeriodId,
@@ -131,14 +127,13 @@ class ServiceArea extends Model
 
     public static function getServiceAreaAdmins($serviceArea)
     {
-
         $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
-
-        return  DB::table('service_area_user as sau')
+        return DB::table('service_area_user as sau')
             ->select(['t.name', 'sau.user_id as teacherId' , 'sau.service_area_code'])
             ->join('users as t', 'sau.user_id', '=', 't.id')
             ->join('service_areas as sa', 'sa.code','=','sau.service_area_code')
             ->where('sau.service_area_code', '=', $serviceArea)
+            ->where('sa.assessment_period_id', '=', $activeAssessmentPeriodId)
             ->where('sau.assessment_period_id', '=', $activeAssessmentPeriodId)->orderBy('name', 'ASC')
             ->get();
 
