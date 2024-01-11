@@ -34,10 +34,8 @@ class ServiceAreaController extends Controller
     public function edit($serviceArea)
     {
         $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
-
         $serviceArea = DB::table('service_areas')->where('code', '=', $serviceArea)
             ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->get()->first();
-
         return Inertia::render('ServiceAreas/ManageServiceArea', ['serviceAreaCode' => $serviceArea]);
     }
 
@@ -55,51 +53,34 @@ class ServiceAreaController extends Controller
 
 
     public function getServiceAreasResults(Request $request): JsonResponse{
-
         $assessmentPeriodId = $request->input('assessmentPeriodId');
         return response()->json(ServiceArea::getServiceAreasResults($assessmentPeriodId));
-
     }
 
     public function getServiceAreasResultsPerGroup(Request $request): JsonResponse{
-
         $assessmentPeriodId = $request->input('assessmentPeriodId');
         return response()->json(ServiceArea::getServiceAreasResultsPerGroup($assessmentPeriodId));
-
     }
 
     public function getServiceAreasTeachersWithResults(Request $request): JsonResponse{
-
         $assessmentPeriodId = $request->input('assessmentPeriodId');
         return response()->json(ServiceArea::getServiceAreasTeachersWithResults($assessmentPeriodId));
-
     }
 
     public function getServiceAreaAdmins($serviceAreaCode): JsonResponse{
-
         return response()->json(ServiceArea::getServiceAreaAdmins($serviceAreaCode));
-
     }
 
-
     public function assignServiceAreaAdmin(\Illuminate\Http\Request $request): JsonResponse{
-
-
         $serviceAreaCode = $request->input('serviceAreaCode');
         $userId = $request->input('userId');
         return (ServiceArea::assignServiceAreaAdmin($serviceAreaCode, $userId));
-
     }
 
-
     public function deleteServiceAreaAdmin(\Illuminate\Http\Request $request): JsonResponse{
-
         $serviceAreaCode = $request->input('serviceAreaCode');
         $userId = $request->input('userId');
         return (ServiceArea::deleteServiceAreaAdmin($serviceAreaCode, $userId));
-
     }
-
-
 
 }

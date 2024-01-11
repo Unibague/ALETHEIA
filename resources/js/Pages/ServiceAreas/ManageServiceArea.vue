@@ -166,10 +166,7 @@ export default {
                 timeout: 2000,
             },
             isLoading: true,
-
         }
-
-
     },
 
     props: {
@@ -177,105 +174,71 @@ export default {
     },
 
     async created() {
-
         this.currentServiceArea= this.serviceAreaCode;
-
         console.log(this.serviceAreaCode, "serviceArea")
     },
 
     async mounted(){
-
     await this.getAdmins();
-
     },
-
 
     methods:{
 
         async getAdmins() {
 
             let url = route('serviceArea.admins', {serviceAreaCode:this.currentServiceArea.code})
-
             let request = await axios.get(url);
-
             this.admins = request.data;
-
             console.log(this.admins, 'admins');
-
             this.admins.forEach(admin =>{
-
                 admin.name = this.capitalize(admin.name);
-
             })
-
         },
 
         async getStaffMembersAndSortAlphabetically(){
 
             let request = await axios.get(route('staffMembers.index'));
-
             this.listOfStaffMembers = request.data;
-
             this.sortArrayAlphabetically(this.listOfStaffMembers);
-
                 this.listOfStaffMembers.forEach(staffMember => {
-
                     staffMember.name = this.capitalize(staffMember.name)
-
                 })
-
             console.log(this.listOfStaffMembers);
-
         },
 
         capitalize($field){
-
            return $field.toLowerCase().split(' ').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-
         },
 
 
         async setDialogToAddAdmin(){
-
             this.adminDialog = true
-
             await this.getStaffMembersAndSortAlphabetically();
-
         },
 
         sortArrayAlphabetically(array){
-
             return array.sort( (p1, p2) =>
                 (p1.name > p2.name) ? 1 : (p1.name > p2.name) ? -1 : 0);
-
         },
 
         assignAdmin: async function (staffMemberId){
 
             try {
-
                let data = {
                     serviceAreaCode: this.currentServiceArea.code,
                     userId: staffMemberId,
                 }
-
                 let request = await axios.post(route('serviceArea.assignAdmin'), data);
 
                 this.unitAdmin= {name: '', id:''};
                 this.adminDialog= false;
                 await this.getAdmins();
                 showSnackbar(this.snackbar, request.data.message, 'success');
-
             }
-
             catch (e){
-
                 showSnackbar(this.snackbar, e.response.data.message, 'red', 5000);
-
             }
-
         },
-
 
         cancelAdminDialog(){
             this.adminDialog = false;
@@ -286,25 +249,17 @@ export default {
             this.deleteAdminDialog = true;
         },
 
-
         deleteAdmin: async function(){
-
             let data = {
                 serviceAreaCode: this.currentServiceArea.code,
                 userId : this.deletedAdminId
             }
-
             let url = route('serviceArea.deleteAdmin');
-
             let request = await axios.post(url, data);
-
             this.deleteAdminDialog = false;
-
             await this.getAdmins();
-
             showSnackbar(this.snackbar, request.data.message, 'success');
         },
-
 },
 
 }
