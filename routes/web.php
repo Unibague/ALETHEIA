@@ -127,10 +127,6 @@ Route::post('/api/enrolls/deleteThoseGroups', [\App\Http\Controllers\EnrollContr
 /* >>>>>>>>>>>>>>>>>>>>>>>>StaffMembers routes <<<<<<<<<<<<<<<<<<<<<<<<<<<< */
 
 
-
-
-
-
 /* >>>>>>>>>>>>>>>>>>>>>>>>>>>> Reports routes <<<<<<<<<<<<<<<<<<<<<<<< */
 /*Route::get('/reports/showCompleteServiceAreas', [\App\Http\Controllers\ReportsController::class, 'index'])->middleware(['auth', 'isAdmin'])->name('reports.showCompleteServiceAreas');*/
 /*Route::inertia('/reports/showComplete360', 'Reports/Complete360AssessmentResults')->middleware(['auth'])->name('reports.showComplete360');*/
@@ -376,7 +372,6 @@ Route::get('/testReport', function () {
             $uniqueGroupsId = array_column($groupsFromTeacher, 'group_id');
             $uniqueGroupsId = array_unique($uniqueGroupsId);
 
-
             foreach ($uniqueGroupsId as $uniqueGroupId) {
                 $final_first_competence_average = 0;
                 $final_second_competence_average = 0;
@@ -406,12 +401,6 @@ Route::get('/testReport', function () {
                     ->where('f.type', '=', 'estudiantes')->where('fa.teacher_id', '=', $uniqueTeacher)
                     ->where('fa.assessment_period_id', '=', $activeAssessmentPeriodId)
                     ->where('fa.group_id', '=', $uniqueGroupId)->get()->toArray();
-
-//                $studentsAmount = count(DB::table('group_user as gu')->where('gu.group_id', '=', $uniqueGroupId)
-//                    ->where('has_answer','=', 1)
-//                    ->get());
-
-
 
                 $studentsAmount = count($answersFromGroup);
 
@@ -648,14 +637,13 @@ Route::get('/testReport', function () {
                 ->where('fa.assessment_period_id', '=', $activeAssessmentPeriodId)->get();
 
 
-
+//            if($uniqueTeacherId === 144){
+//                dd($peerBossAutoAssessmentAnswers);
+//            }
 
             if(count($peerBossAutoAssessmentAnswers) == 0){
                 continue;
             }
-
-
-
 
             $studentsAnswers = DB::table('teachers_students_perspectives as tsp')
                 ->select(['tsp.first_final_aggregate_competence_average as first_competence_average',

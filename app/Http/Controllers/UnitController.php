@@ -263,17 +263,14 @@ class UnitController extends Controller
 
         $actualUnit = DB::table('v2_unit_user')->where('user_id', $userId)
             ->where('role_id',$teacherRole)->select('unit_identifier')->first()->unit_identifier;
-
         $teacherAlreadyHasAssignments= UnityAssessment::where('evaluated_id', $userId)
             ->where('role', 'jefe')->where('unit_identifier', $actualUnit)->where('pending', '=', 1)->first();
-
         if($teacherAlreadyHasAssignments){
-
             UnityAssessment::where('evaluated_id', $userId)
-                ->where('role', 'jefe')->where('unit_identifier', $actualUnit)->delete();
-
+                ->where('role', 'jefe')->where('unit_identifier', $actualUnit)->where('pending', '=', 1)->delete();
         }
-        Unit::transferTeacherToSelectedUnit($unit, $userId);
+
+        Unit::transferTeacherToSelectedUnit($unit, $userId, $teacherRole);
 
         return response()->json(['message' => 'Docente transferido exitosamente']);
     }
