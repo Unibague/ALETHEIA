@@ -79,14 +79,16 @@ class Unit extends Model
         }
     }
 
-    public static function transferTeacherToSelectedUnit($unit, $userId): void{
+    public static function transferTeacherToSelectedUnit($unit, $userId, $teacherRole): void{
 
         $activeAssessmentPeriod = AssessmentPeriod::getActiveAssessmentPeriod()->id;
-        $teacherRole = Role::getTeacherRoleId();
+
+//        dd($unit, $userId, $teacherRole);
 
         DB::table('v2_unit_user')->updateOrInsert(
             ['user_id' => $userId, 'role_id' => $teacherRole],
-            ['unit_identifier' => $unit]
+            ['unit_identifier' => $unit, 'created_at' => Carbon::now('GMT-5')->toDateTimeString(),
+                'updated_at' => Carbon::now('GMT-5')->toDateTimeString()]
         );
 
         UnityAssessment::updateOrInsert(['evaluated_id' => $userId, 'evaluator_id'=> $userId,
