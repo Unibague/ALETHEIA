@@ -72,7 +72,6 @@ class AuthController extends Controller
     public function handleGoogleCallback(): \Illuminate\Http\RedirectResponse
     {
         try {
-
             $googleUser = Socialite::driver('google')->user();
             $email = $googleUser->email;
             $indexOfAtSymbol = stripos($email, "@", 0);
@@ -84,7 +83,6 @@ class AuthController extends Controller
             return redirect()->route('login');
         }
         $user = User::where('email', $googleUser->email)->first();
-
 
         if (!$user) {
             $user = User::create([

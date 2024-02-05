@@ -27,15 +27,12 @@ class TestsController extends Controller
         return response()->json(Test::getUserTests());
     }
 
-
     public function indexTeacherAutoTest()
     {
         $userId = auth()->user()->id;
         $teacher = json_decode(UnityAssessment::getAutoAssessmentFromTeacher($userId));
         return response()->json(Test::getUserTests($teacher, 'autoevaluación'));
     }
-
-
 
     public function indexTeacherPeerTests()
     {
@@ -51,8 +48,6 @@ class TestsController extends Controller
         $subordinates = json_decode(UnityAssessment::getBossAssessmentsFromTeacher($userId));
         return response()->json(Test::getUserTests($subordinates, 'jefe'));
     }
-
-
 
     public function indexView(): Response
     {
