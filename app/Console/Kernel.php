@@ -24,7 +24,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('reports:update')->everyFifteenMinutes();
+        //$schedule->command('reports:update')->everyFifteenMinutes();
         //Check if today is the day to send a reminder that assessment period starts
         $schedule->command('academic_periods:check_due_b_start')->daily()->at('06:00');
         //Check if today is the day to send a reminder that assessment period finishes
@@ -33,6 +33,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('reminder_student:send_b_start')->everyFiveMinutes();
         //Send the emails before finish assessment to the students that are in the table with the Not Started status (assessment_reminder_users)
         $schedule->command('reminder_student:send_b_finish')->everyFiveMinutes();
+
         //Send the emails to the teachers when it's the due date (this cronjob will only execute once a day
         $schedule->command('reminder_teachers:send')->daily()->at('14:00');
     }

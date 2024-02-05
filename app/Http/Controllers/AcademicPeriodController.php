@@ -18,7 +18,6 @@ class AcademicPeriodController extends Controller
 
     public function sync(): JsonResponse
     {
-
         try {
             $academicPeriods = AtlanteProvider::get('academicPeriods');
         } catch (JsonException $e) {
