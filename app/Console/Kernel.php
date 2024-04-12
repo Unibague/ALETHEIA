@@ -24,7 +24,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        //$schedule->command('reports:update')->everyFifteenMinutes();
+        $schedule->command('reports:update')->everyFifteenMinutes();
         //Check if today is the day to send a reminder that assessment period starts
         $schedule->command('academic_periods:check_due_b_start')->daily()->at('06:00');
         //Check if today is the day to send a reminder that assessment period finishes
