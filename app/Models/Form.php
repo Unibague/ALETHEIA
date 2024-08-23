@@ -73,6 +73,24 @@ class Form extends Model
             ->get();
     }
 
+    public static function getFormQuestions($form): array{
+        $formQuestionsArray = [];
+        $formQuestions = json_decode($form->questions);
+        foreach ($formQuestions as $formQuestion){
+            $formQuestionsArray [] = $formQuestion->name;
+        }
+        return $formQuestionsArray;
+    }
+
+    public static function findFirstOccurrence($array, $value) {
+        foreach ($array as $item) {
+            if ($item->name === $value) {
+                return $item; // Return the first occurrence found
+            }
+        }
+        return null; // Return null if the value is not found in the array
+    }
+
     public static function migrateForms(AssessmentPeriod $assessmentPeriod): \Illuminate\Http\JsonResponse
     {
         $activeAssessmentPeriod = AssessmentPeriod::getActiveAssessmentPeriod();

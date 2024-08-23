@@ -1,10 +1,12 @@
 <?php
 
+use App\Exports\ResultsViewExport;
 use App\Helpers\AtlanteProvider;
 use App\Models\AcademicPeriod;
 use App\Models\AssessmentPeriod;
 use App\Models\Enroll;
 
+use App\Models\Form;
 use App\Models\Group;
 use App\Models\Role;
 use Carbon\Carbon;
@@ -12,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use Maatwebsite\Excel\Facades\Excel;
 
 /*
 |--------------------------------------------------------------------------
@@ -735,6 +738,94 @@ Route::get('/testReport', function () {
 });
 
 
+Route::get('/aggregateReport', function () {
+
+
+
+    $teacherIds = DB::table('form_answers')->distinct()->pluck('teacher_id');
+
+    foreach ($teacherIds as $teacherId) {
+
+        $groupResults = DB::table('group_results as gr')
+            ->select([
+                'g.name as group_name', 'g.class_code', 'g.group as group_number', 'ap.name as assessment_period_name',
+                'ap.id as assessment_period_id',
+                'u.name as teacher_name', 'gr.students_amount_reviewers', 'gr.students_amount_on_group',
+                'gr.first_final_competence_average as first_competence', 'gr.second_final_competence_average as second_competence',
+                'gr.third_final_competence_average as third_competence', 'gr.fourth_final_competence_average as fourth_competence',
+                'gr.fifth_final_competence_average as fifth_competence', 'gr.sixth_final_competence_average as sixth_competence'])
+            ->where('gr.teacher_id', $teacherId)->join('groups as g', 'gr.group_id', '=', 'g.group_id')
+            ->join('assessment_periods as ap', 'gr.assessment_period_id', '=', 'ap.id')
+            ->join('users as u', 'gr.teacher_id', '=', 'u.id')
+            ->get();
+
+        dd($groupResults);
+
+        foreach ($groupResults as $groupResult) {
+
+            $finalAverage = 0;
+
+            if ($groupResult->assessment_period_id === 5) {
+
+                //Remember that, unless the service area code starts with I, the final average will be the same first_final_competence_average
+
+            }
+
+
+        }
+
+    }
+});
+
+
+Route::get('individualExcelReport', function (){
+
+    $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+
+    $form = DB::table('forms')->where('id','=',39)->first();
+
+    $formQuestions = \App\Models\Form::getFormQuestions($form);
+
+    $formAnswers = DB::table('form_answers as fa')->select(['u.name as teacher_name','g.name as group_name','g.group as group_number','fa.answers'])
+        ->where('fa.assessment_period_id', '=',$activeAssessmentPeriodId)
+        ->where('fa.group_id','!=', null)
+        ->where('fa.form_id','=',39)->join('users as u','fa.teacher_id','=','u.id')
+        ->join('groups as g','fa.group_id','=','g.group_id')->orderBy('u.name', 'ASC')
+        ->orderBy('g.name','ASC')->orderBy('g.group','ASC')->get();
+
+    $tableData = [];
+
+    foreach ($formAnswers as $formAnswer){
+
+        //Every row must have the formAnswer's teacher's name, name and number of the group, all the answers value with the question name and the comments
+        $rowData = [];
+
+        $rowData [] = $formAnswer->teacher_name;
+        $rowData [] = $formAnswer->group_name;
+        $rowData [] = (int)$formAnswer->group_number;
+
+
+
+        $formAnswerAsJson = (json_decode($formAnswer->answers, false, 512, JSON_THROW_ON_ERROR));
+        //Now we insert the results for every question in case the question exists in the form_answer
+
+        foreach ($formQuestions as $question){
+            $result = Form::findFirstOccurrence($formAnswerAsJson, $question);
+            if ($result){
+                $rowData[] = $result->answer;
+                continue;
+            }
+            $rowData [] = "";
+        }
+        $tableData[] = $rowData;
+
+    }
+
+    return Excel::download(new \App\Exports\IndividualCompetenceResultsViewExport($formQuestions, $tableData), 'Resultados_2024A.xlsx');
+
+});
+
+
 Route::get('testEmail', function () {
 //    $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
 //
@@ -775,94 +866,3 @@ Route::get('testEmail', function () {
 //            ->where('id', '=', $student->id)->update(['status' => 'Done']);
 //    }
 });
-
-//
-//Route::get('checkCronJob', function () {
-//
-//    $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
-//    $emailsToSent = DB::table('assessment_reminder_users')->where('status', '=', 'Not Started')
-//        ->where('before_start_or_finish_assessment', '=', 'Finish')
-//        ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->take(100)->get();
-//
-//    $reference = $emailsToSent;
-//
-//    if (count($emailsToSent) == 0) {
-//
-//        $emailsToSent = DB::table('assessment_reminder_users')->where('status', '=', 'In Progress')
-//            ->where('before_start_or_finish_assessment', '=', 'Finish')
-//            ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->take(100)->get();
-//    }
-////    dd($emailsToSent);
-//
-//    foreach ($emailsToSent as $student){
-//
-//        $emailParameters = json_decode($student->email_parameters);
-//
-//        DB::table('assessment_reminder_users')->where('assessment_period_id', '=', $activeAssessmentPeriodId)
-//            ->where('id', '=', $student->id)->update(['status' => 'In Progress']);
-//
-//        $data = [
-//            'role' => $emailParameters->role,
-//            'name' => $emailParameters->name,
-//            'teachers_to_evaluate' => $emailParameters->teachers_to_evaluate,
-//            'end_date' => $emailParameters->end_date,
-//            'assessment_period_name' => AssessmentPeriod::getActiveAssessmentPeriod()->name
-//        ];
-//
-//
-////        dd($data);
-//
-//        $email = new \App\Mail\SecondReminderMailable($data);
-//        Mail::bcc(['juanes01.gonzalez@gmail.com'])->send($email);
-//        DB::table('assessment_reminder_users')->where('assessment_period_id', '=', $activeAssessmentPeriodId)
-//            ->where('id', '=', $student->id)->update(['status' => 'Done']);
-//    }
-//
-//});
-//
-//Route::get('checkCronJob2', function () {
-//    $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
-//
-//    set_time_limit(10000);
-//
-//    $emailsToSent = DB::table('assessment_reminder_users')->where('status', '=', 'Not Started')
-//        ->where('before_start_or_finish_assessment', '=', 'Start')
-//        ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->take(100)->get();
-//
-//    $reference = $emailsToSent;
-//
-//    if (count($emailsToSent) == 0) {
-//
-//        $emailsToSent = DB::table('assessment_reminder_users')->where('status', '=', 'In Progress')
-//            ->where('before_start_or_finish_assessment', '=', 'Start')
-//            ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->take(100)->get();
-//    }
-//
-//
-//
-//
-//    foreach ($emailsToSent as $student) {
-//
-//        $emailParameters = json_decode($student->email_parameters);
-//        DB::table('assessment_reminder_users')->where('assessment_period_id', '=', $activeAssessmentPeriodId)
-//            ->where('id', '=', $student->id)->update(['status' => 'In Progress']);
-//
-//        $data = [
-//            'role' => $emailParameters->role,
-//            'name' => $emailParameters->name,
-//            'teachers_to_evaluate' => $emailParameters->teachers_to_evaluate,
-//            'start_date' => $emailParameters->start_date,
-//            'end_date' => $emailParameters->end_date,
-//            'assessment_period_name' => AssessmentPeriod::getActiveAssessmentPeriod()->name
-//        ];
-//
-//
-//
-//
-//        $email = new \App\Mail\FirstReminderMailable($data);
-//        Mail::bcc(['juanes01.gonzalez@gmail.com'])->send($email);
-//        DB::table('assessment_reminder_users')->where('assessment_period_id', '=', $activeAssessmentPeriodId)
-//            ->where('id', '=', $student->id)->update(['status' => 'Done']);
-//    }
-//
-//});
