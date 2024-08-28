@@ -158,14 +158,10 @@
             </v-data-table>
 
             <!--Acaba tabla-->
-
-
             <div class="d-flex flex-column align-end mt-8 mb-5" v-if="this.bossAssessments.length>0">
                 <h3 class="align-self-start">Profesores a evaluar como jefe</h3>
                 <span class="light-blue--text"> Desde: {{user.bossAssessmentStartDate}} hasta: {{user.bossAssessmentEndDate}}</span>
             </div>
-
-
 
             <!--Tabla jefes-->
             <v-data-table

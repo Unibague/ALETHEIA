@@ -39,7 +39,7 @@ class AuthController extends Controller
             return redirect()->route('reports.show360Assessment');
         }
 
-        if($user->role()->name == "Jefe de Área de Servicio") {
+        if ($user->role()->name == "Jefe de Área de Servicio") {
             return redirect()->route('reports.showServiceAreasAssessment');
         }
 
@@ -47,13 +47,12 @@ class AuthController extends Controller
             return redirect()->route('forms.index.view');
         }
 
-        if($user->isUnitAdmin()){
+        if ($user->isUnitAdmin()) {
             return redirect()->route('unities.index.view');
         }
 
         if ($user->role()->name == "estudiante") {
-
-            Group::purifyGroups($user);
+//            Group::purifyGroups($user);
             return redirect()->route('tests.index.view');
         }
 
@@ -76,7 +75,7 @@ class AuthController extends Controller
             $email = $googleUser->email;
             $indexOfAtSymbol = stripos($email, "@", 0);
             $unibagueString = strrpos($email, "unibague", $indexOfAtSymbol);
-            if($unibagueString == false){
+            if ($unibagueString == false) {
                 return redirect()->route('login');
             }
         } catch (\Exception $e) {

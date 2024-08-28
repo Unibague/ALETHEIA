@@ -115,8 +115,7 @@ class Form extends Model
     public static function getCurrentForms()
     {
         $assessmentPeriodId = (int)AssessmentPeriod::getActiveAssessmentPeriod()->id;
-        return self::where('creation_assessment_period_id', '=', $assessmentPeriodId)
-            ->with(['academicPeriod', 'assessmentPeriod'])->get();
+        return self::with(['academicPeriod', 'assessmentPeriod'])->get();
     }
 
     public function assessmentPeriod(): \Illuminate\Database\Eloquent\Relations\BelongsTo
