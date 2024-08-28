@@ -52,9 +52,9 @@ class Test extends Model
     public static function getUserTests($peersOrSubordinates = null, $role = null)
     {
         $user = auth()->user();
-        if($user->role()->name == "estudiante"){
+        if ($user->role()->name == "estudiante") {
             $userGroups = $user->groups;
-            $userGroups = $userGroups->filter(function($userGroup){
+            $userGroups = $userGroups->filter(function ($userGroup) {
                 return $userGroup->teacher_id !== null;
             })->values();
 
@@ -64,7 +64,7 @@ class Test extends Model
             return $userGroups;
         }
 
-        if ($user->role()->name == "docente" || $user->role()->name == "jefe de profesor"){
+        if ($user->role()->name == "docente" || $user->role()->name == "jefe de profesor") {
             foreach ($peersOrSubordinates as $teacher) {
                 $teacher->test = self::getTestFromTeacher($teacher, $role);
             }
@@ -76,107 +76,271 @@ class Test extends Model
     public static function getTestFromGroup(Group $group)
     {
         $serviceAreaCode = [$group->serviceArea->code];
-        //All params
+
+        // 1. Exact match on all fields
         $form = DB::table('forms')
-            ->whereRaw("json_contains(service_areas->'$[*]',JSON_ARRAY(?))", $serviceAreaCode)
+            ->where('type','=','estudiantes')
+            ->whereRaw("json_contains(service_areas->'$[*]', JSON_ARRAY(?))", $serviceAreaCode)
             ->where('academic_period_id', '=', $group->academic_period_id)
             ->where('degree', '=', $group->degree)
             ->latest()->first();
         if ($form !== null) {
             return $form;
         }
-        //Only last two params
+
+        // 2. Match on degree and service_area_code, but academic_period_id is null
         $form = DB::table('forms')
-            ->whereRaw("json_contains(service_areas->'$[*]',JSON_ARRAY(?))",[null])
+            ->where('type','=','estudiantes')
+            ->whereRaw("json_contains(service_areas->'$[*]', JSON_ARRAY(?))", $serviceAreaCode)
+            ->where('academic_period_id', '=', null)
+            ->where('degree', '=', $group->degree)
+            ->latest()->first();
+        if ($form !== null) {
+            return $form;
+        }
+
+        // 3. Match on degree and academic_period_id, but service_area_code is null
+        $form = DB::table('forms')
+            ->where('type','=','estudiantes')
+            ->whereRaw("json_contains(service_areas->'$[*]', JSON_ARRAY(?))", [null])
             ->where('academic_period_id', '=', $group->academic_period_id)
             ->where('degree', '=', $group->degree)
             ->latest()->first();
-
         if ($form !== null) {
             return $form;
         }
-        //Only first param
-        $form = DB::table('forms')
-            ->whereRaw("json_contains(service_areas->'$[*]',JSON_ARRAY(?))",[null])
-            ->where('academic_period_id', '=', null)
-            ->where('degree', '=', $group->degree)
-            ->latest()->first();
 
-        if ($form !== null) {
-            return $form;
-        }
-        //Any params
+        // 4. Match on service_area_code and academic_period_id, but degree is null
         $form = DB::table('forms')
-            ->whereRaw("json_contains(service_areas->'$[*]',JSON_ARRAY(?))",[null])
-            ->where('academic_period_id', '=', null)
+            ->where('type','=','estudiantes')
+            ->whereRaw("json_contains(service_areas->'$[*]', JSON_ARRAY(?))", $serviceAreaCode)
+            ->where('academic_period_id', '=', $group->academic_period_id)
             ->where('degree', '=', null)
             ->latest()->first();
+        if ($form !== null) {
+            return $form;
+        }
 
-        return $form ?? null;
+        // 5. Match on degree only
+        $form = DB::table('forms')
+            ->where('type','=','estudiantes')
+            ->where('degree', '=', $group->degree)
+            ->latest()->first();
+        if ($form !== null) {
+            return $form;
+        }
+
+        // 6. Match on service_area_code only
+        $form = DB::table('forms')
+            ->where('type','=','estudiantes')
+            ->whereRaw("json_contains(service_areas->'$[*]', JSON_ARRAY(?))", $serviceAreaCode)
+            ->latest()->first();
+        if ($form !== null) {
+            return $form;
+        }
+
+        // 7. Match on academic_period_id only
+        $form = DB::table('forms')
+            ->where('type','=','estudiantes')
+            ->where('academic_period_id', '=', $group->academic_period_id)
+            ->latest()->first();
+
+        if ($form !== null) {
+            return $form;
+        }
+
+        else{
+            return null;
+        }
     }
+
+//    public static function getTestFromTeacherOriginal($teacher, $role)
+//    {
+//        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+//
+//        $teachingLadders = ['ninguno' => 'NIN', 'auxiliar' => 'AUX',
+//            'asistente' => 'ASI', 'asociado' => 'ASO', 'titular' => 'TIT'];
+//
+//        // Match teaching ladder key with the teacher's teaching ladder
+//        foreach ($teachingLadders as $key => $teachingLadder) {
+//            if ($teacher->teaching_ladder == $teachingLadder) {
+//                $teacher->teaching_ladder = $key;
+//            }
+//        }
+//
+//        // Priority 1: Exact match on all conditions
+//        $form = DB::table('forms')
+//            ->where('type','=','otros')
+//            ->whereRaw("json_contains(units->'$[*]', JSON_ARRAY(?))", [$teacher->unit_identifier])
+//            ->where('teaching_ladder', '=', $teacher->teaching_ladder)
+//            ->where('assessment_period_id', '=', $activeAssessmentPeriodId)
+//            ->where('unit_role', '=', $role)
+//            ->latest()->first();
+//
+//        if ($form !== null) {
+//            return $form;
+//        }
+//
+//        // Priority 2: Match on teaching_ladder, unit_role, and assessment_period_id (unit is null)
+//        $form = Form::whereJsonContains('units', null)
+//            ->where('teaching_ladder', '=', $teacher->teaching_ladder)
+//            ->where('assessment_period_id', '=', $activeAssessmentPeriodId)
+//            ->where('unit_role', '=', $role)
+//            ->latest()->first();
+//
+//        if ($form !== null) {
+//            return $form;
+//        }
+//
+//        // Priority 3: Match on unit_role and assessment_period_id (teaching_ladder and unit are null)
+//        $form = Form::whereJsonContains('units', null)
+//            ->where('teaching_ladder', '=', null)
+//            ->where('assessment_period_id', '=', $activeAssessmentPeriodId)
+//            ->where('unit_role', '=', $role)
+//            ->latest()->first();
+//
+//        if ($form !== null) {
+//            return $form;
+//        }
+//
+//        // Priority 4: Match on assessment_period_id only (teaching_ladder, unit_role, and unit are null)
+//        $form = DB::table('forms')
+//            ->where('type','=','otros')
+//            ->whereRaw("json_contains(units->'$[*]', JSON_ARRAY(?))", [null])
+//            ->where('teaching_ladder', '=', null)
+//            ->where('assessment_period_id', '=', null)
+//            ->where('unit_role', '=', $role)
+//            ->latest()->first();
+//
+//        return $form ?? null;
+//    }
 
     public static function getTestFromTeacher($teacher, $role)
     {
-
         $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
 
-        $teachingLadders = ['ninguno' => 'NIN', 'auxiliar' => 'AUX',
-            'asistente' => 'ASI', 'asociado' => 'ASO', 'titular' => 'TIT'];
+        $teachingLadders = [
+            'ninguno' => 'NIN',
+            'auxiliar' => 'AUX',
+            'asistente' => 'ASI',
+            'asociado' => 'ASO',
+            'titular' => 'TIT'
+        ];
 
+        // Match teaching ladder key with the teacher's teaching ladder
         foreach ($teachingLadders as $key => $teachingLadder) {
             if ($teacher->teaching_ladder == $teachingLadder) {
                 $teacher->teaching_ladder = $key;
             }
         }
 
-        $form = Form::whereJsonContains('units', [$teacher->unit_identifier])
-                ->where('teaching_ladder', '=', $teacher->teaching_ladder)
-                ->where('unit_role', '=', $role)
-                ->where('assessment_period_id', '=', $activeAssessmentPeriodId)
-                ->latest()->first();
-
-        if ($form !== null) {
-            return $form;
-        }
-        //Only last two params
-        $form = Form::whereJsonContains('units', null)
+        // Priority 1: Exact match on all conditions
+        $form = DB::table('forms')
+            ->where('type', '=', 'otros')
+            ->whereRaw("json_contains(units->'$[*]', JSON_ARRAY(?))", [$teacher->unit_identifier])
             ->where('teaching_ladder', '=', $teacher->teaching_ladder)
+            ->where('assessment_period_id', '=', $activeAssessmentPeriodId)
             ->where('unit_role', '=', $role)
-            ->where('assessment_period_id', '=', $activeAssessmentPeriodId)
             ->latest()->first();
 
         if ($form !== null) {
             return $form;
         }
-        //Only first param
-        $form = Form::whereJsonContains('units', null)
-            ->where('teaching_ladder', '=',null)
+
+        // Priority 2: Match on teaching_ladder, unit_role, and assessment_period_id (unit is null)
+        $form = DB::table('forms')
+            ->where('type', '=', 'otros')
+            ->whereRaw("json_contains(units->'$[*]', JSON_ARRAY(?))", [$teacher->unit_identifier])
+            ->where('teaching_ladder', '=', null)
+            ->where('assessment_period_id', '=', $activeAssessmentPeriodId)
             ->where('unit_role', '=', $role)
-            ->where('assessment_period_id', '=', $activeAssessmentPeriodId)
-            ->latest()->first();
-
-        if ($form !== null) {
-            return $form;
-        }
-        //Any params
-        $form = Form::whereJsonContains('units', null)
-            ->where('teaching_ladder', '=',null)
-            ->where('unit_role', '=', null)
-            ->where('assessment_period_id', '=', $activeAssessmentPeriodId)
             ->latest()->first();
 
         if ($form !== null) {
             return $form;
         }
 
-        $form = Form::whereJsonContains('units', null)
-            ->where('teaching_ladder', '=',null)
-            ->where('unit_role', '=', null)
+        // Priority 3: Match on unit_role and assessment_period_id (teaching_ladder and unit are null)
+        $form = DB::table('forms')
+            ->where('type', '=', 'otros')
+            ->whereRaw("json_contains(units->'$[*]', JSON_ARRAY(?))", [$teacher->unit_identifier])
+            ->where('teaching_ladder', '=', null)
             ->where('assessment_period_id', '=', null)
+            ->where('unit_role', '=', $role)
             ->latest()->first();
 
-        return $form ?? null;
+        if ($form !== null) {
+            return $form;
+        }
+
+        // Priority 4: Match on teaching_ladder and assessment_period_id (unit_role and unit are null)
+        $form = DB::table('forms')
+            ->where('type', '=', 'otros')
+            ->whereRaw("json_contains(units->'$[*]', JSON_ARRAY(?))", [null])
+            ->where('teaching_ladder', '=', $teacher->teaching_ladder)
+            ->where('assessment_period_id', '=', $activeAssessmentPeriodId)
+            ->where('unit_role', '=', $role)
+            ->latest()->first();
+
+        if ($form !== null) {
+            return $form;
+        }
+
+
+        // Priority 5: Match on unit_role only (teaching_ladder, assessment_period_id, and unit are null)
+        $form = DB::table('forms')
+            ->where('type', '=', 'otros')
+            ->whereRaw("json_contains(units->'$[*]', JSON_ARRAY(?))", [null])
+            ->where('teaching_ladder', '=', $teacher->teaching_ladder)
+            ->where('assessment_period_id', '=', null)
+            ->where('unit_role', '=', $role)
+            ->latest()->first();
+
+        if ($form !== null) {
+            return $form;
+        }
+
+        // Priority 6: Match on unit_role only (teaching_ladder, assessment_period_id, and unit are null)
+        $form = DB::table('forms')
+            ->where('type', '=', 'otros')
+            ->whereRaw("json_contains(units->'$[*]', JSON_ARRAY(?))", [$teacher->unit_identifier])
+            ->where('teaching_ladder', '=', null)
+            ->where('assessment_period_id', '=',  $activeAssessmentPeriodId)
+            ->where('unit_role', '=', $role)
+            ->latest()->first();
+
+        if ($form !== null) {
+            return $form;
+        }
+
+        $form = DB::table('forms')
+            ->where('type', '=', 'otros')
+            ->whereRaw("json_contains(units->'$[*]', JSON_ARRAY(?))", [null])
+            ->where('teaching_ladder', '=', null)
+            ->where('assessment_period_id', '=',  $activeAssessmentPeriodId)
+            ->where('unit_role', '=', $role)
+            ->latest()->first();
+
+        if ($form !== null) {
+            return $form;
+        }
+
+
+        // Priority 8: Match on teaching_ladder only (unit_role, assessment_period_id, and unit are null)
+        $form = DB::table('forms')
+            ->where('type', '=', 'otros')
+            ->whereRaw("json_contains(units->'$[*]', JSON_ARRAY(?))", [null])
+            ->where('teaching_ladder', '=', null)
+            ->where('assessment_period_id', '=', null)
+            ->where('unit_role', '=', $role)
+            ->latest()->first();
+
+        if ($form !== null) {
+            return $form;
+        }
+
+        else{
+            return null;
+        }
     }
-
-
 }

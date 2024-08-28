@@ -1,10 +1,12 @@
 <?php
 
+use App\Exports\ResultsViewExport;
 use App\Helpers\AtlanteProvider;
 use App\Models\AcademicPeriod;
 use App\Models\AssessmentPeriod;
 use App\Models\Enroll;
 
+use App\Models\Form;
 use App\Models\Group;
 use App\Models\Role;
 use Carbon\Carbon;
@@ -12,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use Maatwebsite\Excel\Facades\Excel;
 
 /*
 |--------------------------------------------------------------------------
@@ -110,7 +113,6 @@ Route::resource('api/groups', \App\Http\Controllers\GroupController::class, [
 Route::get('groups/purify', [\App\Http\Controllers\GroupController::class, 'purify'])->middleware(['auth'])->name('groups.purify');
 
 
-
 /* >>>>>>>>>>>>>>>>>>>>>>> Enrolls routes <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< */
 Route::inertia('/enrolls', 'Enrolls/Index')->middleware(['auth', 'isAdmin'])->name('enrolls.index.view');
 //Create fake unites
@@ -121,7 +123,6 @@ Route::resource('api/enrolls', \App\Http\Controllers\EnrollController::class, [
 //Sync groups
 Route::post('/api/enrolls/sync', [\App\Http\Controllers\EnrollController::class, 'sync'])->middleware(['auth'])->name('api.enrolls.sync');
 Route::post('/api/enrolls/deleteThoseGroups', [\App\Http\Controllers\EnrollController::class, 'deleteThoseExistingDuplicatedGroups'])->middleware(['auth'])->name('api.enrolls.deleteThoseGroups');
-
 
 
 /* >>>>>>>>>>>>>>>>>>>>>>>>StaffMembers routes <<<<<<<<<<<<<<<<<<<<<<<<<<<< */
@@ -155,9 +156,9 @@ Route::post('/reminders/update', [\App\Http\Controllers\ReportsController::class
 Route::inertia('/responseIdeals', 'ResponseIdeals/IndexAndEdit')->middleware(['auth', 'isAdmin'])->name('responseIdeals.index.view');
 Route::post('teacher/responseIdeals/get', [\App\Http\Controllers\ResponseIdealController::class, 'getTeacherResponseIdeals'])->middleware('auth')->name('teacher.responseIdeals.get');
 Route::get('{unitId}/responseIdeals/get', [\App\Http\Controllers\ResponseIdealController::class, 'getUnitResponseIdeals'])->middleware('auth')->name('unit.responseIdeals.get');
-Route::get('/responseIdeals/index/{unitId}',  [\App\Http\Controllers\ResponseIdealController::class, 'indexUnitResponseIdeals'])->middleware(['auth', 'isAdmin'])->name('unit.responseIdeals.index');
-Route::get('/responseIdeals/edit/{unitId}/{teachingLadder}',  [\App\Http\Controllers\ResponseIdealController::class, 'editUnitTeachingLadderResponseIdeals'])->middleware(['auth', 'isAdmin'])->name('unit.teachingLadder.responseIdeals.edit');
-Route::get('/responseIdeals/get/{unitId}/{teachingLadder}',  [\App\Http\Controllers\ResponseIdealController::class, 'getUnitTeachingLadderResponseIdeals'])->middleware(['auth', 'isAdmin'])->name('unit.teachingLadder.responseIdeals.get');
+Route::get('/responseIdeals/index/{unitId}', [\App\Http\Controllers\ResponseIdealController::class, 'indexUnitResponseIdeals'])->middleware(['auth', 'isAdmin'])->name('unit.responseIdeals.index');
+Route::get('/responseIdeals/edit/{unitId}/{teachingLadder}', [\App\Http\Controllers\ResponseIdealController::class, 'editUnitTeachingLadderResponseIdeals'])->middleware(['auth', 'isAdmin'])->name('unit.teachingLadder.responseIdeals.edit');
+Route::get('/responseIdeals/get/{unitId}/{teachingLadder}', [\App\Http\Controllers\ResponseIdealController::class, 'getUnitTeachingLadderResponseIdeals'])->middleware(['auth', 'isAdmin'])->name('unit.teachingLadder.responseIdeals.get');
 Route::get('/responseIdeals/get', [\App\Http\Controllers\ResponseIdealController::class, 'getAllCompetences'])->middleware('auth')->name('responseIdeals.get');
 Route::post('/responseIdeals/update', [\App\Http\Controllers\ResponseIdealController::class, 'upsertData'])->middleware('auth')->name('responseIdeals.update');
 Route::post('/responseIdeals/delete', [\App\Http\Controllers\ResponseIdealController::class, 'delete'])->middleware('auth')->name('responseIdeals.delete');
@@ -242,7 +243,6 @@ Route::post('unity/peerAssessments', [\App\Http\Controllers\UnityAssessmentContr
 Route::post('unity/BossAssessments', [\App\Http\Controllers\UnityAssessmentController::class, 'getBossAssessments'])->middleware(['auth', 'isTeacher'])->name('api.unity.bossAssessments');
 
 
-
 /* >>>>>>>>>>>>>>>>>>>>>>>>>>>>User routes <<<<<<<<<<<<<<<<<<<<<<<< */
 //Get all users
 Route::get('/users', [\App\Http\Controllers\Users\UserController::class, 'index'])->middleware(['auth', 'isAdmin'])->name('users.index');
@@ -268,7 +268,7 @@ Route::get('/fulfillServiceAreasResultsTable', function () {
     $uniqueTeachersId = array_unique($uniqueTeachers);
 
 
-    foreach ($uniqueTeachersId as $uniqueTeacherId){
+    foreach ($uniqueTeachersId as $uniqueTeacherId) {
 
         $serviceAreaCodesFromTeacher = DB::table('group_results')->select(['service_area_code'])->where('teacher_id', '=', $uniqueTeacherId)->get()->toArray();
 
@@ -277,7 +277,7 @@ Route::get('/fulfillServiceAreasResultsTable', function () {
         $uniqueServiceAreaCodes = array_unique($uniqueServiceAreaCodes);
 
 
-        foreach ($uniqueServiceAreaCodes as $uniqueServiceAreaCode){
+        foreach ($uniqueServiceAreaCodes as $uniqueServiceAreaCode) {
 
             $groupsFromServiceAreaCode = DB::table('group_results')->where('service_area_code', '=', $uniqueServiceAreaCode)
                 ->where('teacher_id', '=', $uniqueTeacherId)->get();
@@ -296,7 +296,7 @@ Route::get('/fulfillServiceAreasResultsTable', function () {
             $final_sixth_aggregate_competence_average = 0;
 
 
-            foreach ($groupsFromServiceAreaCode as $key=>$groupFromServiceAreaCode){
+            foreach ($groupsFromServiceAreaCode as $key => $groupFromServiceAreaCode) {
 
                 $aggregateTotalStudentsReviewersOnServiceArea += $groupsFromServiceAreaCode[$key]->students_amount_reviewers;
                 $aggregateTotalStudentsEnrolledOnServiceArea += $groupsFromServiceAreaCode[$key]->students_amount_on_group;
@@ -304,7 +304,7 @@ Route::get('/fulfillServiceAreasResultsTable', function () {
                 $final_first_aggregate_competence_average += $groupFromServiceAreaCode->first_final_competence_average;
                 $final_second_aggregate_competence_average += $groupFromServiceAreaCode->second_final_competence_average;
                 $final_third_aggregate_competence_average += $groupFromServiceAreaCode->third_final_competence_average;
-                $final_fourth_aggregate_competence_average +=$groupFromServiceAreaCode->fourth_final_competence_average;
+                $final_fourth_aggregate_competence_average += $groupFromServiceAreaCode->fourth_final_competence_average;
                 $final_fifth_aggregate_competence_average += $groupFromServiceAreaCode->fifth_final_competence_average;
                 $final_sixth_aggregate_competence_average += $groupFromServiceAreaCode->sixth_final_competence_average;
 
@@ -326,7 +326,7 @@ Route::get('/fulfillServiceAreasResultsTable', function () {
             $final_sixth_aggregate_competence_average = number_format($final_sixth_aggregate_competence_average, 1);
 
 
-            DB::table('teachers_service_areas_results')->updateOrInsert(['teacher_id' => $uniqueTeacherId, 'service_area_code' =>$uniqueServiceAreaCode,'assessment_period_id' => $activeAssessmentPeriodId],
+            DB::table('teachers_service_areas_results')->updateOrInsert(['teacher_id' => $uniqueTeacherId, 'service_area_code' => $uniqueServiceAreaCode, 'assessment_period_id' => $activeAssessmentPeriodId],
                 ['first_final_aggregate_competence_average' => $final_first_aggregate_competence_average,
                     'second_final_aggregate_competence_average' => $final_second_aggregate_competence_average,
                     'third_final_aggregate_competence_average' => $final_third_aggregate_competence_average,
@@ -336,7 +336,7 @@ Route::get('/fulfillServiceAreasResultsTable', function () {
                     'aggregate_students_amount_reviewers' => $aggregateTotalStudentsReviewersOnServiceArea,
                     'aggregate_students_amount_on_service_area' => $aggregateTotalStudentsEnrolledOnServiceArea,
                     'created_at' => Carbon::now('GMT-5')->toDateTimeString(),
-                    'updated_at' => Carbon::now('GMT-5')->toDateTimeString() ]);
+                    'updated_at' => Carbon::now('GMT-5')->toDateTimeString()]);
 
 
         }
@@ -355,7 +355,7 @@ Route::get('/testReport', function () {
         ->where('fa.assessment_period_id', '=', $activeAssessmentPeriodId)->get()->toArray();
 
     //First, we insert the student assessments for each teacher on each group on group_results table
-    if(count($teachers) > 0){
+    if (count($teachers) > 0) {
         $uniqueTeachers = array_column($teachers, 'teacher_id');
         $uniqueTeachers = array_unique($uniqueTeachers);
         foreach ($uniqueTeachers as $uniqueTeacher) {
@@ -363,7 +363,7 @@ Route::get('/testReport', function () {
             $groupsFromTeacher = DB::table('form_answers as fa')->select(['fa.group_id'])
                 ->join('forms as f', 'fa.form_id', '=', 'f.id')->join('groups', 'fa.group_id', '=', 'groups.group_id')
                 ->where('groups.active', '=', 1)
-                ->join('service_areas as sa' ,'groups.service_area_code','=', 'sa.code')
+                ->join('service_areas as sa', 'groups.service_area_code', '=', 'sa.code')
                 ->where('sa.assessment_period_id', '=', $activeAssessmentPeriodId)
                 ->where('sa.active', '=', 1)
                 ->where('f.type', '=', 'estudiantes')->where('fa.teacher_id', '=', $uniqueTeacher)
@@ -455,7 +455,7 @@ Route::get('/testReport', function () {
 
         $uniqueTeachers = array_unique($uniqueTeachers);
 
-        foreach ($uniqueTeachers as $uniqueTeacher){
+        foreach ($uniqueTeachers as $uniqueTeacher) {
 
             $finalResultsFromTeacherOnGroups = DB::table('group_results as gr')->where('teacher_id', '=', $uniqueTeacher)
                 ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->get();
@@ -475,7 +475,7 @@ Route::get('/testReport', function () {
                         if ($uniqueTeacher == 181){
                             dd($finalResultsFromTeacherOnGroups);
                         }*/
-            foreach ($finalResultsFromTeacherOnGroups as $key=>$finalResultsFromTeacherOnGroup){
+            foreach ($finalResultsFromTeacherOnGroups as $key => $finalResultsFromTeacherOnGroup) {
 
                 $aggregateTotalStudentsReviewersOnGroups += $finalResultsFromTeacherOnGroups[$key]->students_amount_reviewers;
                 $aggregateTotalStudentsEnrolledOnGroups += $finalResultsFromTeacherOnGroups[$key]->students_amount_on_group;
@@ -483,7 +483,7 @@ Route::get('/testReport', function () {
                 $final_first_aggregate_competence_average += $finalResultsFromTeacherOnGroup->first_final_competence_average;
                 $final_second_aggregate_competence_average += $finalResultsFromTeacherOnGroup->second_final_competence_average;
                 $final_third_aggregate_competence_average += $finalResultsFromTeacherOnGroup->third_final_competence_average;
-                $final_fourth_aggregate_competence_average +=$finalResultsFromTeacherOnGroup->fourth_final_competence_average;
+                $final_fourth_aggregate_competence_average += $finalResultsFromTeacherOnGroup->fourth_final_competence_average;
                 $final_fifth_aggregate_competence_average += $finalResultsFromTeacherOnGroup->fifth_final_competence_average;
                 $final_sixth_aggregate_competence_average += $finalResultsFromTeacherOnGroup->sixth_final_competence_average;
 
@@ -510,7 +510,7 @@ Route::get('/testReport', function () {
             $final_sixth_aggregate_competence_average = number_format($final_sixth_aggregate_competence_average, 1);
 
             //This table is for 360 assessment teachers only.
-            DB::table('teachers_students_perspectives')->updateOrInsert(['teacher_id' => $uniqueTeacher,'assessment_period_id' => $activeAssessmentPeriodId],
+            DB::table('teachers_students_perspectives')->updateOrInsert(['teacher_id' => $uniqueTeacher, 'assessment_period_id' => $activeAssessmentPeriodId],
                 ['first_final_aggregate_competence_average' => $final_first_aggregate_competence_average,
                     'second_final_aggregate_competence_average' => $final_second_aggregate_competence_average,
                     'third_final_aggregate_competence_average' => $final_third_aggregate_competence_average,
@@ -521,7 +521,7 @@ Route::get('/testReport', function () {
                     'aggregate_students_amount_reviewers' => $aggregateTotalStudentsReviewersOnGroups,
                     'aggregate_students_amount_on_360_groups' => $aggregateTotalStudentsEnrolledOnGroups,
                     'created_at' => Carbon::now('GMT-5')->toDateTimeString(),
-                    'updated_at' => Carbon::now('GMT-5')->toDateTimeString() ]);
+                    'updated_at' => Carbon::now('GMT-5')->toDateTimeString()]);
         }
 
         //Now, we are going to calculate the final results on groups for the teacher regarding only students assessments. This is, the results for the service_area report
@@ -529,14 +529,14 @@ Route::get('/testReport', function () {
         $uniqueTeachers = array_column($teachers, 'teacher_id');
         $uniqueTeachersId = array_unique($uniqueTeachers);
 
-        foreach ($uniqueTeachersId as $uniqueTeacherId){
+        foreach ($uniqueTeachersId as $uniqueTeacherId) {
 
             $serviceAreaCodesFromTeacher = DB::table('group_results')->select(['service_area_code'])->where('teacher_id', '=', $uniqueTeacherId)
                 ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->get()->toArray();
             $uniqueServiceAreaCodes = array_column($serviceAreaCodesFromTeacher, 'service_area_code');
             $uniqueServiceAreaCodes = array_unique($uniqueServiceAreaCodes);
 
-            foreach ($uniqueServiceAreaCodes as $uniqueServiceAreaCode){
+            foreach ($uniqueServiceAreaCodes as $uniqueServiceAreaCode) {
 
                 $groupsFromServiceAreaCode = DB::table('group_results')->where('service_area_code', '=', $uniqueServiceAreaCode)
                     ->where('assessment_period_id', '=', $activeAssessmentPeriodId)
@@ -553,7 +553,7 @@ Route::get('/testReport', function () {
                 $final_fifth_aggregate_competence_average = 0;
                 $final_sixth_aggregate_competence_average = 0;
 
-                foreach ($groupsFromServiceAreaCode as $key=>$groupFromServiceAreaCode){
+                foreach ($groupsFromServiceAreaCode as $key => $groupFromServiceAreaCode) {
 
                     $aggregateTotalStudentsReviewersOnServiceArea += $groupsFromServiceAreaCode[$key]->students_amount_reviewers;
                     $aggregateTotalStudentsEnrolledOnServiceArea += $groupsFromServiceAreaCode[$key]->students_amount_on_group;
@@ -561,7 +561,7 @@ Route::get('/testReport', function () {
                     $final_first_aggregate_competence_average += $groupFromServiceAreaCode->first_final_competence_average;
                     $final_second_aggregate_competence_average += $groupFromServiceAreaCode->second_final_competence_average;
                     $final_third_aggregate_competence_average += $groupFromServiceAreaCode->third_final_competence_average;
-                    $final_fourth_aggregate_competence_average +=$groupFromServiceAreaCode->fourth_final_competence_average;
+                    $final_fourth_aggregate_competence_average += $groupFromServiceAreaCode->fourth_final_competence_average;
                     $final_fifth_aggregate_competence_average += $groupFromServiceAreaCode->fifth_final_competence_average;
                     $final_sixth_aggregate_competence_average += $groupFromServiceAreaCode->sixth_final_competence_average;
                 }
@@ -580,7 +580,7 @@ Route::get('/testReport', function () {
                 $final_fifth_aggregate_competence_average = number_format($final_fifth_aggregate_competence_average, 1);
                 $final_sixth_aggregate_competence_average = number_format($final_sixth_aggregate_competence_average, 1);
 
-                DB::table('teachers_service_areas_results')->updateOrInsert(['teacher_id' => $uniqueTeacherId, 'service_area_code' =>$uniqueServiceAreaCode,'assessment_period_id' => $activeAssessmentPeriodId],
+                DB::table('teachers_service_areas_results')->updateOrInsert(['teacher_id' => $uniqueTeacherId, 'service_area_code' => $uniqueServiceAreaCode, 'assessment_period_id' => $activeAssessmentPeriodId],
                     ['first_final_aggregate_competence_average' => $final_first_aggregate_competence_average,
                         'second_final_aggregate_competence_average' => $final_second_aggregate_competence_average,
                         'third_final_aggregate_competence_average' => $final_third_aggregate_competence_average,
@@ -590,20 +590,20 @@ Route::get('/testReport', function () {
                         'aggregate_students_amount_reviewers' => $aggregateTotalStudentsReviewersOnServiceArea,
                         'aggregate_students_amount_on_service_area' => $aggregateTotalStudentsEnrolledOnServiceArea,
                         'created_at' => Carbon::now('GMT-5')->toDateTimeString(),
-                        'updated_at' => Carbon::now('GMT-5')->toDateTimeString() ]);
+                        'updated_at' => Carbon::now('GMT-5')->toDateTimeString()]);
             }
 
         }
         $teacherRoleId = Role::getTeacherRoleId();
         $teachersFrom360 = DB::table('teachers_students_perspectives as tsp')->select(['teacher_id'])
-            ->join('v2_unit_user','tsp.teacher_id', '=', 'v2_unit_user.user_id')
+            ->join('v2_unit_user', 'tsp.teacher_id', '=', 'v2_unit_user.user_id')
             ->where('v2_unit_user.role_id', '=', $teacherRoleId)->where('assessment_period_id', '=', $activeAssessmentPeriodId)
             ->get()->toArray();
 
         $uniqueTeachers = array_column($teachersFrom360, 'teacher_id');
         $uniqueTeachersId = array_unique($uniqueTeachers);
 
-        foreach ($uniqueTeachersId as $uniqueTeacherId){
+        foreach ($uniqueTeachersId as $uniqueTeacherId) {
 
             $allAssessments = [];
             DB::table('assessment_weights')->get();
@@ -613,23 +613,23 @@ Route::get('/testReport', function () {
             $bossPercentage = 0.35;
             $studentsPercentage = 0.35;
 
-            $firstCompetenceTotal= 0;
-            $secondCompetenceTotal= 0;
-            $thirdCompetenceTotal= 0;
-            $fourthCompetenceTotal= 0;
-            $fifthCompetenceTotal= 0;
-            $sixthCompetenceTotal= 0;
+            $firstCompetenceTotal = 0;
+            $secondCompetenceTotal = 0;
+            $thirdCompetenceTotal = 0;
+            $fourthCompetenceTotal = 0;
+            $fifthCompetenceTotal = 0;
+            $sixthCompetenceTotal = 0;
 
             $peerBossAutoAssessmentAnswers = DB::table('form_answers as fa')
-                ->select(['u.name', 'f.unit_role', 'fa.first_competence_average','fa.second_competence_average','fa.third_competence_average',
-                    'fa.fourth_competence_average','fa.fifth_competence_average','fa.sixth_competence_average','u.id as teacherId', 'v2_unit_user.unit_identifier',
-                    'v2_units.name as unitName','fa.submitted_at'])
+                ->select(['u.name', 'f.unit_role', 'fa.first_competence_average', 'fa.second_competence_average', 'fa.third_competence_average',
+                    'fa.fourth_competence_average', 'fa.fifth_competence_average', 'fa.sixth_competence_average', 'u.id as teacherId', 'v2_unit_user.unit_identifier',
+                    'v2_units.name as unitName', 'fa.submitted_at'])
                 ->join('forms as f', 'f.id', '=', 'fa.form_id')
                 ->join('users as u', 'u.id', '=', 'fa.teacher_id')
-                ->join('teachers_students_perspectives as tsp', 'tsp.teacher_id','=','u.id')
-                ->join('v2_unit_user','v2_unit_user.user_id', '=', 'tsp.teacher_id')
-                ->join('v2_units', 'v2_unit_user.unit_identifier','=', 'v2_units.identifier')
-                ->where('f.assessment_period_id','=', $activeAssessmentPeriodId)->where('f.type','=','otros')
+                ->join('teachers_students_perspectives as tsp', 'tsp.teacher_id', '=', 'u.id')
+                ->join('v2_unit_user', 'v2_unit_user.user_id', '=', 'tsp.teacher_id')
+                ->join('v2_units', 'v2_unit_user.unit_identifier', '=', 'v2_units.identifier')
+                ->where('f.assessment_period_id', '=', $activeAssessmentPeriodId)->where('f.type', '=', 'otros')
                 ->where('u.id', '=', $uniqueTeacherId)
                 ->where('tsp.assessment_period_id', '=', $activeAssessmentPeriodId)
                 ->where('v2_unit_user.role_id', '=', $teacherRoleId)
@@ -641,7 +641,7 @@ Route::get('/testReport', function () {
 //                dd($peerBossAutoAssessmentAnswers);
 //            }
 
-            if(count($peerBossAutoAssessmentAnswers) == 0){
+            if (count($peerBossAutoAssessmentAnswers) == 0) {
                 continue;
             }
 
@@ -659,48 +659,48 @@ Route::get('/testReport', function () {
             $peerBossAutoAssessmentAnswers [] = $studentsAnswers;
             $allAssessments = $peerBossAutoAssessmentAnswers;
 
-            foreach ($allAssessments as $assessment){
+            foreach ($allAssessments as $assessment) {
 
-                if($assessment->unit_role === "par"){
-                    $firstCompetenceTotal += $assessment->first_competence_average*$peerPercentage;
-                    $secondCompetenceTotal += $assessment->second_competence_average*$peerPercentage;
-                    $thirdCompetenceTotal += $assessment->third_competence_average*$peerPercentage;
-                    $fourthCompetenceTotal += $assessment->fourth_competence_average*$peerPercentage;
-                    $fifthCompetenceTotal += $assessment->fifth_competence_average*$peerPercentage;
-                    $sixthCompetenceTotal += $assessment->sixth_competence_average*$peerPercentage;
+                if ($assessment->unit_role === "par") {
+                    $firstCompetenceTotal += $assessment->first_competence_average * $peerPercentage;
+                    $secondCompetenceTotal += $assessment->second_competence_average * $peerPercentage;
+                    $thirdCompetenceTotal += $assessment->third_competence_average * $peerPercentage;
+                    $fourthCompetenceTotal += $assessment->fourth_competence_average * $peerPercentage;
+                    $fifthCompetenceTotal += $assessment->fifth_competence_average * $peerPercentage;
+                    $sixthCompetenceTotal += $assessment->sixth_competence_average * $peerPercentage;
                 }
 
-                if($assessment->unit_role === "jefe"){
-                    $firstCompetenceTotal += $assessment->first_competence_average*$bossPercentage;
-                    $secondCompetenceTotal += $assessment->second_competence_average*$bossPercentage;
-                    $thirdCompetenceTotal += $assessment->third_competence_average*$bossPercentage;
-                    $fourthCompetenceTotal += $assessment->fourth_competence_average*$bossPercentage;
-                    $fifthCompetenceTotal += $assessment->fifth_competence_average*$bossPercentage;
-                    $sixthCompetenceTotal += $assessment->sixth_competence_average*$bossPercentage;
+                if ($assessment->unit_role === "jefe") {
+                    $firstCompetenceTotal += $assessment->first_competence_average * $bossPercentage;
+                    $secondCompetenceTotal += $assessment->second_competence_average * $bossPercentage;
+                    $thirdCompetenceTotal += $assessment->third_competence_average * $bossPercentage;
+                    $fourthCompetenceTotal += $assessment->fourth_competence_average * $bossPercentage;
+                    $fifthCompetenceTotal += $assessment->fifth_competence_average * $bossPercentage;
+                    $sixthCompetenceTotal += $assessment->sixth_competence_average * $bossPercentage;
                 }
 
-                if($assessment->unit_role === "estudiante"){
+                if ($assessment->unit_role === "estudiante") {
 
-                    $firstCompetenceTotal += $assessment->first_competence_average*$studentsPercentage;
-                    $secondCompetenceTotal += $assessment->second_competence_average*$studentsPercentage;
-                    $thirdCompetenceTotal += $assessment->third_competence_average*$studentsPercentage;
-                    $fourthCompetenceTotal += $assessment->fourth_competence_average*$studentsPercentage;
-                    $fifthCompetenceTotal += $assessment->fifth_competence_average*$studentsPercentage;
-                    $sixthCompetenceTotal += $assessment->sixth_competence_average*$studentsPercentage;
+                    $firstCompetenceTotal += $assessment->first_competence_average * $studentsPercentage;
+                    $secondCompetenceTotal += $assessment->second_competence_average * $studentsPercentage;
+                    $thirdCompetenceTotal += $assessment->third_competence_average * $studentsPercentage;
+                    $fourthCompetenceTotal += $assessment->fourth_competence_average * $studentsPercentage;
+                    $fifthCompetenceTotal += $assessment->fifth_competence_average * $studentsPercentage;
+                    $sixthCompetenceTotal += $assessment->sixth_competence_average * $studentsPercentage;
 
                     $involvedActors = $assessment->aggregate_students_amount_reviewers + count($allAssessments) - 1;
                     $totalActors = $assessment->aggregate_students_amount_on_360_groups + count($allAssessments) - 1;
 
                 }
 
-                if($assessment->unit_role === "autoevaluación"){
+                if ($assessment->unit_role === "autoevaluación") {
 
-                    $firstCompetenceTotal += $assessment->first_competence_average*$autoPercentage;
-                    $secondCompetenceTotal += $assessment->second_competence_average*$autoPercentage;
-                    $thirdCompetenceTotal += $assessment->third_competence_average*$autoPercentage;
-                    $fourthCompetenceTotal += $assessment->fourth_competence_average*$autoPercentage;
-                    $fifthCompetenceTotal += $assessment->fifth_competence_average*$autoPercentage;
-                    $sixthCompetenceTotal += $assessment->sixth_competence_average*$autoPercentage;
+                    $firstCompetenceTotal += $assessment->first_competence_average * $autoPercentage;
+                    $secondCompetenceTotal += $assessment->second_competence_average * $autoPercentage;
+                    $thirdCompetenceTotal += $assessment->third_competence_average * $autoPercentage;
+                    $fourthCompetenceTotal += $assessment->fourth_competence_average * $autoPercentage;
+                    $fifthCompetenceTotal += $assessment->fifth_competence_average * $autoPercentage;
+                    $sixthCompetenceTotal += $assessment->sixth_competence_average * $autoPercentage;
                 }
 
             }
@@ -722,7 +722,7 @@ Route::get('/testReport', function () {
                     'fifth_final_aggregate_competence_average' => $fifthCompetenceTotal,
                     'sixth_final_aggregate_competence_average' => $sixthCompetenceTotal,
                     'involved_actors' => $involvedActors,
-                    'total_actors'=>$totalActors]);
+                    'total_actors' => $totalActors]);
 
             /*       dd($firstCompetenceTotal,$secondCompetenceTotal,$thirdCompetenceTotal,$fourthCompetenceTotal,$fifthCompetenceTotal,$sixthCompetenceTotal);*/
 
@@ -735,134 +735,107 @@ Route::get('/testReport', function () {
 });
 
 
-Route::get('testEmail', function () {
-//    $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
-//
-//    $emailsToSent = DB::table('assessment_reminder_users')->where('status', '=', 'Not Started')
-//        ->where('before_start_or_finish_assessment', '=', 'Finish')
-//        ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->take(1)->get();
-//
-//    if (count($emailsToSent) == 0) {
-//
-//        $emailsToSent = DB::table('assessment_reminder_users')->where('status', '=', 'In Progress')
-//            ->where('before_start_or_finish_assessment', '=', 'Finish')
-//            ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->take(1)->get();
-//    }
-////    dd($emailsToSent);
-//
-//    foreach ($emailsToSent as $student){
-//
-//        $emailParameters = json_decode($student->email_parameters);
-//
-//        /*        dd($emailParameters);*/
-//
-//        DB::table('assessment_reminder_users')->where('assessment_period_id', '=', $activeAssessmentPeriodId)
-//            ->where('id', '=', $student->id)->update(['status' => 'In Progress']);
-//
-//        $data = [
-//            'role' => $emailParameters->role,
-//            'name' => $emailParameters->name,
-//            'teachers_to_evaluate' => $emailParameters->teachers_to_evaluate,
-//            'end_date' => $emailParameters->end_date,
-//            'assessment_period_name' => AssessmentPeriod::getActiveAssessmentPeriod()->name
-//        ];
-//
-//        $email = new \App\Mail\SecondReminderMailable($data);
-//
-//        Mail::bcc(['juan.gonzalez10@unibague.edu.co'])->send($email);
-//
-//        DB::table('assessment_reminder_users')->where('assessment_period_id', '=', $activeAssessmentPeriodId)
-//            ->where('id', '=', $student->id)->update(['status' => 'Done']);
-//    }
+Route::get('/aggregateReport', function () {
+
+
+    $tableData = [];
+
+    $groupResults = DB::table('group_results as gr')
+        ->select([
+            'g.name as group_name', 'g.class_code', 'g.group as group_number', 'ap.name as assessment_period_name',
+            'ap.id as assessment_period_id',
+            'u.name as teacher_name', 'gr.students_amount_reviewers', 'gr.students_amount_on_group',
+            'gr.first_final_competence_average as first_competence',
+            'gr.second_final_competence_average as second_competence',
+            'gr.third_final_competence_average as third_competence',
+            'gr.fourth_final_competence_average as fourth_competence',
+            'gr.fifth_final_competence_average as fifth_competence',
+            'gr.sixth_final_competence_average as sixth_competence',
+            'sa.name as service_area_name', 'sa.code as service_area_code'
+        ])
+        ->join('groups as g', 'gr.group_id', '=', 'g.group_id')
+        ->join('assessment_periods as ap', 'gr.assessment_period_id', '=', 'ap.id')
+        ->join('users as u', 'gr.teacher_id', '=', 'u.id')
+        ->join('service_areas as sa', function ($join) {
+            $join->on('gr.service_area_code', '=', 'sa.code')
+                ->on('gr.assessment_period_id', '=', 'sa.assessment_period_id'); // Additional condition
+        })->orderBy('u.name', 'ASC')->get();
+
+
+    foreach ($groupResults as $groupResult) {
+
+        $rowData = [];
+
+        if ($groupResult->assessment_period_id === 5 && !str_starts_with(trim($groupResult->service_area_code), 'I')) {
+            //Remember that, unless the service area code starts with I, the final average will be the same first_final_competence_average
+            $groupResult->final_average = $groupResult->first_competence;
+        } else {
+            $groupResult->final_average = ($groupResult->first_competence + $groupResult->second_competence
+                    + $groupResult->third_competence + $groupResult->fourth_competence + $groupResult->fifth_competence +
+                    $groupResult->sixth_competence) / 6;
+        }
+
+        $rowData [] = $groupResult->assessment_period_name;
+        $rowData [] = $groupResult->group_name;
+        $rowData [] = $groupResult->class_code;
+        $rowData [] = $groupResult->group_number;
+        $rowData [] = $groupResult->teacher_name;
+        $rowData [] = $groupResult->service_area_name;
+        $rowData [] = $groupResult->students_amount_on_group;
+        $rowData [] = $groupResult->students_amount_reviewers;
+        $rowData [] = $groupResult->final_average;
+
+        $tableData [] = $rowData;
+    }
+
+    return Excel::download(new \App\Exports\AllPeriodsReportPerGroupViewExport($tableData), 'Resultados_Reporte_General_Grupo.xlsx');
+
 });
 
-//
-//Route::get('checkCronJob', function () {
-//
-//    $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
-//    $emailsToSent = DB::table('assessment_reminder_users')->where('status', '=', 'Not Started')
-//        ->where('before_start_or_finish_assessment', '=', 'Finish')
-//        ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->take(100)->get();
-//
-//    $reference = $emailsToSent;
-//
-//    if (count($emailsToSent) == 0) {
-//
-//        $emailsToSent = DB::table('assessment_reminder_users')->where('status', '=', 'In Progress')
-//            ->where('before_start_or_finish_assessment', '=', 'Finish')
-//            ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->take(100)->get();
-//    }
-////    dd($emailsToSent);
-//
-//    foreach ($emailsToSent as $student){
-//
-//        $emailParameters = json_decode($student->email_parameters);
-//
-//        DB::table('assessment_reminder_users')->where('assessment_period_id', '=', $activeAssessmentPeriodId)
-//            ->where('id', '=', $student->id)->update(['status' => 'In Progress']);
-//
-//        $data = [
-//            'role' => $emailParameters->role,
-//            'name' => $emailParameters->name,
-//            'teachers_to_evaluate' => $emailParameters->teachers_to_evaluate,
-//            'end_date' => $emailParameters->end_date,
-//            'assessment_period_name' => AssessmentPeriod::getActiveAssessmentPeriod()->name
-//        ];
-//
-//
-////        dd($data);
-//
-//        $email = new \App\Mail\SecondReminderMailable($data);
-//        Mail::bcc(['juanes01.gonzalez@gmail.com'])->send($email);
-//        DB::table('assessment_reminder_users')->where('assessment_period_id', '=', $activeAssessmentPeriodId)
-//            ->where('id', '=', $student->id)->update(['status' => 'Done']);
-//    }
-//
-//});
-//
-//Route::get('checkCronJob2', function () {
-//    $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
-//
-//    set_time_limit(10000);
-//
-//    $emailsToSent = DB::table('assessment_reminder_users')->where('status', '=', 'Not Started')
-//        ->where('before_start_or_finish_assessment', '=', 'Start')
-//        ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->take(100)->get();
-//
-//    $reference = $emailsToSent;
-//
-//    if (count($emailsToSent) == 0) {
-//
-//        $emailsToSent = DB::table('assessment_reminder_users')->where('status', '=', 'In Progress')
-//            ->where('before_start_or_finish_assessment', '=', 'Start')
-//            ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->take(100)->get();
-//    }
-//
-//
-//
-//
-//    foreach ($emailsToSent as $student) {
-//
-//        $emailParameters = json_decode($student->email_parameters);
-//        DB::table('assessment_reminder_users')->where('assessment_period_id', '=', $activeAssessmentPeriodId)
-//            ->where('id', '=', $student->id)->update(['status' => 'In Progress']);
-//
-//        $data = [
-//            'role' => $emailParameters->role,
-//            'name' => $emailParameters->name,
-//            'teachers_to_evaluate' => $emailParameters->teachers_to_evaluate,
-//            'start_date' => $emailParameters->start_date,
-//            'end_date' => $emailParameters->end_date,
-//            'assessment_period_name' => AssessmentPeriod::getActiveAssessmentPeriod()->name
-//        ];
-//
-//
-//
-//
-//        $email = new \App\Mail\FirstReminderMailable($data);
-//        Mail::bcc(['juanes01.gonzalez@gmail.com'])->send($email);
-//        DB::table('assessment_reminder_users')->where('assessment_period_id', '=', $activeAssessmentPeriodId)
-//            ->where('id', '=', $student->id)->update(['status' => 'Done']);
-//    }
-//
-//});
+
+Route::get('individualExcelReport', function () {
+
+    $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+
+    $form = DB::table('forms')->where('id', '=', 39)->first();
+
+    $formQuestions = \App\Models\Form::getFormQuestions($form);
+
+    $formAnswers = DB::table('form_answers as fa')->select(['u.name as teacher_name', 'g.name as group_name', 'g.group as group_number', 'fa.answers'])
+        ->where('fa.assessment_period_id', '=', $activeAssessmentPeriodId)
+        ->where('fa.group_id', '!=', null)
+        ->where('fa.form_id', '=', 39)->join('users as u', 'fa.teacher_id', '=', 'u.id')
+        ->join('groups as g', 'fa.group_id', '=', 'g.group_id')->orderBy('u.name', 'ASC')
+        ->orderBy('g.name', 'ASC')->orderBy('g.group', 'ASC')->get();
+
+    $tableData = [];
+
+    foreach ($formAnswers as $formAnswer) {
+
+        //Every row must have the formAnswer's teacher's name, name and number of the group, all the answers value with the question name and the comments
+        $rowData = [];
+
+        $rowData [] = $formAnswer->teacher_name;
+        $rowData [] = $formAnswer->group_name;
+        $rowData [] = (int)$formAnswer->group_number;
+
+
+        $formAnswerAsJson = (json_decode($formAnswer->answers, false, 512, JSON_THROW_ON_ERROR));
+        //Now we insert the results for every question in case the question exists in the form_answer
+
+        foreach ($formQuestions as $question) {
+            $result = Form::findFirstOccurrence($formAnswerAsJson, $question);
+            if ($result) {
+                $rowData[] = $result->answer;
+                continue;
+            }
+            $rowData [] = "";
+        }
+        $tableData[] = $rowData;
+
+    }
+
+    return Excel::download(new \App\Exports\IndividualCompetenceResultsViewExport($formQuestions, $tableData), 'Resultados_2024A.xlsx');
+
+});
+

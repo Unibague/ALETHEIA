@@ -107,11 +107,11 @@
                         </td>
                         <td>
                             <span>
-                                {{ getTableServiceAreas(item.serviceAreas) }}
+                                {{ truncateDescription(getTableServiceAreas(item.serviceAreas))}}
                             </span>
                         </td>
                         <td>
-                            {{ item.description === '' ? 'No proporcionada' : item.description }}
+                            {{ item.description === '' ? 'No proporcionada' : truncateDescription(item.description) }}
                         </td>
 
                         <td class="d-flex" style="gap: 5px">
@@ -215,11 +215,11 @@
                             {{ item.teachingLadder != null ? item.teachingLadder : 'Todos' }}
                         </td>
                         <td>
-                            {{ getTableUnits(item.units) }}
+                            {{ truncateDescription(getTableUnits(item.units))}}
                         </td>
 
                         <td>
-                            {{ item.description === '' ? 'No proporcionada' : item.description }}
+                            {{ item.description === '' ? 'No proporcionada' : truncateDescription(item.description) }}
                         </td>
 
                         <td>
@@ -303,7 +303,6 @@
                                         label="Periodo académico"
                                         :item-text="(academicPeriod)=>academicPeriod.name"
                                         :item-value="(academicPeriod)=>academicPeriod.id"
-                                        :disabled="studentForm.degree === null"
                                     ></v-select>
                                 </v-col>
                                 <v-col cols="12">
@@ -315,7 +314,6 @@
                                         label="Área de servicio"
                                         :item-text="(serviceArea)=>serviceArea.name"
                                         :item-value="(serviceArea)=>serviceArea.code"
-                                        :disabled="studentForm.academicPeriodId === null"
                                     >
                                         <template v-slot:selection="{ item, index }">
                                             <v-chip v-if="index === 0">
@@ -402,7 +400,6 @@
                                         label="Rol"
                                         :item-text="(role)=> role.name"
                                         :item-value="(role)=>role.value"
-                                        :disabled="othersForm.assessmentPeriodId === null"
                                     ></v-select>
                                 </v-col>
                                 <v-col cols="12">
@@ -413,7 +410,6 @@
                                         label="Escalafón"
                                         :item-text="(teachingLadder)=> this.othersForm.unitRole === null ? 'Todos' :teachingLadder.name"
                                         :item-value="(teachingLadder)=> this.othersForm.unitRole === null ? null: teachingLadder.value"
-                                        :disabled="othersForm.unitRole === null"
                                     ></v-select>
                                 </v-col>
                                 <v-col cols="12">
@@ -425,7 +421,6 @@
                                         label="Unidades"
                                         :item-text="(unit)=> unit.name"
                                         :item-value="(unit)=>unit.identifier"
-                                        :disabled="othersForm.teachingLadder === null"
                                     >
                                         <template v-slot:selection="{ item, index }">
                                             <v-chip v-if="index === 0">
@@ -597,7 +592,7 @@ export default {
             createOthersFormDialog: false,
             editOthersFormDialog: false,
             migrateFormsDialog: false,
-            assessmentPeriodsMigrateList : [],
+            assessmentPeriodsMigrateList: [],
             selectedAssessmentPeriod: [],
             isLoading: true,
 
@@ -617,6 +612,16 @@ export default {
     },
 
     methods: {
+
+        truncateDescription(description) {
+            const maxLength = 70; // Set the maximum length of characters
+            if (!description) {
+                return 'No proporcionada'; // Return default text if description is null or empty
+            }
+
+            return description.length > maxLength ? description.substring(0, maxLength) + '...' : description || 'No proporcionada';
+        },
+
         getTableAcademicPeriod: function (academicPeriodId) {
             if (academicPeriodId === null) {
                 return 'Todos';
@@ -723,7 +728,7 @@ export default {
             }
         },
 
-        async openMigrateFormsDialog(){
+        async openMigrateFormsDialog() {
 
             this.migrateFormsDialog = true
             let request = await axios.get(route('api.assessmentPeriods.index'));
