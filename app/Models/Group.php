@@ -104,10 +104,13 @@ class Group extends Model
             return $result;
         }, []);
 
-
         $upsertData = [];
 
         foreach ($groups as $group) {
+
+            if(!Group::isSuitableGroup($group['name'])){
+                continue;
+            }
 
             if($group['hour_type'] === 'Normal'){
                 $group['hour_type'] = 'normal';
@@ -130,10 +133,27 @@ class Group extends Model
             ];
         }
 
-        /*$justGroupsIds = array_column($upsertData,'group_id');
-        dd(array_diff_assoc($justGroupsIds, array_unique($justGroupsIds)));*/
         self::upsert($upsertData, ['group_id'],
             ['academic_period_id', 'name', 'class_code', 'degree', 'service_area_code', 'teacher_id', 'hour_type']);
+    }
+
+
+    public static function isSuitableGroup($classCode): bool
+    {
+        // Convert the string to uppercase to make the check case-insensitive
+        $upperString = strtoupper($classCode);
+
+        // Define the undesired groups to check for
+        $phrases = ['TRABAJO DE GRADO', 'CONSULTORIO JURIDICO', 'PRACTICA EMPRESARIAL'];
+
+        // Loop through the undesired groups and check if any of them are present in the string
+        foreach ($phrases as $phrase) {
+            if (strpos($upperString, $phrase) !== false) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
 

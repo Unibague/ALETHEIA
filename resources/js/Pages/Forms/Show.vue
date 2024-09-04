@@ -38,24 +38,7 @@
 
             <!------------Seccion de dialogos ---------->
 
-            <!--Confirmar borrar rol-->
-            <confirm-dialog
-                :show="deleteFormDialog"
-                @canceled-dialog="deleteFormDialog = false"
-                @confirmed-dialog="deleteQuestion"
-            >
-                <template v-slot:title>
-                    Estas a punto de eliminar el rol seleccionado
-                </template>
-
-                ¡Cuidado! esta acción es irreversible
-
-                <template v-slot:confirm-button-text>
-                    Borrar
-                </template>
-            </confirm-dialog>
-
-            <!--Confirmar borrar rol-->
+            <!--Confirmar borrar pregunta-->
             <confirm-dialog
                 :show="deleteQuestionDialog"
                 @canceled-dialog="deleteQuestionDialog = false"
@@ -65,7 +48,7 @@
                     Confirmación
                 </template>
 
-                ¿Estas seguro que deseas borrar esta pregunta? Esta acción es irreversible
+                ¿Estás seguro que deseas borrar esta pregunta? Esta acción es irreversible
 
                 <template v-slot:confirm-button-text>
                     Borrar
@@ -129,6 +112,7 @@ export default {
             try {
                 let request = await axios.get(url);
                 this.questions = Question.fromRequest(request.data);
+                console.log(this.questions);
             } catch (e) {
             }
         },
@@ -160,8 +144,8 @@ export default {
         },
         addAnotherQuestion() {
             this.questions.push(new Question());
+            console.log(this.questions);
         },
-
 
     }
 

@@ -38,7 +38,11 @@ class GroupController extends Controller
      */
     public function index(GetGroupsRequest $request): JsonResponse
     {
-        return response()->json(Group::with(['teacher', 'serviceArea', 'academicPeriod'])->get());
+        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        return response()->json(Group::join('academic_periods as ap',
+            'groups.academic_period_id', '=', 'ap.id')
+            ->where('ap.assessment_period_id', '=', $activeAssessmentPeriodId)
+            ->with(['teacher', 'serviceArea', 'academicPeriod'])->get());
     }
 
     public function sync(): JsonResponse
@@ -54,7 +58,6 @@ class GroupController extends Controller
                     $groups[$key]['teacher_email'] = null;
                 }
             }
-
 
             Group::createOrUpdateFromArray($groups, explode(',', $namesSeparatedByCommas));
         } catch (\JsonException $e) {

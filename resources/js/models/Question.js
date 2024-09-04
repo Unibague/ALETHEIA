@@ -14,9 +14,12 @@ export default class Question {
     }
 
 
-    getLineChartColors(){
+    getLineChartColors() {
 
-        return [{role: 'autoevaluación', color: 'blue'}, {role: 'jefe', color: 'red'}, {role: 'par', color: 'green'}, {role: 'estudiante', color: 'purple'}]
+        return [{role: 'autoevaluación', color: 'blue'}, {role: 'jefe', color: 'red'}, {
+            role: 'par',
+            color: 'green'
+        }, {role: 'estudiante', color: 'purple'}]
 
     }
 
@@ -26,35 +29,34 @@ export default class Question {
         let finalCompetences = []
         let competences = ['C1', 'C2', 'C3', 'C4', 'C5', 'C6']
 
-        competences.forEach(competence =>{
+        competences.forEach(competence => {
 
 
-            if(competence == 'C1'){
+            if (competence == 'C1') {
 
-                finalCompetences.push({id: 0, competence, name: '', value:''})
+                finalCompetences.push({id: 0, competence, name: '', value: ''})
             }
 
-            if(competence == 'C2'){
+            if (competence == 'C2') {
 
-                finalCompetences.push({id: 1, competence, name: '', value:''})
+                finalCompetences.push({id: 1, competence, name: '', value: ''})
             }
-            if(competence == 'C3'){
+            if (competence == 'C3') {
 
-                finalCompetences.push({id: 2, competence, name: '', value:''})
+                finalCompetences.push({id: 2, competence, name: '', value: ''})
             }
-            if(competence == 'C4'){
+            if (competence == 'C4') {
 
-                finalCompetences.push({id: 3, competence, name: '', value:''})
+                finalCompetences.push({id: 3, competence, name: '', value: ''})
             }
-            if(competence == 'C5'){
+            if (competence == 'C5') {
 
-                finalCompetences.push({id: 4, competence, name: '', value:''})
+                finalCompetences.push({id: 4, competence, name: '', value: ''})
             }
-            if(competence == 'C6'){
+            if (competence == 'C6') {
 
-                finalCompetences.push({id: 5, competence, name: '', value:''})
+                finalCompetences.push({id: 5, competence, name: '', value: ''})
             }
-
 
 
         })
@@ -97,6 +99,10 @@ export default class Question {
         this.options = options;
         this.competence = competence;
 
+        if (type === 'abierta') {
+            this.commentType = null;
+        }
+
         if (id === null) {
             this.id = Math.random().toString(16).slice(2);
         }
@@ -106,6 +112,7 @@ export default class Question {
             name: 'required',
             options: 'required',
             competence: 'required',
+            commentType: null,
         };
     }
 }

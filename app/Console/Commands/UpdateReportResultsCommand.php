@@ -50,7 +50,7 @@ class UpdateReportResultsCommand extends Command
             ->where('f.type', '=', 'estudiantes')
             ->where('fa.assessment_period_id', '=', $activeAssessmentPeriodId)->get()->toArray();
 
-        //First, we insert the student assessments for each teacher on each group on group_results table
+        //First, we insert the student assessments for each teacher on each group on group_results table (updateGroupResultsFromTeacher)
         if(count($teachers) > 0){
 
             $uniqueTeachers = array_column($teachers, 'teacher_id');

@@ -25,7 +25,7 @@ class StoreFormQuestionRequest extends FormRequest
     {
         return [
             'questions' => 'required|Array',
-            'questions.*.competence' => 'required|string',
+            'questions.*.competence' => 'required',
             'questions.*.name' => 'required|string',
             'questions.*.options' => 'Array',
 
