@@ -58,7 +58,6 @@ class GroupController extends Controller
                     $groups[$key]['teacher_email'] = null;
                 }
             }
-
             Group::createOrUpdateFromArray($groups, explode(',', $namesSeparatedByCommas));
         } catch (\JsonException $e) {
             return response()->json(['message' => 'Ha ocurrido un error con la fuente de datos: ' . $e->getMessage()]);

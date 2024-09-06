@@ -36,7 +36,6 @@ class EnrollController extends Controller
                 $enrolls = AtlanteProvider::get('enrolls', [
                     'periods' => $academicPeriod->name
                 ], true);
-
                 Enroll::createOrUpdateFromArray($enrolls, $academicPeriod->id);
             } catch (\JsonException $e) {
                 return response()->json(['message' => 'Ha ocurrido un error con la fuente de datos: ' . $e->getMessage()],500);

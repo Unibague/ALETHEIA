@@ -710,7 +710,6 @@ class FormAnswers extends Model
      */
     public static function createStudentFormFromRequest(Request $request, Form $form): void
     {
-
         $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
         $competencesAverage = self::getCompetencesAverage(json_decode(json_encode($request->input('answers'), JSON_THROW_ON_ERROR),
             false, 512, JSON_THROW_ON_ERROR));
@@ -739,13 +738,11 @@ class FormAnswers extends Model
             return;
         }
 
-//        self::updateResponseStatusToAnswered($request->input('groupId'), auth()->user()->id);
+       self::updateResponseStatusToAnswered($request->input('groupId'), auth()->user()->id);
     }
 
     public static function updateResponseStatusToAnswered($groupId, $userId): void
     {
-
-
         DB::table('group_user')
             ->where('group_id', '=', $groupId)
             ->where('user_id', '=', $userId)->update(['has_answer' => 1]);
@@ -811,10 +808,8 @@ class FormAnswers extends Model
 
 
     public static function groupOpenEndedAnswers($openEndedAnswers) {
+
         $groupedAnswers = [];
-
-
-
         foreach ($openEndedAnswers as $answerSet) {
             foreach ($answerSet as $answer) {
                 $question = $answer->question;
@@ -864,39 +859,26 @@ class FormAnswers extends Model
     {
         $competences = [];
 
-        $legacyCompetences = [
-            'C1' => 'Orientación a la calidad educativa',
-            'C2' => 'Trabajo Colaborativo',
-            'C3' => 'Empatía Universitaria',
-            'C4' => 'Comunicación',
-            'C5' => 'Innovación del conocimiento',
-            'C6' => 'Productividad académica'
-        ];
-
         try {
             foreach ($formAnswers as $answer) {
 
-                if(!array_key_exists('type', $answer)){
-                    $answer['type'] = 'multiple';
-                }
-
-                if ($answer['type'] === 'abierta') {
+                if ($answer->type === 'abierta') {
                     continue;
                 }
 
-                $competence = $legacyCompetences[$answer['competence']];
+                $competence = $answer->competence;
 
-                if (!isset($competences[$competence])) {
-                    $competences[$competence] = [
-                        'id' => null,
-                        'name' => $competence,
+                if (!isset($competences[$competence->name])) {
+                    $competences[$competence->name] = [
+                        'id' => $competence->id,
+                        'name' => $competence->name,
                         'totalAnswers' => 0,
                         'accumulatedValue' => 0
                     ];
                 }
 
-                $competences[$competence]['totalAnswers']++;
-                $competences[$competence]['accumulatedValue'] += (double)$answer['answer'];
+                $competences[$competence->name]['totalAnswers']++;
+                $competences[$competence->name]['accumulatedValue'] += (double)$answer->answer;
             }
         } catch (\Exception $exception) {
             throw new \RuntimeException('Debes contestar todas las preguntas para poder enviar el formulario');

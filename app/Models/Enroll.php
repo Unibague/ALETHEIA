@@ -136,7 +136,7 @@ class Enroll extends Model
 
     public static function createOrUpdateFromArray(array $enrolls, int $academicPeriodId): void
     {
-        //Create users
+        // Create users
         $users = User::updateOrCreateFromArrayAndGetUsers($enrolls);
 
         $userEmailAndId = array_reduce($users, static function ($result, $user) {
@@ -147,57 +147,48 @@ class Enroll extends Model
         $upsertData = [];
         $deleteData = [];
 
+        // Get all group_ids that exist in the groups table
+        $validGroupIds = DB::table('groups')->pluck('group_id')->toArray();
+
         foreach ($enrolls as $enroll) {
-
-            if ($enroll['pago'] === 'SI' && $enroll['estado'] === "Matriculada") {
-                $upsertData[] = [
-                    'user_id' => $userEmailAndId[$enroll["email"]],
-                    'group_id' => $enroll['group_id'],
-                    'has_answer' => 0,
-                    'academic_period_id' => $academicPeriodId
-                ];
-
-
-            } else {
-                $deleteData[] = [
-                    'user_id' => $userEmailAndId[$enroll["email"]],
-                    'group_id' => $enroll['group_id'],
-                    'academic_period_id' => $academicPeriodId
-                ];
-            }
-
-        }
-       /*     foreach ($upsertData as $item) {
-                try {
-                    self::updateOrCreate([
-                        'group_id' => $item['group_id'],
-                        'user_id' => $item['user_id'],
-                        'academic_period_id' => $item['academic_period_id']
-                    ], [
-                        'has_answer' => 0
-                    ]);
-                } catch (\Exception $e) {
-                    dd('Encontre este error :' . $e->getMessage());
+            // Check if the group_id exists in the groups table
+            if (in_array($enroll['group_id'], $validGroupIds)) {
+                if ($enroll['pago'] === 'SI' && $enroll['estado'] === "Matriculada") {
+                    $upsertData[] = [
+                        'user_id' => $userEmailAndId[$enroll["email"]],
+                        'group_id' => $enroll['group_id'],
+                        'has_answer' => 0,
+                        'academic_period_id' => $academicPeriodId
+                    ];
+                } else {
+                    $deleteData[] = [
+                        'user_id' => $userEmailAndId[$enroll["email"]],
+                        'group_id' => $enroll['group_id'],
+                        'academic_period_id' => $academicPeriodId
+                    ];
                 }
-            }*/
-            try {
-                foreach (array_chunk($upsertData, 1000) as $sqlData) {
-                    self::upsert($sqlData, ['group_id', 'user_id', 'academic_period_id'], ['updated_at']);
-                }
-            } catch (\Exception $exception) {
-                $message = 'No se ha podido migrar toda la carga académica, asegurese de haber sincronizado previamente los cursos, en caso de que se mantenga el error, por favor comunicarse con desarrolladorg3@gmail.com';
-                throw new \RuntimeException($message);
-            }
-
-            //Delete the other registers
-            foreach ($deleteData as $deleteItem) {
-                DB::table('group_user')
-                    ->where('group_id', '=', $deleteItem['group_id'])
-                    ->where('user_id', '=', $deleteItem['user_id'])
-                    ->where('academic_period_id', '=', $deleteItem['academic_period_id'])
-                    ->delete();
             }
         }
+
+        try {
+            foreach (array_chunk($upsertData, 1000) as $sqlData) {
+                self::upsert($sqlData, ['group_id', 'user_id', 'academic_period_id'], ['updated_at']);
+            }
+        } catch (\Exception $exception) {
+            $message = 'No se ha podido migrar toda la carga académica, asegurese de haber sincronizado previamente los cursos, en caso de que se mantenga el error, por favor comunicarse con desarrolladorg3@gmail.com';
+            throw new \RuntimeException($message);
+        }
+
+        // Delete the other registers
+        foreach ($deleteData as $deleteItem) {
+            DB::table('group_user')
+                ->where('group_id', '=', $deleteItem['group_id'])
+                ->where('user_id', '=', $deleteItem['user_id'])
+                ->where('academic_period_id', '=', $deleteItem['academic_period_id'])
+                ->delete();
+        }
+    }
+
 
 
 }
