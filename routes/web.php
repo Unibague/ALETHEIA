@@ -264,13 +264,6 @@ Route::get('/api/users/{user}/roles', [\App\Http\Controllers\Users\ApiUserContro
 Route::post('/api/roles/select', [\App\Http\Controllers\Users\ApiUserController::class, 'selectRole'])->middleware('auth')->name('api.roles.selectRole');
 
 
-Route::get('/testDynamicCA', function () {
-
-    $formAnswer = json_decode(DB::table('form_answers')->where('id','=',29733)->first()->answers);
-    dd($formAnswer);
-});
-
-
 Route::get('/fulfillServiceAreasResultsTable', function () {
 
     $activeAssessmentPeriodId = \App\Models\AssessmentPeriod::getActiveAssessmentPeriod()->id;
@@ -368,25 +361,6 @@ Route::get('/migrateLegacyRecordsFormAnswersTable', function () {
         updateOrInsert(['id'=> $formAnswer->id], ['competences_average' => $results['competences']
         ,'overall_average' => $results['overall_average'], 'open_ended_answers' => $openEndedAnswers]);
     }
-
-    // Get the total count of records to be processed
-//    $totalRecords = DB::table('form_answers')
-//        ->whereNull('competences_average')
-//        ->count();
-//
-//    // Define the batch size
-//    $batchSize = 1100;
-//
-//    // Calculate the number of batches
-//    $batches = ceil($totalRecords / $batchSize);
-//
-//    // Dispatch jobs for each batch
-//    for ($i = 0; $i < $batches; $i++) {
-//        ProcessFormAnswersBatch::dispatch($i, $batchSize)->delay(now()->addSeconds(25));
-//    }
-//
-//    return "Migration started. Total records: $totalRecords. Batches: $batches";
-
 });
 
 Route::get('/migrateLegacyRecordsGroupResultsTable', function () {
@@ -498,14 +472,6 @@ Route::get('/migrateLegacyRecordsGroupResultsTable', function () {
         }
     }
 });
-
-
-
-
-
-
-
-
 
 
 //
@@ -798,8 +764,6 @@ Route::get('/migrateLegacyRecordsGroupResultsTable', function () {
 
 
 Route::get('/aggregateReport', function () {
-
-
     $tableData = [];
 
     $groupResults = DB::table('group_results as gr')

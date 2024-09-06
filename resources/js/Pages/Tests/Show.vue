@@ -29,12 +29,12 @@
                                 </div>
                                 <v-row>
                                     <v-col cols="12">
-                                        <color-slider
+                                        <color-radio-group
                                             v-if="question.type !== 'abierta'"
                                             v-model="question.answer"
                                             :options="question.options"
                                             :rules="selectRules"
-                                        ></color-slider>
+                                        ></color-radio-group>
 
                                         <template v-if="question.type === 'abierta'">
                                             <v-radio-group
@@ -100,6 +100,7 @@ import {prepareErrorText, showSnackbar} from "@/HelperFunctions";
 import ConfirmDialog from "@/Components/ConfirmDialog";
 import Snackbar from "@/Components/Snackbar";
 import ColorSlider from "@/Components/ColorSlider"; // Import the new component
+import ColorRadioGroup from "@/Components/ColorRadioGroup"; // Import the new component
 
 export default {
     components: {
@@ -107,7 +108,8 @@ export default {
         AuthenticatedLayout,
         InertiaLink,
         Snackbar,
-        ColorSlider
+        ColorSlider,
+        ColorRadioGroup
     },
     data: () => {
         return {
