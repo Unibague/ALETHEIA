@@ -352,7 +352,8 @@ Route::get('/fulfillServiceAreasResultsTable', function () {
 
 });
 Route::get('/migrateLegacyRecordsFormAnswersTable', function () {
-    $formAnswers = DB::table('form_answers as fa')
+
+    $formAnswers = DB::table('form_answers as fa')->where('assessment_period_id', '=', 5)
         ->where('competences_average','=',null)->take(8000)->get();
     foreach ($formAnswers as $formAnswer) {
         $results = \App\Models\FormAnswers::getCompetencesAverage(json_decode($formAnswer->answers, JSON_THROW_ON_ERROR));

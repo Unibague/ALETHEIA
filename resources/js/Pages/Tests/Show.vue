@@ -16,7 +16,7 @@
             </v-row>
 
             <v-row class="mt-3" justify="center" dense>
-                <v-col cols="12" md="8">
+                <v-col cols="12" md="10">
                     <v-form
                         ref="form"
                         lazy-validation
@@ -34,14 +34,15 @@
                                             v-model="question.answer"
                                             :options="question.options"
                                             :rules="selectRules"
+                                            class="responsive-radio-group"
                                         ></color-radio-group>
-
                                         <template v-if="question.type === 'abierta'">
                                             <v-radio-group
                                                 v-model="question.commentType"
                                                 :rules="selectRules"
                                                 @change="updateValidity"
                                                 required
+                                                class="responsive-radio-group"
                                             >
                                                 <v-radio
                                                     v-for="option in question.options"
@@ -50,7 +51,6 @@
                                                     :value="option.placeholder"
                                                 />
                                             </v-radio-group>
-
                                             <v-text-field
                                                 v-model="question.answer"
                                                 :rules="typeRules"
@@ -117,7 +117,7 @@ export default {
             selectRules: [
                 v => !!v || 'Por favor, selecciona una opción de respuesta'
             ],
-            typeRules:[
+            typeRules: [
                 v => !!v || 'Por favor, escribe tu respuesta',
             ],
             dialog: false,
@@ -203,7 +203,28 @@ export default {
 </script>
 
 <style scoped>
-.slider-with-color .v-slider__track-fill {
-    transition: background-color 0.3s ease;
+.responsive-radio-group {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+}
+
+.responsive-radio-group >>> .v-input--radio-group__input {
+    flex-wrap: nowrap;
+}
+
+.responsive-radio-group >>> .v-radio {
+    margin-right: 8px;
+    flex-shrink: 0;
+}
+
+@media (max-width: 600px) {
+    .responsive-radio-group >>> .v-input--selection-controls__input {
+        margin-right: 0;
+    }
+
+    .responsive-radio-group >>> .v-label {
+        font-size: 0.8rem;
+    }
 }
 </style>

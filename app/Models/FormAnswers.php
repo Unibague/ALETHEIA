@@ -738,7 +738,7 @@ class FormAnswers extends Model
             return;
         }
 
-       self::updateResponseStatusToAnswered($request->input('groupId'), auth()->user()->id);
+//        self::updateResponseStatusToAnswered($request->input('groupId'), auth()->user()->id);
     }
 
     public static function updateResponseStatusToAnswered($groupId, $userId): void
@@ -846,6 +846,11 @@ class FormAnswers extends Model
     {
         $averages = [];
         foreach ($competences as $competence) {
+
+            if($competence === 'satisfaction'){
+                dd($competence);
+            }
+
             $averages[] = [
                 'id' => $competence['id'],
                 'name' => $competence['name'],
@@ -859,46 +864,78 @@ class FormAnswers extends Model
     {
         $competences = [];
 
+        $legacyCompetences = [
+            'C1' => 'Orientación a la calidad educativa',
+            'C2' => 'Trabajo Colaborativo',
+            'C3' => 'Empatía Universitaria',
+            'C4' => 'Comunicación',
+            'C5' => 'Innovación del conocimiento',
+            'C6' => 'Productividad académica'
+        ];
+
+        $satisfactionQuestion = ['¿Qué tan satisfecho estoy con el desempeño del profesor(a)?.',
+            '¿Qué tan satisfecho estoy con el desempeño del profesor(a)?'];
+
         try {
             foreach ($formAnswers as $answer) {
 
-                if ($answer->type === 'abierta') {
+                if(!array_key_exists('type', $answer)){
+                    $answer['type'] = 'multiple';
+                }
+
+                if ($answer['type'] === 'abierta') {
                     continue;
                 }
 
-                $competence = $answer->competence;
+                if (in_array($answer['name'], $satisfactionQuestion)){
+                    $competences['Satisfacción'] =
+                        [
+                        'id' => null,
+                        'name' => 'Satisfacción',
+                        'totalAnswers' => 1,
+                        'accumulatedValue' => (double)$answer['answer']
+                        ];
+                    continue;
+                }
 
-                if (!isset($competences[$competence->name])) {
-                    $competences[$competence->name] = [
-                        'id' => $competence->id,
-                        'name' => $competence->name,
+                $competence = $legacyCompetences[$answer['competence']];
+
+                if (!isset($competences[$competence])) {
+                    $competences[$competence] = [
+                        'id' => null,
+                        'name' => $competence,
                         'totalAnswers' => 0,
                         'accumulatedValue' => 0
                     ];
                 }
 
-                $competences[$competence->name]['totalAnswers']++;
-                $competences[$competence->name]['accumulatedValue'] += (double)$answer->answer;
+                $competences[$competence]['totalAnswers']++;
+                $competences[$competence]['accumulatedValue'] += (double)$answer['answer'];
             }
         } catch (\Exception $exception) {
             throw new \RuntimeException('Debes contestar todas las preguntas para poder enviar el formulario');
         }
+
         return $competences;
     }
 
-    private
-    static function calculateOverallAverage($averages): array
+    private static function calculateOverallAverage($averages): array
     {
-        $sum = array_sum(array_column($averages, 'average'));
-        $count = count($averages);
+        // Filter out competences where name is "Satisfacción"
+        $filteredAverages = array_filter($averages, function ($competence) {
+            return $competence['name'] !== 'Satisfacción';
+        });
+
+        // Calculate sum and count only for the filtered competences
+        $sum = array_sum(array_column($filteredAverages, 'average'));
+        $count = count($filteredAverages);
         $overallAverage = $count > 0 ? round($sum / $count, 2) : 0;
 
         return [
-            'competences' => $averages,
+            'competences' => $averages, // Return the original competences
             'overall_average' => $overallAverage
         ];
     }
-
     public
     static function updateTeacherResponseStatusToAnswered($userId, $role, $evaluatedId): void
     {

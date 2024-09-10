@@ -26,6 +26,17 @@
                         :item-value="(competence) => ({ id: competence.id, name: competence.name })"
                         :item-text="(competence) => competence.name"
                         label="Selecciona una competencia"
+                              @change="onCompetenceChange"
+                    ></v-select>
+                </v-col>
+                <v-col cols="6" v-if="type !== 'abierta' && competence">
+                    <v-select
+                        color="primario"
+                        v-model="selectedAttribute"
+                        :items="competenceAttributes"
+                        item-text="name"
+                        item-value="name"
+                        label="Selecciona un atributo de la competencia"
                         @change="notifyParent"
                     ></v-select>
                 </v-col>
@@ -118,12 +129,14 @@ export default {
     data() {
         return {
             competences: [],
+            selectedAttribute:'',
             questionModel: new Question(),
             finalOptions: {},
             deleteQuestionDialog: false,
             name: '',
             competence: '',
             type: '',
+            competenceAttributes: '',
             options: []
         }
     },
@@ -144,7 +157,6 @@ export default {
     async created() {
 
         await this.getCompetences();
-
         const question = JSON.parse(JSON.stringify(this.question));
         this.name = question.name;
         this.competence = question.competence;
@@ -160,15 +172,35 @@ export default {
             this.competence = 'General';
         }
 
+        if (this.competence) {
+            this.updateCompetenceAttributes();
+        }
+
         console.log(this.question);
 
     },
     methods: {
 
+        onCompetenceChange(newCompetence) {
+            this.competence = newCompetence;
+            this.updateCompetenceAttributes();
+        },
+
         async getCompetences(){
             let request = await axios.get(route('api.competences.index'));
             this.competences = request.data
             console.log(this.competences)
+        },
+
+        updateCompetenceAttributes() {
+            if (this.competence) {
+                const selectedCompetence = this.competences.find(c => c.id === this.competence.id);
+                this.competenceAttributes = selectedCompetence ? selectedCompetence.attributes : [];
+            } else {
+                this.competenceAttributes = [];
+            }
+            this.selectedAttribute = null;
+            this.notifyParent();
         },
 
         updateQuestionOption({index,value,placeholder}){
@@ -177,6 +209,12 @@ export default {
             this.notifyParent();
         },
         notifyParent() {
+
+            this.competence = {
+                ...this.competence,
+                attribute: this.selectedAttribute
+            };
+
             this.$emit('questionUpdated', {
                 question: new Question(this.type, this.name, this.options, this.competence),
                 index: this.baseIndex

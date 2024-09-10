@@ -21,6 +21,7 @@
                             :value="index"
                             :color="getTextColor(getColor(index))"
                             class="ma-0 pa-0 radio-centered"
+                            dense
                         ></v-radio>
                     </div>
                     <div
@@ -55,7 +56,7 @@ export default {
     data() {
         return {
             localValue: this.value,
-            colorScheme: ['#ff2300', '#ff9b00', '#ffcc00', '#9efc05', '#00cf1f']
+            colorScheme: ['#ff2300', '#ff9b00', '#ffcc00','#00d917', '#009F15FF', ]
         }
     },
     methods: {
@@ -96,6 +97,7 @@ export default {
 </script>
 
 <style scoped>
+/* Default (large screen) styles */
 .color-radio-group-wrapper {
     display: flex;
     justify-content: center;
@@ -135,5 +137,26 @@ export default {
     text-align: center;
     margin-top: 4px;
     font-weight: bold;
+}
+
+
+/* Media query for mobile screens (small screens <= 600px) */
+
+@media (max-width: 600px) {
+    .color-rectangle {
+        width: 60px;
+        padding: 0px 10px;
+        height: 30px;
+    }
+
+    .radio-centered {
+        transform: scale(0.8);
+    }
+
+    .option-label {
+        font-size: 10px;
+        margin-top: 2px;
+    }
+
 }
 </style>
