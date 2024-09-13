@@ -20,12 +20,12 @@
                 </v-col>
                 <v-col cols="6">
                     <v-select v-if="type !== 'abierta'"
-                        color="primario"
-                        v-model="competence"
-                        :items="competences"
-                        :item-value="(competence) => ({ id: competence.id, name: competence.name })"
-                        :item-text="(competence) => competence.name"
-                        label="Selecciona una competencia"
+                              color="primario"
+                              v-model="competence"
+                              :items="competences"
+                              :item-value="(competence) => ({ id: competence.id, name: competence.name })"
+                              :item-text="(competence) => competence.name"
+                              label="Selecciona una competencia"
                               @change="onCompetenceChange"
                     ></v-select>
                 </v-col>
@@ -148,8 +148,7 @@ export default {
                     { value: '', placeholder: 'Positivo' },
                     { value: '', placeholder: 'Constructivo' }
                 ];
-                this.competence = 'General';
-
+                this.competence = {id: 'null', name:'General', attribute: null};
             }
         }
     },
@@ -158,6 +157,8 @@ export default {
 
         await this.getCompetences();
         const question = JSON.parse(JSON.stringify(this.question));
+        console.log(question,'LA PUTA PREGUNTA YA PARSEADA')
+
         this.name = question.name;
         this.competence = question.competence;
         this.type = question.type;
@@ -166,30 +167,30 @@ export default {
 
         if (this.type === 'abierta') {
             this.options = [
-                { value: '', placeholder: 'Positivo' },
-                { value: '', placeholder: 'Constructivo' }
+                {value: '', placeholder: 'Positivo'},
+                {value: '', placeholder: 'Constructivo'}
             ];
-            this.competence = 'General';
+            this.competence = {id: 'null', name:'General', attribute: null};
         }
 
-        if (this.competence) {
+        else if (this.competence) {
             this.updateCompetenceAttributes();
+            console.log(this.competence.attribute, 'atributo que ya existe de la puta pregunta');
+            this.selectedAttribute = this.competence.attribute;
         }
-
-        console.log(this.question);
 
     },
     methods: {
 
         onCompetenceChange(newCompetence) {
             this.competence = newCompetence;
+            this.notifyParent();
             this.updateCompetenceAttributes();
         },
 
-        async getCompetences(){
+        async getCompetences() {
             let request = await axios.get(route('api.competences.index'));
             this.competences = request.data
-            console.log(this.competences)
         },
 
         updateCompetenceAttributes() {
@@ -199,21 +200,21 @@ export default {
             } else {
                 this.competenceAttributes = [];
             }
-            this.selectedAttribute = null;
-            this.notifyParent();
         },
 
-        updateQuestionOption({index,value,placeholder}){
+        updateQuestionOption({index, value, placeholder}) {
             this.finalOptions[index].value = value;
             this.finalOptions[index].placeholder = placeholder;
             this.notifyParent();
         },
         notifyParent() {
 
+            if (this.type !== 'abierta') {
             this.competence = {
                 ...this.competence,
                 attribute: this.selectedAttribute
             };
+            }
 
             this.$emit('questionUpdated', {
                 question: new Question(this.type, this.name, this.options, this.competence),
@@ -233,6 +234,3 @@ export default {
 
 </script>
 
-<style scoped>
-
-</style>

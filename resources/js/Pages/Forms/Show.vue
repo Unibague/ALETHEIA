@@ -118,19 +118,16 @@ export default {
         },
         async saveForm() {
             let data = this.questions;
+            const url = route('api.forms.questions.store', {form: this.getFormId()});
+            try {
+                let request = await axios.patch(url, {
+                    questions: data
+                });
+                showSnackbar(this.snackbar, request.data.message, 'success');
+            } catch (e) {
+                showSnackbar(this.snackbar, prepareErrorText(e), 'red', 3000);
+            }
 
-            console.log(this.questions);
-
-
-            // const url = route('api.forms.questions.store', {form: this.getFormId()});
-            // try {
-            //     let request = await axios.patch(url, {
-            //         questions: data
-            //     });
-            //     showSnackbar(this.snackbar, request.data.message, 'success');
-            // } catch (e) {
-            //     showSnackbar(this.snackbar, prepareErrorText(e), 'red', 3000);
-            // }
         },
         getFormId() {
             return route().params.form;
@@ -144,6 +141,7 @@ export default {
         },
         deleteQuestion() {
             this.questions.splice(this.deletedQuestionKey, 1);
+            console.log(this.questions, 'questions sin la pregunta eliminada');
             this.deleteQuestionDialog = false;
         },
         addAnotherQuestion() {

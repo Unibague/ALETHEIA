@@ -18,7 +18,7 @@
                         :style="{ backgroundColor: getColor(index) }"
                     >
                         <v-radio
-                            :value="index"
+                            :value="option.value"
                             :color="getTextColor(getColor(index))"
                             class="ma-0 pa-0 radio-centered"
                             dense
