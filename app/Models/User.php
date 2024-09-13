@@ -165,6 +165,13 @@ class User extends Authenticatable
         ];
     }
 
+    public function allGroupsAnswered()
+    {
+        $totalGroups = $this->groups()->count();
+        $answeredGroups = $this->groups()->wherePivot('has_answer', 1)->count();
+        return $totalGroups === $answeredGroups && $totalGroups > 0;
+    }
+
     public function roles(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
         return $this->BelongsToMany(Role::class);

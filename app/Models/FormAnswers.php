@@ -711,6 +711,7 @@ class FormAnswers extends Model
     public static function createStudentFormFromRequest(Request $request, Form $form): void
     {
         $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+
         $competencesAverage = self::getCompetencesAverage(json_decode(json_encode($request->input('answers'), JSON_THROW_ON_ERROR),
             false, 512, JSON_THROW_ON_ERROR));
         $openEndedAnswers = self::getOpenEndedAnswersFromFormAnswer($request->input('answers'));
@@ -738,7 +739,10 @@ class FormAnswers extends Model
             return;
         }
 
-       self::updateResponseStatusToAnswered($request->input('groupId'), auth()->user()->id);
+        self::updateResponseStatusToAnswered($request->input('groupId'), auth()->user()->id);
+
+        //Check if user already answered every test
+        Group::allGroupsAnswered();
     }
 
     public static function updateResponseStatusToAnswered($groupId, $userId): void
@@ -750,7 +754,6 @@ class FormAnswers extends Model
 
     public static function createTeacherFormFromRequest(Request $request, Form $form): void
     {
-
         $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
         $competencesAverage = self::getCompetencesAverage(json_decode(json_encode($request->input('answers'), JSON_THROW_ON_ERROR), false, 512, JSON_THROW_ON_ERROR));
 
@@ -793,10 +796,6 @@ class FormAnswers extends Model
                 $answer['commentType'] = 'General';
             }
 
-//            if ($answer['answer'] == '' || $answer['commentType'] === null) {
-//                throw new \RuntimeException('Debes contestar todas las preguntas para poder enviar el formulario');
-//            }
-
             $openAnswers[] = [
                 'question' => $answer['name'],
                 'commentType' => $answer['commentType'],
@@ -812,9 +811,9 @@ class FormAnswers extends Model
         $groupedAnswers = [];
         foreach ($openEndedAnswers as $answerSet) {
             foreach ($answerSet as $answer) {
-                $question = $answer->question;
-                $commentType = $answer->commentType;
-                $answerText = $answer->answer;
+                $question = $answer['question'];
+                $commentType = $answer['commentType'];
+                $answerText = $answer['answer'];
 
                 if (!isset($groupedAnswers[$question])) {
                     $groupedAnswers[$question] = [
@@ -845,20 +844,31 @@ class FormAnswers extends Model
     static function getAveragesFromCompetences($competences): array
     {
         $averages = [];
+
         foreach ($competences as $competence) {
-            $averages[] = [
+            $competenceData = [
                 'id' => $competence['id'],
                 'name' => $competence['name'],
-                'average' => round($competence['accumulatedValue'] / $competence['totalAnswers'], 2)
+                'average' => round($competence['accumulatedValue'] / $competence['totalAnswers'], 2),
+                'attributes' => []
             ];
+
+            foreach ($competence['attributes'] as $attributeName => $attribute) {
+                $competenceData['attributes'][] = [
+                    'name' => $attributeName,
+                    'average' => round($attribute['accumulatedValue'] / $attribute['totalAnswers'], 2)
+                ];
+            }
+
+            $averages[] = $competenceData;
         }
+
         return $averages;
     }
 
     private static function getCompetencesFromFormAnswer($formAnswers): array
     {
         $competences = [];
-
         try {
             foreach ($formAnswers as $answer) {
 
@@ -867,18 +877,33 @@ class FormAnswers extends Model
                 }
 
                 $competence = $answer->competence;
+                $attribute = $competence->attribute;
 
                 if (!isset($competences[$competence->name])) {
                     $competences[$competence->name] = [
                         'id' => $competence->id,
                         'name' => $competence->name,
                         'totalAnswers' => 0,
-                        'accumulatedValue' => 0
+                        'accumulatedValue' => 0,
+                        'attributes' => []
                     ];
                 }
 
+                if (!isset($competences[$competence->name]['attributes'][$attribute])) {
+                    $competences[$competence->name]['attributes'][$attribute] = [
+                        'name' => $attribute,
+                        'totalAnswers' => 0,
+                        'accumulatedValue' => 0,
+                    ];
+                }
+
+                // Update competence level stats
                 $competences[$competence->name]['totalAnswers']++;
                 $competences[$competence->name]['accumulatedValue'] += (double)$answer->answer;
+
+                // Update attribute level stats
+                $competences[$competence->name]['attributes'][$attribute]['totalAnswers']++;
+                $competences[$competence->name]['attributes'][$attribute]['accumulatedValue'] += (double)$answer->answer;
             }
         } catch (\Exception $exception) {
             throw new \RuntimeException('Debes contestar todas las preguntas para poder enviar el formulario');
@@ -886,19 +911,24 @@ class FormAnswers extends Model
         return $competences;
     }
 
-    private
-    static function calculateOverallAverage($averages): array
+
+    private static function calculateOverallAverage($averages): array
     {
-        $sum = array_sum(array_column($averages, 'average'));
-        $count = count($averages);
+        // Filter out competences where name is "Satisfacción"
+        $filteredAverages = array_filter($averages, function ($competence) {
+            return $competence['name'] !== 'Satisfacción';
+        });
+
+        // Calculate sum and count only for the filtered competences
+        $sum = array_sum(array_column($filteredAverages, 'average'));
+        $count = count($filteredAverages);
         $overallAverage = $count > 0 ? round($sum / $count, 2) : 0;
 
         return [
-            'competences' => $averages,
+            'competences' => $averages, // Return the original competences
             'overall_average' => $overallAverage
         ];
     }
-
     public
     static function updateTeacherResponseStatusToAnswered($userId, $role, $evaluatedId): void
     {

@@ -351,8 +351,11 @@ Route::get('/fulfillServiceAreasResultsTable', function () {
     }
 
 });
+
+
 Route::get('/migrateLegacyRecordsFormAnswersTable', function () {
-    $formAnswers = DB::table('form_answers as fa')
+
+    $formAnswers = DB::table('form_answers as fa')->where('assessment_period_id', '=', 5)
         ->where('competences_average','=',null)->take(8000)->get();
     foreach ($formAnswers as $formAnswer) {
         $results = \App\Models\FormAnswers::getCompetencesAverage(json_decode($formAnswer->answers, JSON_THROW_ON_ERROR));
@@ -365,40 +368,21 @@ Route::get('/migrateLegacyRecordsFormAnswersTable', function () {
 
 Route::get('/migrateLegacyRecordsGroupResultsTable', function () {
 
-    $legacyCompetences = [
-        'C1' => 'Orientación a la calidad educativa',
-        'C2' => 'Trabajo Colaborativo',
-        'C3' => 'Empatía Universitaria',
-        'C4' => 'Comunicación',
-        'C5' => 'Innovación del conocimiento',
-        'C6' => 'Productividad académica'
-    ];
-
     //Get the ID's from the teachers that had answers on the active assessment period id
-    $teacherIds = DB::table('form_answers as fa')->select(['fa.teacher_id'])->join('forms as f', 'fa.form_id', '=', 'f.id')
-        ->where('f.type', '=', 'estudiantes')->pluck('fa.teacher_id')->unique();
+    $teacherIds = DB::table('form_answers as fa')->select(['fa.teacher_id'])
+        ->join('forms as f', 'fa.form_id', '=', 'f.id')
+        ->where('f.type', '=', 'estudiantes')
+        ->where('fa.assessment_period_id','=', 6)->pluck('fa.teacher_id')->unique();
 
     //First, we insert the student assessments for each teacher on each group on group_results table (updateGroupResultsFromTeacher)
     if (count($teacherIds) > 0) {
         foreach ($teacherIds as $teacherId) {
             $groups = DB::table('groups as g')->where('g.teacher_id', '=', $teacherId)
-                ->join('academic_periods as ap', 'g.academic_period_id', '=', 'ap.id')->get();
+                ->join('academic_periods as ap', 'g.academic_period_id', '=', 'ap.id')
+                ->where('ap.assessment_period_id','=',6)->get();
 
             //Now that we have the groups info for the teacher, we can proceed and do the calculations
             foreach ($groups as $group) {
-
-                if($group->assessment_period_id == null){
-                    continue;
-                }
-
-                $openEndedAnswers = [];
-                $competencesAverage = [];
-                $competencesTotalScore = array_fill_keys(array_keys($legacyCompetences), 0);   //Puntaje acumulado total de la competencia
-                $competencesTotalAnswers = array_fill_keys(array_keys($legacyCompetences), 0);    //Número de preguntas por competencia
-
-                $totalStudentsEnrolledOnGroup = DB::table('group_user')
-                    ->where('group_id', '=', $group->group_id)
-                    ->count();
 
                 $answersFromGroup = DB::table('form_answers as fa')
                     ->join('forms as f', 'fa.form_id', '=', 'f.id')
@@ -406,41 +390,92 @@ Route::get('/migrateLegacyRecordsGroupResultsTable', function () {
                     ->where('f.type', '=', 'estudiantes')
                     ->where('fa.group_id', '=', $group->group_id)->get();
 
-                if ($answersFromGroup->isEmpty()) {
+                $studentsWithAnswer = count($answersFromGroup);
+
+                $studentsEnrolled = DB::table('group_user')
+                    ->where('group_id', '=', $group->group_id)
+                    ->count();
+
+                if ($answersFromGroup->isEmpty() || $group->assessment_period_id == null) {
                     continue;
                 }
 
-                $studentsAmount = count($answersFromGroup);
+                $openEndedAnswers = [];
+                $competencesAverage = [];
+                $competencesData = [];
+
                 foreach ($answersFromGroup as $answerFromGroup) {
 
-                    $userOpenEndedAnswers = json_decode($answerFromGroup->open_ended_answers);
+                    $userOpenEndedAnswers = json_decode($answerFromGroup->open_ended_answers, JSON_THROW_ON_ERROR);
                     $openEndedAnswers [] = $userOpenEndedAnswers;
-                    $answerFromGroup = json_decode($answerFromGroup->answers, true);
-                    foreach ($answerFromGroup as $answerFromQuestion) {
-                        $competenceKey = $answerFromQuestion['competence'];
-                        if (isset($legacyCompetences[$competenceKey])) {
-                            $score = floatval($answerFromQuestion['answer']);
-                            $competencesTotalScore[$competenceKey] += $score;
-                            $competencesTotalAnswers[$competenceKey]++;
+                    $answerCompetences = json_decode($answerFromGroup->competences_average);
+
+                    foreach ($answerCompetences as $competence) {
+
+                        $competenceKey = $competence->name;
+                        if (!isset($competencesData[$competence->name])) {
+                            $competencesData[$competence->name] = [
+                               'id' => $competence->id,
+                               'totalScore' => 0,
+                               'totalAnswers' => 0,
+                               'attributes' => []
+                            ];
+                        }
+
+                        $score = floatval($competence->average);
+                        $competencesData[$competenceKey]['totalScore'] += $score;
+                        $competencesData[$competenceKey]['totalAnswers'] ++;
+
+                        if (isset($competence->attributes) && is_array($competence->attributes)) {
+                            foreach ($competence->attributes as $attribute) {
+                                $attributeKey = $attribute->name;
+                                if (!isset($competencesData[$competenceKey]['attributes'][$attributeKey])) {
+                                    $competencesData[$competenceKey]['attributes'][$attributeKey] = [
+                                        'totalScore' => 0,
+                                        'totalAnswers' => 0
+                                    ];
+                                }
+                                $attributeScore = floatval($attribute->average);
+                                $competencesData[$competenceKey]['attributes'][$attributeKey]['totalScore'] += $attributeScore;
+                                $competencesData[$competenceKey]['attributes'][$attributeKey]['totalAnswers']++;
+                            }
                         }
                     }
+
+
                 }
 
                 $groupedOpenEndedAnswers = \App\Models\FormAnswers::groupOpenEndedAnswers($openEndedAnswers);
 
                 $overallAverage = 0;
                 $competencesPresent = 0;
+                foreach ($competencesData as $competenceName => $competence) {
 
-                foreach ($legacyCompetences as $key => $name) {
-                    if ($competencesTotalAnswers[$key] > 0) {
-                        $competenceAverage = round($competencesTotalScore[$key] / ($competencesTotalAnswers[$key]), 2);
+                    $attributesAverage = [];
+                    if ($competence['totalAnswers'] > 0) {
+                        $competenceAverage = round($competence['totalScore'] / ($competence['totalAnswers']), 2);
+
+                        foreach ($competence['attributes'] as $attributeName => $attribute) {
+                            if ($attribute['totalAnswers'] > 0) {
+                                $attributeAverage = round($attribute['totalScore'] / $attribute['totalAnswers'], 2);
+                                $attributesAverage [] = [
+                                    'name' => $attributeName,
+                                    'overall_average' => $attributeAverage
+                                ];
+                            }
+                        }
+
                         $competencesAverage[] = [
-                            'id' => null,
-                            'name' => $name,
-                            'overall_average' => $competenceAverage
+                            'id' => $competence['id'],
+                            'name' => $competenceName,
+                            'overall_average' => $competenceAverage,
+                            'attributes' => $attributesAverage
                         ];
-                        $overallAverage += $competenceAverage;
-                        $competencesPresent++;
+
+                        if($competenceName !== 'Satisfacción'){
+                            $overallAverage += $competenceAverage;
+                            $competencesPresent++;
+                        }
                     }
                 }
 
@@ -459,8 +494,8 @@ Route::get('/migrateLegacyRecordsGroupResultsTable', function () {
                     [
                         'hour_type' => $group->hour_type,
                         'service_area_code' => $group->service_area_code,
-                        'students_amount_reviewers' => $studentsAmount,
-                        'students_amount_on_group' => $totalStudentsEnrolledOnGroup,
+                        'students_amount_reviewers' => $studentsWithAnswer,
+                        'students_amount_on_group' => $studentsEnrolled,
                         'competences_average' => json_encode($competencesAverage, JSON_UNESCAPED_UNICODE),
                         'overall_average' => round($overallAverage, 2),
                         'open_ended_answers' => json_encode($groupedOpenEndedAnswers, JSON_UNESCAPED_UNICODE),

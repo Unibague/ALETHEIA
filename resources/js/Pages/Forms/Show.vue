@@ -127,6 +127,7 @@ export default {
             } catch (e) {
                 showSnackbar(this.snackbar, prepareErrorText(e), 'red', 3000);
             }
+
         },
         getFormId() {
             return route().params.form;
@@ -140,6 +141,7 @@ export default {
         },
         deleteQuestion() {
             this.questions.splice(this.deletedQuestionKey, 1);
+            console.log(this.questions, 'questions sin la pregunta eliminada');
             this.deleteQuestionDialog = false;
         },
         addAnotherQuestion() {

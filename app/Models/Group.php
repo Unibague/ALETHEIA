@@ -88,6 +88,7 @@ class Group extends Model
      */
     public static function createOrUpdateFromArray(array $groups, array $possibleAcademicPeriods): void
     {
+
         $academicPeriods = AcademicPeriod::whereIn('name', $possibleAcademicPeriods)->get()->toArray();
         $academicPeriodNameAndId = array_reduce($academicPeriods, static function ($result, $academicPeriod) {
             $result[$academicPeriod['name']] = $academicPeriod['id'];
@@ -108,7 +109,7 @@ class Group extends Model
 
         foreach ($groups as $group) {
 
-            if(!Group::isSuitableGroup($group['name'])){
+            if(!Group::isSuitableGroup($group['name']) || $group['degree_code'] === ""){
                 continue;
             }
 
@@ -132,11 +133,48 @@ class Group extends Model
                 'hour_type' => $group['hour_type'],
             ];
         }
-
         self::upsert($upsertData, ['group_id'],
             ['academic_period_id', 'name', 'class_code', 'degree', 'service_area_code', 'teacher_id', 'hour_type']);
     }
 
+    public static function allGroupsAnswered()
+    {
+        $userId = auth()->user()->id;
+        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+
+        $totalGroups = \DB::table('group_user as gu')
+            ->where('gu.user_id', $userId)
+            ->join('academic_periods as ap', 'gu.academic_period_id', '=', 'ap.id')
+            ->where('ap.assessment_period_id', '=', $activeAssessmentPeriodId)
+            ->get();
+
+        $groupsAcademicPeriodsId = array_unique(array_column($totalGroups->toArray(),'academic_period_id'));
+
+        foreach ($groupsAcademicPeriodsId as $academicPeriodId){
+
+            $totalGroups = \DB::table('group_user as gu')
+                ->where('gu.user_id', $userId)
+                ->where('gu.academic_period_id', '=', $academicPeriodId)
+                ->count();
+
+            $answeredGroups = \DB::table('group_user as gu')
+                ->where('gu.user_id', $userId)
+                ->where('gu.has_answer', 1)
+                ->where('gu.academic_period_id', '=', $academicPeriodId)
+                ->count();
+
+            $academicPeriod = AcademicPeriod::findOrFail($academicPeriodId);
+            $userName = explode('@', auth()->user()->email)[0];
+
+            //Validation to check if totalGroups is same as answeredGroups...
+
+                AtlanteProvider::get('grades/enable', [
+                    'academic_period' => $academicPeriod->name,
+                    'user_name' => $userName
+                ]);
+
+        }
+    }
 
     public static function isSuitableGroup($classCode): bool
     {
