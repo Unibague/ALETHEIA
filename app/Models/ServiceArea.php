@@ -109,20 +109,33 @@ class ServiceArea extends Model
             ->join('academic_periods as ap', 'ap.id', '=', 'g.academic_period_id')->get();
     }
 
-    public static function getServiceAreasTeachersWithResults(int $assessmentPeriodId = null)
-    {
 
+    public static function getServiceAreasTeachers(int $assessmentPeriodId = null)
+    {
         if ($assessmentPeriodId === null){
             $assessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
         }
+        $teachers = DB::table('teachers_service_areas_results as tsar')
+            ->select(['t.name','t.id as id'])
+            ->join('users as t', 'tsar.teacher_id', '=', 't.id')
+            ->where('tsar.assessment_period_id', '=', $assessmentPeriodId)->orderBy('name', 'ASC')
+            ->get()->unique();
 
+        return $teachers->values()->toArray();
+
+    }
+
+    public static function getServiceAreasTeachersWithResults(int $assessmentPeriodId = null)
+    {
+        if ($assessmentPeriodId === null){
+            $assessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        }
         return  DB::table('teachers_service_areas_results as tsar')
             ->select(['t.name', 'sa.name as service_area_name' , 'tsar.service_area_code', 't.id as id'])
             ->join('users as t', 'tsar.teacher_id', '=', 't.id')
             ->join('service_areas as sa', 'sa.code','=','tsar.service_area_code')
             ->where('tsar.assessment_period_id', '=', $assessmentPeriodId)->orderBy('name', 'ASC')
             ->get();
-
     }
 
     public static function getServiceAreaAdmins($serviceArea)

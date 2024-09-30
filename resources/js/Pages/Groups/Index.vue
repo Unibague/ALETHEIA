@@ -206,14 +206,14 @@ export default {
             }
         },
 
-        deleteThoseGroups: async function () {
-            try {
-                let request = await axios.post(route('api.enrolls.deleteThoseGroups'));
-                showSnackbar(this.snackbar, 'Borrados correctamente', 'success');
-            } catch (e) {
-                showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
-            }
-        },
+        // deleteThoseGroups: async function () {
+        //     try {
+        //         let request = await axios.post(route('api.enrolls.deleteThoseGroups'));
+        //         showSnackbar(this.snackbar, 'Borrados correctamente', 'success');
+        //     } catch (e) {
+        //         showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
+        //     }
+        // },
 
         getGroupsWithoutTeacher: async function () {
             try {

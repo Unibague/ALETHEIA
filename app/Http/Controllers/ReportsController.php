@@ -20,17 +20,118 @@ class ReportsController extends Controller
         return Inertia::render('Reports/CompleteServiceAreasResults');
     }
 
+    public function downloadTeachingPDF(Request $request)
+    {
+        $data = $request->all();
+        $assessment = $data["assessment"];
+        $headers = $data["headers"];
+        $overallAverageChart= $data['overallAverageChart'];
+        $satisfactionChart = $data['satisfactionChart'];
+        $assessmentPeriodName = AssessmentPeriod::select(['name'])->where('id','=',$assessment['assessment_period_id'])->first()->name;
+        $reportType = $data["reportType"];
+
+        $pdf = Pdf::loadView('teachingReport', [
+            'assessment' => $assessment,
+            'teacherName' => $assessment["teacher_name"],
+            'openEndedAnswers' => $assessment["open_ended_answers"],
+            'headers' => $headers,
+            'overallAverageChart' => $overallAverageChart,
+            'satisfactionChart' => $satisfactionChart,
+            'assessmentPeriodName'=> $assessmentPeriodName,
+            'reportType' => $reportType,
+        ])->setPaper('a4', 'landscape'); // Here you set the paper size and orientation to landscape.
+
+        return $pdf->download('aletheia_reporte_docencia_' . Carbon::now('GMT-5')->toDateTimeString() . '.pdf');
+    }
+
+
+    public function getGroupResults(Request $request){
+        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        $groupResults = DB::table('group_results as gr')
+            ->select(['u.name as teacher_name', 'u.id as teacher_id',
+                'gr.assessment_period_id',
+                'g.name as group_name', 'g.group as group_number', 'sa.name as service_area_name', 'sa.code as service_area_code',
+                'gr.competences_average', 'gr.open_ended_answers',
+                'gr.overall_average', 'gr.students_amount_reviewers as reviewers','gr.students_amount_on_group as total_students'])
+            ->join('users as u', 'gr.teacher_id','=','u.id')
+            ->join('groups as g', 'gr.group_id','=','g.group_id')
+            ->join('service_areas as sa', 'gr.service_area_code','=','sa.code')
+            ->where('gr.assessment_period_id', '=', $activeAssessmentPeriodId)
+            ->where('sa.assessment_period_id', '=', $activeAssessmentPeriodId)
+            ->get();
+        // Manually decode the JSON columns
+        $groupResults = $groupResults->map(function ($result) {
+            $result->competences_average = json_decode($result->competences_average);
+            $result->open_ended_answers = json_decode($result->open_ended_answers);
+            return $result;
+        });
+        $groupResults = Reports::mapGroupsResultsToFrontEndStructure($groupResults);
+        return response()->json($groupResults);
+    }
+
+    public function getServiceAreaResults(Request $request){
+        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        $serviceAreaResults = DB::table('teachers_service_areas_results as tsar')
+            ->select(['u.name as teacher_name', 'sa.name as service_area_name', 'sa.code as service_area_code',
+                'tsar.assessment_period_id',
+                'tsar.competences_average', 'tsar.open_ended_answers',
+                'tsar.overall_average', 'tsar.aggregate_students_amount_reviewers as reviewers',
+                'tsar.aggregate_students_amount_on_service_area as total_students',
+                'u.id as teacher_id'])
+            ->join('users as u', 'tsar.teacher_id','=','u.id')
+            ->join('service_areas as sa', 'tsar.service_area_code','=','sa.code')
+            ->where('sa.assessment_period_id', '=', $activeAssessmentPeriodId)
+            ->where('tsar.hour_type','=','total')
+            ->where('tsar.assessment_period_id', '=', $activeAssessmentPeriodId)
+            ->get();
+
+        // Manually decode the JSON columns
+        $serviceAreaResults = $serviceAreaResults->map(function ($result) {
+            $result->competences_average = json_decode($result->competences_average);
+            $result->open_ended_answers = json_decode($result->open_ended_answers);
+            return $result;
+        });
+
+        $serviceAreaResults = Reports::mapServiceAreasResultsToFrontEndStructure($serviceAreaResults);
+
+        return response()->json($serviceAreaResults);
+    }
+
+
+    public function getFinalTeachingResults(Request $request){
+        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        $finalTeachingResults = DB::table('teachers_students_perspectives as tsp')
+            ->select(['u.name as teacher_name',
+                'tsp.assessment_period_id', 'tsp.open_ended_answers',
+                'tsp.competences_average', 'tsp.overall_average', 'tsp.aggregate_students_amount_reviewers as reviewers',
+                'tsp.aggregate_students_amount_on_360_groups as total_students',
+                'u.id as teacher_id'])
+            ->join('users as u', 'tsp.teacher_id','=','u.id')
+            ->where('tsp.hour_type','=','total')
+            ->where('tsp.assessment_period_id', '=', $activeAssessmentPeriodId)
+            ->get();
+
+        // Manually decode the JSON columns
+        $finalTeachingResults = $finalTeachingResults->map(function ($result) {
+            $result->competences_average = json_decode($result->competences_average);
+            $result->open_ended_answers = json_decode($result->open_ended_answers);
+            return $result;
+        });
+
+        $finalTeachingResults = Reports::mapFinalTeachingResultsToFrontEndStructure($finalTeachingResults);
+
+        return response()->json($finalTeachingResults);
+    }
+
     public function show360Assessment(){
         $user = auth()->user();
 
         $token = csrf_token();
         if($user->hasRole("administrador")) {
-            return Inertia::render('Reports/Complete360AssessmentResults', ['token' => $token]);
+            return Inertia::render('Reports/Index', ['token' => $token]);
         }
 
         $units = [];
-//        $assessmentPeriodsAsArray = AssessmentPeriod::getAllAssessmentPeriodsAsArray();
-
         if ($user->role()->name == "Resultados Evaluación"){
             //Ingenierías
             //Decano y Vicedecano respectivamente
@@ -198,26 +299,26 @@ class ReportsController extends Controller
     }
 
 
-    public function downloadServiceAreaPDF($chartInfo, $teacherResults){
-
-        $assessmentPeriodName = AssessmentPeriod::select(['name'])->where('active', '=', 1)->first()->name;
-        $teacherResults = json_decode($teacherResults);
-
-  /*      dd($teacherResults);*/
-
-        $chart = json_decode($chartInfo);
-        $labels = $chart->data->labels;
-
-        $teacherName = strtolower($teacherResults[0]->name);
-        $chart = urlencode(json_encode($chart));
-
-        if(isset($teacherResults[0]->group_id)){
-            /*dd($teacherResults);*/
-            return view('reportServiceAreaGroups', compact( 'assessmentPeriodName', 'chart', 'teacherResults', 'labels', 'teacherName'));
-
-        }
-        return view('reportServiceArea', compact( 'assessmentPeriodName', 'chart', 'teacherResults', 'labels', 'teacherName'));
-    }
+//    public function downloadServiceAreaPDF($chartInfo, $teacherResults){
+//
+//        $assessmentPeriodName = AssessmentPeriod::select(['name'])->where('active', '=', 1)->first()->name;
+//        $teacherResults = json_decode($teacherResults);
+//
+//  /*      dd($teacherResults);*/
+//
+//        $chart = json_decode($chartInfo);
+//        $labels = $chart->data->labels;
+//
+//        $teacherName = strtolower($teacherResults[0]->name);
+//        $chart = urlencode(json_encode($chart));
+//
+//        if(isset($teacherResults[0]->group_id)){
+//            /*dd($teacherResults);*/
+//            return view('reportServiceAreaGroups', compact( 'assessmentPeriodName', 'chart', 'teacherResults', 'labels', 'teacherName'));
+//
+//        }
+//        return view('reportServiceArea', compact( 'assessmentPeriodName', 'chart', 'teacherResults', 'labels', 'teacherName'));
+//    }
 
 
     public function download360Report(Request $request){
