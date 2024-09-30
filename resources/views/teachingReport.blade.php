@@ -116,7 +116,7 @@
 </div>
 
 @if(in_array($reportType, ['overallTeaching', 'serviceArea', 'group']))
-    <div style="margin-top: 75px">
+    <div style="margin-top: 100px">
         <p style="font-weight: bold">Comentarios de la evaluación</p>
         @if($reportType === 'overallTeaching')
             @foreach ($openEndedAnswers as $serviceArea)
