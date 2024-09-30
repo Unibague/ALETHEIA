@@ -64,8 +64,10 @@ class ServiceAreaController extends Controller
 
     public function getServiceAreasTeachersWithResults(Request $request): JsonResponse{
         $assessmentPeriodId = $request->input('assessmentPeriodId');
+        return response()->json(ServiceArea::getServiceAreasTeachers($assessmentPeriodId));
         return response()->json(ServiceArea::getServiceAreasTeachersWithResults($assessmentPeriodId));
     }
+
 
     public function getServiceAreaAdmins($serviceAreaCode): JsonResponse{
         return response()->json(ServiceArea::getServiceAreaAdmins($serviceAreaCode));

@@ -370,20 +370,20 @@ export default {
                 ]
             },
             {
-                name: 'Generar',
+                name: 'Generar Reportes',
                 role: 10,
                 icon: 'mdi-cog-box',
                 items: [
                     {
-                        name: 'Reportes por evaluación 360',
-                        href: route('reports.show360Assessment'),
+                        name: 'Por grupo / área de servicio',
+                        href: route('reports.serviceArea'),
                         role: 10,
                         icon: 'mdi-cog-box'
                     },
 
                     {
-                        name: 'Reportes por área de servicio',
-                        href: route('reports.showServiceAreasAssessment'),
+                        name: 'Por docencia general',
+                        href: route('reports.overallTeaching'),
                         role: 10,
                         icon: 'mdi-cog-box'
                     },

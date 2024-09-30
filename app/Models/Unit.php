@@ -192,6 +192,20 @@ class Unit extends Model
 
     }
 
+    public static function get360GroupsResults (){
+        $groupResults = DB::table('group_results as gr')
+            ->select(['u.name as teacher_name', 'g.name as group_name', 'g.group as group_number','gr.competences_average',
+                'gr.overall_average', 'gr.students_amount_reviewers as reviewers','gr.students_amount_on_group as total_students',
+                'u.id as teacher_id','v2_unit_user.unit_identifier', 'v2_units.name as unit_name',])
+            ->join('users as u', 'gr.teacher_id','=','u.id')
+            ->join('groups as g', 'gr.group_id','=','g.group_id')
+            ->join('v2_unit_user', 'u.id', '=', 'v2_unit_user.user_id')
+            ->join('v2_units', 'v2_unit_user.unit_identifier', '=', 'v2_units.identifier')
+            ->where('gr.assessment_period_id', '=', $activeAssessmentPeriodId)
+            ->where('v2_units.assessment_period_id', '=', $activeAssessmentPeriodId)
+            ->get();
+    }
+
     public static function getFaculties (){
          $faculties = DB::table('unit_hierarchy')
              ->where('unit_hierarchy.assessment_period_id', '=', AssessmentPeriod::getActiveAssessmentPeriod()->id)
