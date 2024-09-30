@@ -170,9 +170,9 @@
                     <v-card-title>Respuestas abiertas</v-card-title>
                     <v-card-text>
                         <div v-for="(group, groupIndex) in selectedAssessment.open_ended_answers" :key="groupIndex">
-                            <h3 class="group-name mb-3">{{ group.group_name }}</h3>
+                            <h3 class="group-name mb-3" style="color: black">{{ group.group_name }}</h3>
                             <div v-for="(question, questionIndex) in group.questions" :key="questionIndex" class="mb-4">
-                                <h4 class="question-text mb-2">{{ question.question }}</h4>
+                                <h4 class="question-text mb-2"> {{ question.question }}</h4>
                                 <v-expansion-panels multiple>
                                     <v-expansion-panel v-for="(commentType, typeIndex) in question.commentType" :key="typeIndex">
                                         <v-expansion-panel-header>
