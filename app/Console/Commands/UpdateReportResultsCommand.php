@@ -135,8 +135,8 @@ class UpdateReportResultsCommand extends Command
                             'fifth_final_competence_average' => $final_fifth_competence_average,
                             'sixth_final_competence_average' => $final_sixth_competence_average,
                             'students_amount_reviewers' => $studentsAmount, 'students_amount_on_group' => $totalStudentsEnrolledOnGroup,
-                            'created_at' => Carbon::now('GMT-5')->toDateTimeString(),
-                            'updated_at' => Carbon::now('GMT-5')->toDateTimeString()]);
+                            'created_at' => Carbon::now()->toDateTimeString(),
+                            'updated_at' => Carbon::now()->toDateTimeString()]);
                 }
             }
 
@@ -212,8 +212,8 @@ class UpdateReportResultsCommand extends Command
                         'groups_amount' => $groupsAmount,
                         'aggregate_students_amount_reviewers' => $aggregateTotalStudentsReviewersOnGroups,
                         'aggregate_students_amount_on_360_groups' => $aggregateTotalStudentsEnrolledOnGroups,
-                        'created_at' => Carbon::now('GMT-5')->toDateTimeString(),
-                        'updated_at' => Carbon::now('GMT-5')->toDateTimeString() ]);
+                        'created_at' => Carbon::now()->toDateTimeString(),
+                        'updated_at' => Carbon::now()->toDateTimeString() ]);
             }
 
             //Now, we are going to calculate the final results on groups for the teacher regarding only students assessments. This is, the results for the service_area report
@@ -282,8 +282,8 @@ class UpdateReportResultsCommand extends Command
                             'sixth_final_aggregate_competence_average' => $final_sixth_aggregate_competence_average,
                             'aggregate_students_amount_reviewers' => $aggregateTotalStudentsReviewersOnServiceArea,
                             'aggregate_students_amount_on_service_area' => $aggregateTotalStudentsEnrolledOnServiceArea,
-                            'created_at' => Carbon::now('GMT-5')->toDateTimeString(),
-                            'updated_at' => Carbon::now('GMT-5')->toDateTimeString() ]);
+                            'created_at' => Carbon::now()->toDateTimeString(),
+                            'updated_at' => Carbon::now()->toDateTimeString() ]);
                 }
 
             }
