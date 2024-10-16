@@ -87,8 +87,8 @@ class Unit extends Model
 
         DB::table('v2_unit_user')->updateOrInsert(
             ['user_id' => $userId, 'role_id' => $teacherRole],
-            ['unit_identifier' => $unit, 'created_at' => Carbon::now('GMT-5')->toDateTimeString(),
-                'updated_at' => Carbon::now('GMT-5')->toDateTimeString()]
+            ['unit_identifier' => $unit, 'created_at' => Carbon::now()->toDateTimeString(),
+                'updated_at' => Carbon::now()->toDateTimeString()]
         );
 
         UnityAssessment::updateOrInsert(['evaluated_id' => $userId, 'evaluator_id'=> $userId,

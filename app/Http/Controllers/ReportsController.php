@@ -41,7 +41,7 @@ class ReportsController extends Controller
             'reportType' => $reportType,
         ])->setPaper('a4', 'landscape'); // Here you set the paper size and orientation to landscape.
 
-        return $pdf->download('aletheia_reporte_docencia_' . Carbon::now('GMT-5')->toDateTimeString() . '.pdf');
+        return $pdf->download('aletheia_reporte_docencia_' . Carbon::now()->toDateTimeString() . '.pdf');
     }
 
 
@@ -361,7 +361,7 @@ class ReportsController extends Controller
         $labels = $chart->data->labels;
         $teacherName = strtolower($teacherResults[0]->name);
         $chart = urlencode(json_encode($chart));
-        $timestamp = Carbon::now('GMT-5');
+        $timestamp = Carbon::now();
 
         return view('report360', compact( 'assessmentPeriodName', 'chart', 'teacherResults', 'labels', 'teacherName', 'timestamp',
             'groupsResults', 'openAnswersFromStudents', 'openAnswersFromTeachers'));
@@ -387,7 +387,7 @@ class ReportsController extends Controller
 
         $labels = $chart->data->labels;
         $chart = urlencode(json_encode($chart));
-        $timestamp = Carbon::now('GMT-5');
+        $timestamp = Carbon::now();
 
         $serviceAreasCodes = array_unique(array_column($teacherResults, 'service_area_code'));
         $serviceAreas = DB::table('service_areas as sa')->whereIn('sa.code',  $serviceAreasCodes)
