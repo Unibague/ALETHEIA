@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use PhpParser\Node\Expr\Array_;
 
 /**
  * App\Models\FormAnswers
@@ -71,19 +72,45 @@ class FormAnswers extends Model
         return $this->belongsTo(User::class);
     }
 
-    public static function getCurrentFormAnswers(): \Illuminate\Support\Collection
+    public static function getCurrentFormAnswers(): array
     {
         $activeAssessmentPeriodsId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
-        return DB::table('form_answers as fa')
+        $answers = DB::table('form_answers as fa')
             ->select(['fa.id', 'fa.submitted_at', 'u.name as studentName', 't.name as teacherName', 'g.name as groupName',
-                'fa.first_competence_average', 'fa.second_competence_average', 'fa.third_competence_average', 'fa.fourth_competence_average',
-                'fa.fifth_competence_average', 'fa.sixth_competence_average'])
+                'fa.competences_average', 'fa.overall_average'])
             ->join('forms as f', 'fa.form_id', '=', 'f.id')
             ->join('users as u', 'fa.user_id', '=', 'u.id')
             ->join('users as t', 'fa.teacher_id', '=', 't.id')
             ->join('groups as g', 'fa.group_id', '=', 'g.group_id')
             ->where('f.creation_assessment_period_id', '=', $activeAssessmentPeriodsId)
+            ->orderBy('fa.updated_at', 'desc')
             ->get();
+
+        $headers = [
+            ['text' => 'Estudiante', 'value' => 'studentName'],
+            ['text' => 'Grupo', 'value' => 'groupName'],
+            ['text' => 'Profesor', 'value' => 'teacherName'],
+                    ];
+
+        $attributeNames = [];
+
+        foreach ($answers as $answer) {
+            foreach (json_decode($answer->competences_average) as $competence) {
+                foreach ($competence->attributes as $attribute) {
+                    $attributeName = $attribute->name;
+                    if (!in_array($attributeName, $attributeNames)) {
+                        $attributeNames[] = $attributeName;
+                        $headers[] = ['text' => $attributeName, 'value' => $attributeName];
+                    }
+                    $answer->$attributeName = $attribute->average;
+                }
+            }
+        }
+
+        $headers [] = ['text' => 'Fecha de envío', 'value' => 'submitted_at'];
+        $headers[] = ['text' => 'Acciones', 'value' => 'actions', 'sortable' => false];
+
+        return ['headers' => $headers, 'answers' => $answers];
     }
 
     public static function getCurrentTeacherFormAnswers(int $assessmentPeriodId = null): \Illuminate\Support\Collection
