@@ -8,7 +8,6 @@
                 <h2 class="align-self-start">Gestionar respuestas de formularios</h2>
             </div>
 
-            <!--Inicia tabla-->
             <v-card>
                 <v-card-title>
                     <v-text-field
@@ -31,11 +30,6 @@
                     }"
                     class="elevation-1"
                 >
-
-                    <template v-slot:item.first_competence_average="{ item }">
-                        {{item.first_competence_average % 1 !== 0 ? item.first_competence_average.toFixed(1) : item.first_competence_average}}
-                    </template>
-
                     <template v-slot:item.actions="{ item }">
                         <InertiaLink as="v-icon" class="primario--text"
                                      :href="route('answers.show.view',{answer:item.id})">
@@ -69,24 +63,10 @@ export default {
             sheet: false,
             //Table info
             search: '',
-            headers: [
-                {text: 'Estudiante', value: 'studentName'},
-                {text: 'Grupo', value: 'groupName'},
-                {text: 'Profesor', value: 'teacherName'},
-                {text: 'Promedio C1', value: 'first_competence_average'},
-                {text: 'Promedio C2', value: 'second_competence_average'},
-                {text: 'Promedio C3', value: 'third_competence_average'},
-                {text: 'Promedio C4', value: 'fourth_competence_average'},
-                {text: 'Promedio C5', value: 'fifth_competence_average'},
-                {text: 'Promedio C6', value: 'sixth_competence_average'},
-                {text: 'Fecha de envio', value: 'submitted_at'},
-                {text: 'Acciones', value: 'actions', sortable: false},
-            ],
+            headers: [],
 
             //Display data
             answers: [],
-
-            deletedFormId: 0,
 
             //Snackbars
             snackbar: {
@@ -107,11 +87,12 @@ export default {
 
     methods: {
         getAllQuestions: async function (notify = false) {
-            let request = await axios.get(route('api.answers.index'));
-            this.answers = request.data;
-            if (notify) {
-                showSnackbar(this.snackbar, 'Mostrando todos los formularios')
-            }
+            let response = await axios.get(route('api.answers.index'));
+            this.headers = response.data.headers;
+            this.answers = response.data.answers;
+
+            console.log(this.headers, this.answers)
+
         },
     },
 }
