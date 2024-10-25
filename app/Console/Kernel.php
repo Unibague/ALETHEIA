@@ -4,6 +4,7 @@ namespace App\Console;
 
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+use Illuminate\Support\Facades\Artisan;
 
 class Kernel extends ConsoleKernel
 {
@@ -24,7 +25,14 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-//        $schedule->command('reports:update')->everyFifteenMinutes();
+        // First command
+        $schedule->command('reports:group-results-update')->cron('4 * * * *');
+
+        $schedule->command('reports:teacher-service-area-results-update')->cron('6 * * * *');
+
+        $schedule->command('reports:teacher-student-perspective-results-update')->cron('14 * * * *');
+
+
 //        //Check if today is the day to send a reminder that assessment period starts
 //        $schedule->command('academic_periods:check_due_b_start')->daily()->at('06:00');
 //        //Check if today is the day to send a reminder that assessment period finishes

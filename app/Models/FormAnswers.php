@@ -717,11 +717,6 @@ class FormAnswers extends Model
     }
 
 
-    public function updateGroupResultsFromTeacher($groups)
-    {
-
-    }
-
     public static function calculateCompetenceAverage($competenceAnswers)
     {
         if (empty($competenceAnswers)) {
