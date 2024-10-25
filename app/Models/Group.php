@@ -168,11 +168,12 @@ class Group extends Model
 
             //Validation to check if totalGroups is same as answeredGroups...
 
-                AtlanteProvider::get('grades/enable', [
-                    'academic_period' => $academicPeriod->name,
-                    'user_name' => $userName
-                ]);
-
+                if($answeredGroups === $totalGroups){
+                    AtlanteProvider::get('grades/enable', [
+                        'academic_period' => $academicPeriod->name,
+                        'user_name' => $userName
+                    ]);
+                }
         }
     }
 

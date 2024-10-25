@@ -367,7 +367,6 @@ Route::get('/fulfillServiceAreasResultsTable', function () {
 
 
 Route::get('/migrateLegacyRecordsFormAnswersTable', function () {
-
     $formAnswers = DB::table('form_answers as fa')->where('assessment_period_id', '=', 5)
         ->where('competences_average','=',null)->take(8000)->get();
     foreach ($formAnswers as $formAnswer) {
@@ -379,694 +378,238 @@ Route::get('/migrateLegacyRecordsFormAnswersTable', function () {
     }
 });
 
-Route::get('/migrateLegacyRecordsGroupResultsTable', function () {
+Route::get('/testGroupResults', function (){
 
-    //Get the ID's from the teachers that had answers on the active assessment period id
-    $teacherIds = DB::table('form_answers as fa')->select(['fa.teacher_id'])
-        ->join('forms as f', 'fa.form_id', '=', 'f.id')
-        ->where('f.type', '=', 'estudiantes')
-        ->where('fa.assessment_period_id','=', 6)->pluck('fa.teacher_id')->unique();
+    \App\Models\Reports::updateGroupResults();
 
-    //First, we insert the student assessments for each teacher on each group on group_results table (updateGroupResultsFromTeacher)
-    if (count($teacherIds) > 0) {
-        foreach ($teacherIds as $teacherId) {
-            $groups = DB::table('groups as g')->where('g.teacher_id', '=', $teacherId)
-                ->join('academic_periods as ap', 'g.academic_period_id', '=', 'ap.id')
-                ->where('ap.assessment_period_id','=',6)->get();
-
-            //Now that we have the groups info for the teacher, we can proceed and do the calculations
-            foreach ($groups as $group) {
-
-                $answersFromGroup = DB::table('form_answers as fa')
-                    ->join('forms as f', 'fa.form_id', '=', 'f.id')
-                    ->join('groups', 'fa.group_id', '=', 'groups.group_id')
-                    ->where('f.type', '=', 'estudiantes')
-                    ->where('fa.group_id', '=', $group->group_id)->get();
-
-                $studentsWithAnswer = count($answersFromGroup);
-
-                $studentsEnrolled = DB::table('group_user')
-                    ->where('group_id', '=', $group->group_id)
-                    ->count();
-
-                if ($answersFromGroup->isEmpty() || $group->assessment_period_id == null) {
-                    continue;
-                }
-
-                $openEndedAnswers = [];
-                $competencesAverage = [];
-                $competencesData = [];
-
-                foreach ($answersFromGroup as $answerFromGroup) {
-
-                    $userOpenEndedAnswers = json_decode($answerFromGroup->open_ended_answers, JSON_THROW_ON_ERROR);
-                    $openEndedAnswers [] = $userOpenEndedAnswers;
-                    $answerCompetences = json_decode($answerFromGroup->competences_average);
-
-                    foreach ($answerCompetences as $competence) {
-
-                        $competenceKey = $competence->name;
-                        if (!isset($competencesData[$competence->name])) {
-                            $competencesData[$competence->name] = [
-                               'id' => $competence->id,
-                               'totalScore' => 0,
-                               'totalAnswers' => 0,
-                               'attributes' => []
-                            ];
-                        }
-
-                        $score = floatval($competence->average);
-                        $competencesData[$competenceKey]['totalScore'] += $score;
-                        $competencesData[$competenceKey]['totalAnswers'] ++;
-
-                        if (isset($competence->attributes) && is_array($competence->attributes)) {
-                            foreach ($competence->attributes as $attribute) {
-                                $attributeKey = $attribute->name;
-                                if (!isset($competencesData[$competenceKey]['attributes'][$attributeKey])) {
-                                    $competencesData[$competenceKey]['attributes'][$attributeKey] = [
-                                        'totalScore' => 0,
-                                        'totalAnswers' => 0
-                                    ];
-                                }
-                                $attributeScore = floatval($attribute->average);
-                                $competencesData[$competenceKey]['attributes'][$attributeKey]['totalScore'] += $attributeScore;
-                                $competencesData[$competenceKey]['attributes'][$attributeKey]['totalAnswers']++;
-                            }
-                        }
-                    }
-
-
-                }
-
-                $groupedOpenEndedAnswers = \App\Models\FormAnswers::groupOpenEndedAnswers($openEndedAnswers);
-
-                $overallAverage = 0;
-                $competencesPresent = 0;
-                foreach ($competencesData as $competenceName => $competence) {
-
-                    $attributesAverage = [];
-                    if ($competence['totalAnswers'] > 0) {
-                        $competenceAverage = round($competence['totalScore'] / ($competence['totalAnswers']), 2);
-
-                        foreach ($competence['attributes'] as $attributeName => $attribute) {
-                            if ($attribute['totalAnswers'] > 0) {
-                                $attributeAverage = round($attribute['totalScore'] / $attribute['totalAnswers'], 2);
-                                $attributesAverage [] = [
-                                    'name' => $attributeName,
-                                    'overall_average' => $attributeAverage
-                                ];
-                            }
-                        }
-
-                        $competencesAverage[] = [
-                            'id' => $competence['id'],
-                            'name' => $competenceName,
-                            'overall_average' => $competenceAverage,
-                            'attributes' => $attributesAverage
-                        ];
-
-                        if($competenceName !== 'Satisfacción'){
-                            $overallAverage += $competenceAverage;
-                            $competencesPresent++;
-                        }
-                    }
-                }
-
-                // Calculate the final overall average
-                if ($competencesPresent > 0) {
-                    $overallAverage /= $competencesPresent;
-                }
-
-                DB::table('group_results')->updateOrInsert
-                (
-                    [
-                        'teacher_id' => $teacherId,
-                        'group_id' => $group->group_id,
-                        'assessment_period_id' => $group->assessment_period_id
-                    ],
-                    [
-                        'hour_type' => $group->hour_type,
-                        'service_area_code' => $group->service_area_code,
-                        'students_amount_reviewers' => $studentsWithAnswer,
-                        'students_amount_on_group' => $studentsEnrolled,
-                        'competences_average' => json_encode($competencesAverage, JSON_UNESCAPED_UNICODE),
-                        'overall_average' => round($overallAverage, 2),
-                        'open_ended_answers' => json_encode($groupedOpenEndedAnswers, JSON_UNESCAPED_UNICODE),
-                        'created_at' => Carbon::now('GMT-5')->toDateTimeString(),
-                        'updated_at' => Carbon::now('GMT-5')->toDateTimeString()
-                    ]
-                );
-            }
-        }
-    }
 });
-
 
 
 Route::get('/migrateLegacyRecordsServiceAreasTable', function () {
 
-    $activeAssessmentPeriodId = \App\Models\AssessmentPeriod::getActiveAssessmentPeriod()->id;
-    $teacherIds = DB::table('group_results as gr')
-        ->select(['gr.teacher_id'])
-        ->where('gr.assessment_period_id', '=', 6)
-        ->orderBy('id','desc')
-        ->pluck('gr.teacher_id')
-        ->unique();
-
-    foreach ($teacherIds as $teacherId) {
-        $serviceAreasIds = DB::table('group_results as gr')
-            ->select(['gr.service_area_code'])
-            ->where('teacher_id', '=', $teacherId)
-            ->where('gr.assessment_period_id', '=', 6)
-            ->pluck('gr.service_area_code')
-            ->unique();
-
-        foreach ($serviceAreasIds as $serviceAreaId) {
-            $hourTypes = ['normal', 'cátedra'];
-            $results = [];
-            $allGroups = [];
-
-            foreach ($hourTypes as $hourType) {
-                $groups = DB::table('group_results as gr')
-                    ->where('gr.teacher_id', '=', $teacherId)
-                    ->where('gr.service_area_code', '=', $serviceAreaId)
-                    ->where('gr.assessment_period_id', '=', 6)
-                    ->where('gr.hour_type', '=', $hourType)
-                    ->join('groups as g', 'g.group_id', '=', 'gr.group_id')
-                    ->get();
-
-                if ($groups->isNotEmpty()) {
-                    $allGroups[$hourType] = $groups;
-                }
-            }
-
-            // Process each hour type
-            foreach ($allGroups as $hourType => $groups) {
-                $studentsWithAnswer = 0;
-                $studentsEnrolled = 0;
-                $openEndedAnswers = [];
-                $competencesData = [];
-                $overallAverage = 0;
-
-                foreach ($groups as $group) {
-                    $competencesAverage = json_decode($group->competences_average, true);
-                    $overallAverage += $group->overall_average;
-
-                    foreach ($competencesAverage as $competence) {
-                        $competenceId = $competence['id'];
-                        if (!isset($competencesData[$competenceId])) {
-                            $competencesData[$competenceId] = [
-                                'id' => $competenceId,
-                                'name' => $competence['name'],
-                                'attributes' => [],
-                                'overall_sum' => 0,
-                                'overall_count' => 0,
-                            ];
-                        }
-
-                        $competencesData[$competenceId]['overall_sum'] += $competence['overall_average'];
-                        $competencesData[$competenceId]['overall_count']++;
-
-                        foreach ($competence['attributes'] as $attributeValue) {
-                            $attributeName = $attributeValue['name'];
-                            if (!isset($competencesData[$competenceId]['attributes'][$attributeName])) {
-                                $competencesData[$competenceId]['attributes'][$attributeName] = [
-                                    'name' => $attributeName,
-                                    'sum' => 0,
-                                    'count' => 0,
-                                ];
-                            }
-                            if (isset($attributeValue['overall_average'])) {
-                                $competencesData[$competenceId]['attributes'][$attributeName]['sum'] += $attributeValue['overall_average'];
-                                $competencesData[$competenceId]['attributes'][$attributeName]['count']++;
-                            }
-                        }
-                    }
-
-                    $studentsWithAnswer += $group->students_amount_reviewers;
-                    $studentsEnrolled += $group->students_amount_on_group;
-                    $openEndedAnswers[] = [
-                        'group_name' => $group->name . " | Grupo: " . $group->group,
-                        'questions' => json_decode($group->open_ended_answers, true),
-                    ];
-                }
-
-                $groupCount = count($groups);
-                $finalCompetencesData = [];
-                $overallAverage = $overallAverage / $groupCount;
-
-                foreach ($competencesData as $competence) {
-                    $finalCompetence = [
-                        'id' => $competence['id'],
-                        'name' => $competence['name'],
-                        'attributes' => [],
-                        'overall_average' => round($competence['overall_sum'] / $competence['overall_count'], 2),
-                    ];
-
-                    foreach ($competence['attributes'] as $attributeName => $attributeData) {
-                        if ($attributeData['count'] > 0) {
-                            $finalCompetence['attributes'][] = [
-                                'name' => $attributeName,
-                                'overall_average' => round($attributeData['sum'] / $attributeData['count'], 2),
-                            ];
-                        }
-                    }
-                    $finalCompetencesData[] = $finalCompetence;
-                }
-
-                $results[$hourType] = [
-                    'competences_average' => $finalCompetencesData,
-                    'open_ended_answers' => $openEndedAnswers,
-                    'overall_average' => round($overallAverage, 2),
-                    'aggregate_students_amount_reviewers' => $studentsWithAnswer,
-                    'aggregate_students_amount_on_service_area' => $studentsEnrolled,
-                ];
-            }
-
-            // Calculate total (average of all groups regardless of hour type)
-            if (!empty($allGroups)) {
-                $allGroupsFlat = collect($allGroups)->flatten(1);
-                $totalResult = [
-                    'competences_average' => [],
-                    'open_ended_answers' => [],
-                    'overall_average' => 0,
-                    'aggregate_students_amount_reviewers' => 0,
-                    'aggregate_students_amount_on_service_area' => 0,
-                ];
-
-                $totalGroupCount = $allGroupsFlat->count();
-                $competencesData = [];
-
-                foreach ($allGroupsFlat as $group) {
-                    $totalResult['overall_average'] += $group->overall_average;
-                    $totalResult['aggregate_students_amount_reviewers'] += $group->students_amount_reviewers;
-                    $totalResult['aggregate_students_amount_on_service_area'] += $group->students_amount_on_group;
-                    $totalResult['open_ended_answers'][] = [
-                        'group_name' => $group->name . " | Grupo: " . $group->group,
-                        'questions' => json_decode($group->open_ended_answers, true),
-                    ];
-
-                    $competencesAverage = json_decode($group->competences_average, true);
-                    foreach ($competencesAverage as $competence) {
-                        $competenceId = $competence['id'];
-                        if (!isset($competencesData[$competenceId])) {
-                            $competencesData[$competenceId] = [
-                                'id' => $competenceId,
-                                'name' => $competence['name'],
-                                'attributes' => [],
-                                'overall_sum' => 0,
-                                'overall_count' => 0,
-                            ];
-                        }
-
-                        $competencesData[$competenceId]['overall_sum'] += $competence['overall_average'];
-                        $competencesData[$competenceId]['overall_count']++;
-
-                        foreach ($competence['attributes'] as $attributeValue) {
-                            $attributeName = $attributeValue['name'];
-                            if (!isset($competencesData[$competenceId]['attributes'][$attributeName])) {
-                                $competencesData[$competenceId]['attributes'][$attributeName] = [
-                                    'name' => $attributeName,
-                                    'sum' => 0,
-                                    'count' => 0,
-                                ];
-                            }
-                            if (isset($attributeValue['overall_average'])) {
-                                $competencesData[$competenceId]['attributes'][$attributeName]['sum'] += $attributeValue['overall_average'];
-                                $competencesData[$competenceId]['attributes'][$attributeName]['count']++;
-                            }
-                        }
-                    }
-                }
-
-                // Calculate averages for total
-                $totalResult['overall_average'] = round($totalResult['overall_average'] / $totalGroupCount, 2);
-                foreach ($competencesData as $competence) {
-                    $finalCompetence = [
-                        'id' => $competence['id'],
-                        'name' => $competence['name'],
-                        'attributes' => [],
-                        'overall_average' => round($competence['overall_sum'] / $competence['overall_count'], 2),
-                    ];
-
-                    foreach ($competence['attributes'] as $attributeName => $attributeData) {
-                        if ($attributeData['count'] > 0) {
-                            $finalCompetence['attributes'][] = [
-                                'name' => $attributeName,
-                                'overall_average' => round($attributeData['sum'] / $attributeData['count'], 2),
-                            ];
-                        }
-                    }
-                    $totalResult['competences_average'][] = $finalCompetence;
-                }
-
-                $results['total'] = $totalResult;
-            }
-
-            // Upsert results for each hour type and total
-            foreach ($results as $hourType => $result) {
-                DB::table('teachers_service_areas_results')->updateOrInsert(
-                    [
-                        'teacher_id' => $teacherId,
-                        'service_area_code' => $serviceAreaId,
-                        'assessment_period_id' => $activeAssessmentPeriodId,
-                        'hour_type' => $hourType
-                    ],
-                    [
-                        'competences_average' => json_encode($result['competences_average'], JSON_UNESCAPED_UNICODE),
-                        'open_ended_answers' => json_encode($result['open_ended_answers'], JSON_UNESCAPED_UNICODE),
-                        'overall_average' => $result['overall_average'],
-                        'aggregate_students_amount_reviewers' => $result['aggregate_students_amount_reviewers'],
-                        'aggregate_students_amount_on_service_area' => $result['aggregate_students_amount_on_service_area'],
-                        'created_at' => Carbon::now('GMT-5')->toDateTimeString(),
-                        'updated_at' => Carbon::now('GMT-5')->toDateTimeString()
-                    ]
-                );
-            }
-        }
-    }
+//    $activeAssessmentPeriodId = \App\Models\AssessmentPeriod::getActiveAssessmentPeriod()->id;
+//    $teacherIds = DB::table('group_results as gr')
+//        ->select(['gr.teacher_id'])
+//        ->where('gr.assessment_period_id', '=', 6)
+//        ->orderBy('id','desc')
+//        ->pluck('gr.teacher_id')
+//        ->unique();
+//
+//    foreach ($teacherIds as $teacherId) {
+//        $serviceAreasIds = DB::table('group_results as gr')
+//            ->select(['gr.service_area_code'])
+//            ->where('teacher_id', '=', $teacherId)
+//            ->where('gr.assessment_period_id', '=', 6)
+//            ->pluck('gr.service_area_code')
+//            ->unique();
+//
+//        foreach ($serviceAreasIds as $serviceAreaId) {
+//            $hourTypes = ['normal', 'cátedra'];
+//            $results = [];
+//            $allGroups = [];
+//
+//            foreach ($hourTypes as $hourType) {
+//                $groups = DB::table('group_results as gr')
+//                    ->where('gr.teacher_id', '=', $teacherId)
+//                    ->where('gr.service_area_code', '=', $serviceAreaId)
+//                    ->where('gr.assessment_period_id', '=', 6)
+//                    ->where('gr.hour_type', '=', $hourType)
+//                    ->join('groups as g', 'g.group_id', '=', 'gr.group_id')
+//                    ->get();
+//
+//                if ($groups->isNotEmpty()) {
+//                    $allGroups[$hourType] = $groups;
+//                }
+//            }
+//
+//            // Process each hour type
+//            foreach ($allGroups as $hourType => $groups) {
+//                $studentsWithAnswer = 0;
+//                $studentsEnrolled = 0;
+//                $openEndedAnswers = [];
+//                $competencesData = [];
+//                $overallAverage = 0;
+//
+//                foreach ($groups as $group) {
+//                    $competencesAverage = json_decode($group->competences_average, true);
+//                    $overallAverage += $group->overall_average;
+//
+//                    foreach ($competencesAverage as $competence) {
+//                        $competenceId = $competence['id'];
+//                        if (!isset($competencesData[$competenceId])) {
+//                            $competencesData[$competenceId] = [
+//                                'id' => $competenceId,
+//                                'name' => $competence['name'],
+//                                'attributes' => [],
+//                                'overall_sum' => 0,
+//                                'overall_count' => 0,
+//                            ];
+//                        }
+//
+//                        $competencesData[$competenceId]['overall_sum'] += $competence['overall_average'];
+//                        $competencesData[$competenceId]['overall_count']++;
+//
+//                        foreach ($competence['attributes'] as $attributeValue) {
+//                            $attributeName = $attributeValue['name'];
+//                            if (!isset($competencesData[$competenceId]['attributes'][$attributeName])) {
+//                                $competencesData[$competenceId]['attributes'][$attributeName] = [
+//                                    'name' => $attributeName,
+//                                    'sum' => 0,
+//                                    'count' => 0,
+//                                ];
+//                            }
+//                            if (isset($attributeValue['overall_average'])) {
+//                                $competencesData[$competenceId]['attributes'][$attributeName]['sum'] += $attributeValue['overall_average'];
+//                                $competencesData[$competenceId]['attributes'][$attributeName]['count']++;
+//                            }
+//                        }
+//                    }
+//
+//                    $studentsWithAnswer += $group->students_amount_reviewers;
+//                    $studentsEnrolled += $group->students_amount_on_group;
+//                    $openEndedAnswers[] = [
+//                        'group_name' => $group->name . " | Grupo: " . $group->group,
+//                        'questions' => json_decode($group->open_ended_answers, true),
+//                    ];
+//                }
+//
+//                $groupCount = count($groups);
+//                $finalCompetencesData = [];
+//                $overallAverage = $overallAverage / $groupCount;
+//
+//                foreach ($competencesData as $competence) {
+//                    $finalCompetence = [
+//                        'id' => $competence['id'],
+//                        'name' => $competence['name'],
+//                        'attributes' => [],
+//                        'overall_average' => round($competence['overall_sum'] / $competence['overall_count'], 2),
+//                    ];
+//
+//                    foreach ($competence['attributes'] as $attributeName => $attributeData) {
+//                        if ($attributeData['count'] > 0) {
+//                            $finalCompetence['attributes'][] = [
+//                                'name' => $attributeName,
+//                                'overall_average' => round($attributeData['sum'] / $attributeData['count'], 2),
+//                            ];
+//                        }
+//                    }
+//                    $finalCompetencesData[] = $finalCompetence;
+//                }
+//
+//                $results[$hourType] = [
+//                    'competences_average' => $finalCompetencesData,
+//                    'open_ended_answers' => $openEndedAnswers,
+//                    'overall_average' => round($overallAverage, 2),
+//                    'aggregate_students_amount_reviewers' => $studentsWithAnswer,
+//                    'aggregate_students_amount_on_service_area' => $studentsEnrolled,
+//                ];
+//            }
+//
+//            // Calculate total (average of all groups regardless of hour type)
+//            if (!empty($allGroups)) {
+//                $allGroupsFlat = collect($allGroups)->flatten(1);
+//                $totalResult = [
+//                    'competences_average' => [],
+//                    'open_ended_answers' => [],
+//                    'overall_average' => 0,
+//                    'aggregate_students_amount_reviewers' => 0,
+//                    'aggregate_students_amount_on_service_area' => 0,
+//                ];
+//
+//                $totalGroupCount = $allGroupsFlat->count();
+//                $competencesData = [];
+//
+//                foreach ($allGroupsFlat as $group) {
+//                    $totalResult['overall_average'] += $group->overall_average;
+//                    $totalResult['aggregate_students_amount_reviewers'] += $group->students_amount_reviewers;
+//                    $totalResult['aggregate_students_amount_on_service_area'] += $group->students_amount_on_group;
+//                    $totalResult['open_ended_answers'][] = [
+//                        'group_name' => $group->name . " | Grupo: " . $group->group,
+//                        'questions' => json_decode($group->open_ended_answers, true),
+//                    ];
+//
+//                    $competencesAverage = json_decode($group->competences_average, true);
+//                    foreach ($competencesAverage as $competence) {
+//                        $competenceId = $competence['id'];
+//                        if (!isset($competencesData[$competenceId])) {
+//                            $competencesData[$competenceId] = [
+//                                'id' => $competenceId,
+//                                'name' => $competence['name'],
+//                                'attributes' => [],
+//                                'overall_sum' => 0,
+//                                'overall_count' => 0,
+//                            ];
+//                        }
+//
+//                        $competencesData[$competenceId]['overall_sum'] += $competence['overall_average'];
+//                        $competencesData[$competenceId]['overall_count']++;
+//
+//                        foreach ($competence['attributes'] as $attributeValue) {
+//                            $attributeName = $attributeValue['name'];
+//                            if (!isset($competencesData[$competenceId]['attributes'][$attributeName])) {
+//                                $competencesData[$competenceId]['attributes'][$attributeName] = [
+//                                    'name' => $attributeName,
+//                                    'sum' => 0,
+//                                    'count' => 0,
+//                                ];
+//                            }
+//                            if (isset($attributeValue['overall_average'])) {
+//                                $competencesData[$competenceId]['attributes'][$attributeName]['sum'] += $attributeValue['overall_average'];
+//                                $competencesData[$competenceId]['attributes'][$attributeName]['count']++;
+//                            }
+//                        }
+//                    }
+//                }
+//
+//                // Calculate averages for total
+//                $totalResult['overall_average'] = round($totalResult['overall_average'] / $totalGroupCount, 2);
+//                foreach ($competencesData as $competence) {
+//                    $finalCompetence = [
+//                        'id' => $competence['id'],
+//                        'name' => $competence['name'],
+//                        'attributes' => [],
+//                        'overall_average' => round($competence['overall_sum'] / $competence['overall_count'], 2),
+//                    ];
+//
+//                    foreach ($competence['attributes'] as $attributeName => $attributeData) {
+//                        if ($attributeData['count'] > 0) {
+//                            $finalCompetence['attributes'][] = [
+//                                'name' => $attributeName,
+//                                'overall_average' => round($attributeData['sum'] / $attributeData['count'], 2),
+//                            ];
+//                        }
+//                    }
+//                    $totalResult['competences_average'][] = $finalCompetence;
+//                }
+//
+//                $results['total'] = $totalResult;
+//            }
+//
+//            // Upsert results for each hour type and total
+//            foreach ($results as $hourType => $result) {
+//                DB::table('teachers_service_areas_results')->updateOrInsert(
+//                    [
+//                        'teacher_id' => $teacherId,
+//                        'service_area_code' => $serviceAreaId,
+//                        'assessment_period_id' => $activeAssessmentPeriodId,
+//                        'hour_type' => $hourType
+//                    ],
+//                    [
+//                        'competences_average' => json_encode($result['competences_average'], JSON_UNESCAPED_UNICODE),
+//                        'open_ended_answers' => json_encode($result['open_ended_answers'], JSON_UNESCAPED_UNICODE),
+//                        'overall_average' => $result['overall_average'],
+//                        'aggregate_students_amount_reviewers' => $result['aggregate_students_amount_reviewers'],
+//                        'aggregate_students_amount_on_service_area' => $result['aggregate_students_amount_on_service_area'],
+//                        'created_at' => Carbon::now('GMT-5')->toDateTimeString(),
+//                        'updated_at' => Carbon::now('GMT-5')->toDateTimeString()
+//                    ]
+//                );
+//            }
+//        }
+//    }
 });
 
 
-Route::get('/migrateLegacyRecordsTeachersServiceAreasResults', function () {
-
-    $activeAssessmentPeriodId = \App\Models\AssessmentPeriod::getActiveAssessmentPeriod()->id;
-    $teacherIds = DB::table('group_results as gr')
-        ->select(['gr.teacher_id'])
-        ->where('gr.assessment_period_id', '=', 6)
-        ->orderBy('id','desc')
-        ->pluck('gr.teacher_id')
-        ->unique();
-
-    foreach ($teacherIds as $teacherId) {
-        $serviceAreasIds = DB::table('group_results as gr')
-            ->select(['gr.service_area_code'])
-            ->where('teacher_id', '=', $teacherId)
-            ->where('gr.assessment_period_id', '=', 6)
-            ->pluck('gr.service_area_code')
-            ->unique();
-
-        foreach ($serviceAreasIds as $serviceAreaId) {
-            $hourTypes = ['normal', 'cátedra'];
-            $results = [];
-
-            foreach ($hourTypes as $hourType) {
-                $studentsWithAnswer = 0;
-                $studentsEnrolled = 0;
-                $openEndedAnswers = [];
-                $competencesData = [];
-                $overallAverage = 0;
-                $groupCount = 0;
-
-                $groups = DB::table('group_results as gr')
-                    ->where('gr.teacher_id', '=', $teacherId)
-                    ->where('gr.service_area_code', '=', $serviceAreaId)
-                    ->where('gr.assessment_period_id', '=', 6)
-                    ->where('gr.hour_type', '=', $hourType)
-                    ->join('groups as g', 'g.group_id', '=', 'gr.group_id')
-                    ->get();
-
-                foreach ($groups as $group) {
-                    $groupCount++;
-                    $competencesAverage = json_decode($group->competences_average, true);
-                    $overallAverage += $group->overall_average;
-
-                    foreach ($competencesAverage as $competence) {
-                        $competenceId = $competence['id'];
-                        if (!isset($competencesData[$competenceId])) {
-                            $competencesData[$competenceId] = [
-                                'id' => $competenceId,
-                                'name' => $competence['name'],
-                                'attributes' => [],
-                                'overall_sum' => 0,
-                                'overall_count' => 0,
-                            ];
-                        }
-
-                        $competencesData[$competenceId]['overall_sum'] += $competence['overall_average'];
-                        $competencesData[$competenceId]['overall_count']++;
-
-                        foreach ($competence['attributes'] as $attributeValue) {
-                            $attributeName = $attributeValue['name'];
-                            if (!isset($competencesData[$competenceId]['attributes'][$attributeName])) {
-                                $competencesData[$competenceId]['attributes'][$attributeName] = [
-                                    'name' => $attributeName,
-                                    'sum' => 0,
-                                    'count' => 0,
-                                ];
-                            }
-                            if (isset($attributeValue['overall_average'])) {
-                                $competencesData[$competenceId]['attributes'][$attributeName]['sum'] += $attributeValue['overall_average'];
-                                $competencesData[$competenceId]['attributes'][$attributeName]['count']++;
-                            }
-                        }
-                    }
-
-                    $studentsWithAnswer += $group->students_amount_reviewers;
-                    $studentsEnrolled += $group->students_amount_on_group;
-                    $openEndedAnswers[] = [
-                        'group_name' => $group->name . " | Grupo: " . $group->group,
-                        'questions' => json_decode($group->open_ended_answers, true),
-                    ];
-                }
-
-                if ($groupCount > 0) {
-                    $finalCompetencesData = [];
-                    $overallAverage = $overallAverage / $groupCount;
-
-                    foreach ($competencesData as $competence) {
-                        $finalCompetence = [
-                            'id' => $competence['id'],
-                            'name' => $competence['name'],
-                            'attributes' => [],
-                            'overall_average' => round($competence['overall_sum'] / $competence['overall_count'], 2),
-                        ];
-
-                        foreach ($competence['attributes'] as $attributeName => $attributeData) {
-                            if ($attributeData['count'] > 0) {
-                                $finalCompetence['attributes'][] = [
-                                    'name' => $attributeName,
-                                    'overall_average' => round($attributeData['sum'] / $attributeData['count'], 2),
-                                ];
-                            }
-                        }
-                        $finalCompetencesData[] = $finalCompetence;
-                    }
-
-                    $results[$hourType] = [
-                        'competences_average' => $finalCompetencesData,
-                        'open_ended_answers' => $openEndedAnswers,
-                        'overall_average' => round($overallAverage, 2),
-                        'aggregate_students_amount_reviewers' => $studentsWithAnswer,
-                        'aggregate_students_amount_on_service_area' => $studentsEnrolled,
-                    ];
-                }
-            }
-
-            // Calculate total (average of normal and cátedra)
-            if (!empty($results)) {
-                $totalResult = [
-                    'competences_average' => [],
-                    'open_ended_answers' => [],
-                    'overall_average' => 0,
-                    'aggregate_students_amount_reviewers' => 0,
-                    'aggregate_students_amount_on_service_area' => 0,
-                ];
-
-                $hourTypeCount = count($results);
-                foreach ($results as $hourTypeResult) {
-                    $totalResult['overall_average'] += $hourTypeResult['overall_average'];
-                    $totalResult['aggregate_students_amount_reviewers'] += $hourTypeResult['aggregate_students_amount_reviewers'];
-                    $totalResult['aggregate_students_amount_on_service_area'] += $hourTypeResult['aggregate_students_amount_on_service_area'];
-                    $totalResult['open_ended_answers'] = array_merge($totalResult['open_ended_answers'], $hourTypeResult['open_ended_answers']);
-
-                    foreach ($hourTypeResult['competences_average'] as $competence) {
-                        $competenceId = $competence['id'];
-                        if (!isset($totalResult['competences_average'][$competenceId])) {
-                            $totalResult['competences_average'][$competenceId] = [
-                                'id' => $competenceId,
-                                'name' => $competence['name'],
-                                'attributes' => [],
-                                'overall_average' => 0,
-                            ];
-                        }
-                        $totalResult['competences_average'][$competenceId]['overall_average'] += $competence['overall_average'];
-
-                        foreach ($competence['attributes'] as $attribute) {
-                            $attributeName = $attribute['name'];
-                            if (!isset($totalResult['competences_average'][$competenceId]['attributes'][$attributeName])) {
-                                $totalResult['competences_average'][$competenceId]['attributes'][$attributeName] = [
-                                    'name' => $attributeName,
-                                    'overall_average' => 0,
-                                ];
-                            }
-                            $totalResult['competences_average'][$competenceId]['attributes'][$attributeName]['overall_average'] += $attribute['overall_average'];
-                        }
-                    }
-                }
-
-                // Calculate averages for total
-                $totalResult['overall_average'] = round($totalResult['overall_average'] / $hourTypeCount, 2);
-                foreach ($totalResult['competences_average'] as &$competence) {
-                    $competence['overall_average'] = round($competence['overall_average'] / $hourTypeCount, 2);
-                    foreach ($competence['attributes'] as &$attribute) {
-                        $attribute['overall_average'] = round($attribute['overall_average'] / $hourTypeCount, 2);
-                    }
-                    $competence['attributes'] = array_values($competence['attributes']);
-                }
-                $totalResult['competences_average'] = array_values($totalResult['competences_average']);
-
-                $results['total'] = $totalResult;
-            }
-
-            // Upsert results for each hour type and total
-            foreach ($results as $hourType => $result) {
-                DB::table('teachers_service_areas_results')->updateOrInsert(
-                    [
-                        'teacher_id' => $teacherId,
-                        'service_area_code' => $serviceAreaId,
-                        'assessment_period_id' => $activeAssessmentPeriodId,
-                        'hour_type' => $hourType
-                    ],
-                    [
-                        'competences_average' => json_encode($result['competences_average'], JSON_UNESCAPED_UNICODE),
-                        'open_ended_answers' => json_encode($result['open_ended_answers'], JSON_UNESCAPED_UNICODE),
-                        'overall_average' => $result['overall_average'],
-                        'aggregate_students_amount_reviewers' => $result['aggregate_students_amount_reviewers'],
-                        'aggregate_students_amount_on_service_area' => $result['aggregate_students_amount_on_service_area'],
-                        'created_at' => Carbon::now('GMT-5')->toDateTimeString(),
-                        'updated_at' => Carbon::now('GMT-5')->toDateTimeString()
-                    ]
-                );
-            }
-        }
-    }
-});
-
-
-
-Route::get('/migrateLegacyRecordsTeachersStudentsPerspectives', function () {
-    $activeAssessmentPeriodId = \App\Models\AssessmentPeriod::getActiveAssessmentPeriod()->id;
-    $teacherIds = DB::table('teachers_service_areas_results as tsar')
-        ->select(['tsar.teacher_id'])
-        ->where('tsar.assessment_period_id', '=', 6)
-        ->pluck('tsar.teacher_id')
-        ->unique();
-
-    $hourTypes = ['normal', 'cátedra', 'total'];
-
-    foreach ($teacherIds as $teacherId) {
-        foreach ($hourTypes as $hourType) {
-            $studentsWithAnswer = 0;
-            $studentsEnrolled = 0;
-            $competencesData = [];
-            $overallAverage = 0;
-            $openEndedAnswers = [];
-            $groupsAmount = 0;
-
-            // Get all the results from the teacher for the current hour type
-            $serviceAreas = DB::table('teachers_service_areas_results as tsar')
-                ->where('tsar.teacher_id', '=', $teacherId)
-                ->where('tsar.assessment_period_id', '=', 6)
-                ->where('tsar.hour_type', '=', $hourType)
-                ->where('sa.assessment_period_id', '=', $activeAssessmentPeriodId)
-                ->join('service_areas as sa', 'sa.code', '=', 'tsar.service_area_code')
-                ->get();
-
-            $serviceAreaCount = $serviceAreas->count();
-
-            foreach ($serviceAreas as $serviceArea) {
-                $openEndedAnswers[] = [
-                    'service_area_name' => $serviceArea->name,
-                    'groups' => json_decode($serviceArea->open_ended_answers, true)
-                ];
-
-                $competencesAverage = json_decode($serviceArea->competences_average, true);
-                $overallAverage += $serviceArea->overall_average;
-                $studentsWithAnswer += $serviceArea->aggregate_students_amount_reviewers;
-                $studentsEnrolled += $serviceArea->aggregate_students_amount_on_service_area;
-
-                // Count the number of groups
-                $groupsAmount += count(json_decode($serviceArea->open_ended_answers, true));
-
-                foreach ($competencesAverage as $competence) {
-                    $competenceId = $competence['id'];
-                    if (!isset($competencesData[$competenceId])) {
-                        $competencesData[$competenceId] = [
-                            'id' => $competenceId,
-                            'name' => $competence['name'],
-                            'attributes' => [],
-                            'overall_sum' => 0,
-                            'overall_count' => 0,
-                        ];
-                    }
-
-                    $competencesData[$competenceId]['overall_sum'] += $competence['overall_average'];
-                    $competencesData[$competenceId]['overall_count']++;
-
-                    foreach ($competence['attributes'] as $attributeValue) {
-                        $attributeName = $attributeValue['name'];
-                        if (!isset($competencesData[$competenceId]['attributes'][$attributeName])) {
-                            $competencesData[$competenceId]['attributes'][$attributeName] = [
-                                'name' => $attributeName,
-                                'sum' => 0,
-                                'count' => 0,
-                            ];
-                        }
-                        if (isset($attributeValue['overall_average'])) {
-                            $competencesData[$competenceId]['attributes'][$attributeName]['sum'] += $attributeValue['overall_average'];
-                            $competencesData[$competenceId]['attributes'][$attributeName]['count']++;
-                        }
-                    }
-                }
-            }
-
-            // Calculate final averages
-            $finalCompetencesData = [];
-            $overallAverage = $serviceAreaCount > 0 ? $overallAverage / $serviceAreaCount : 0;
-
-            foreach ($competencesData as $competence) {
-                $finalCompetence = [
-                    'id' => $competence['id'],
-                    'name' => $competence['name'],
-                    'attributes' => [],
-                    'overall_average' => round($competence['overall_sum'] / $competence['overall_count'], 2),
-                ];
-
-                foreach ($competence['attributes'] as $attributeName => $attributeData) {
-                    if ($attributeData['count'] > 0) {
-                        $finalCompetence['attributes'][] = [
-                            'name' => $attributeName,
-                            'overall_average' => round($attributeData['sum'] / $attributeData['count'], 2),
-                        ];
-                    }
-                }
-                $finalCompetencesData[] = $finalCompetence;
-            }
-
-            // Only insert if there's data for this hour type
-            if ($serviceAreaCount > 0) {
-                DB::table('teachers_students_perspectives')->updateOrInsert(
-                    [
-                        'teacher_id' => $teacherId,
-                        'assessment_period_id' => $activeAssessmentPeriodId,
-                        'hour_type' => $hourType
-                    ],
-                    [
-                        'groups_amount' => $groupsAmount,
-                        'competences_average' => json_encode($finalCompetencesData, JSON_UNESCAPED_UNICODE),
-                        'overall_average' => round($overallAverage, 2),
-                        'open_ended_answers' => json_encode($openEndedAnswers, JSON_UNESCAPED_UNICODE),
-                        'aggregate_students_amount_reviewers' => $studentsWithAnswer,
-                        'aggregate_students_amount_on_360_groups' => $studentsEnrolled,
-                        'created_at' => Carbon::now('GMT-5')->toDateTimeString(),
-                        'updated_at' => Carbon::now('GMT-5')->toDateTimeString()
-                    ]
-                );
-            }
-        }
-    }
-});
 
 
 //
@@ -1322,14 +865,6 @@ Route::get('/migrateLegacyRecordsTeachersStudentsPerspectives', function () {
 //
 //            }
 //
-//
-//            $firstCompetenceTotal = number_format($firstCompetenceTotal, 1);
-//            $secondCompetenceTotal = number_format($secondCompetenceTotal, 1);
-//            $thirdCompetenceTotal = number_format($thirdCompetenceTotal, 1);
-//            $fourthCompetenceTotal = number_format($fourthCompetenceTotal, 1);
-//            $fifthCompetenceTotal = number_format($fifthCompetenceTotal, 1);
-//            $sixthCompetenceTotal = number_format($sixthCompetenceTotal, 1);
-//
 //            DB::table('teachers_360_final_average')->updateOrInsert(
 //                ['teacher_id' => $uniqueTeacherId, 'assessment_period_id' => $activeAssessmentPeriodId],
 //                ['first_final_aggregate_competence_average' => $firstCompetenceTotal,
@@ -1346,9 +881,6 @@ Route::get('/migrateLegacyRecordsTeachersStudentsPerspectives', function () {
 //            /*        dd($allAssessments);*/
 //        }
 //    }
-//
-//    dd("listo");
-//
 //});
 
 

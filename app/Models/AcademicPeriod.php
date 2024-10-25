@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -70,15 +71,17 @@ class AcademicPeriod extends Model
         $academicPeriodsNames = array_column($currentAcademicPeriods->toArray(), 'name');
 
         return implode(',', $academicPeriodsNames);
-
-
     }
 
     public static function getCurrentAcademicPeriods()
     {
         $currentAssessmentPeriod = AssessmentPeriod::getActiveAssessmentPeriod();
-
         return self::where('assessment_period_id', '=', $currentAssessmentPeriod->id)->with('assessmentPeriod')->get();
+    }
+
+    public static function isStudentsAssessmentDateFinished(AcademicPeriod $academicPeriod): bool
+    {
+        return $academicPeriod->students_end_date > Carbon::now()->toDateTimeString();
     }
 
     public static function getCurrentAcademicPeriodIds(): array
