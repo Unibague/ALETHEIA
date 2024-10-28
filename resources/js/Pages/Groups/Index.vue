@@ -162,14 +162,14 @@ export default {
             search: '',
             //Table info
             headers: [
-                {text: 'Periodo académico', value: 'academic_period.name'},
+                {text: 'Periodo académico', value: 'academic_period_name'},
                 {text: 'Código de asignatura', value: 'class_code'},
                 {text: 'ID', value: 'group_id'},
                 {text: 'Nombre', value: 'name'},
                 {text: 'Número de grupo', value: 'group'},
                 {text: 'Nivel de formación', value: 'degree'},
-                {text: 'Area de servicio', value: 'service_area.name'},
-                {text: 'Profesor', value: 'teacher.name'},
+                {text: 'Area de servicio', value: 'service_area_name'},
+                {text: 'Profesor', value: 'teacher_name'},
                 {text: 'Tipo de hora', value: 'hour_type'},
                 {text: 'Acciones', value: 'actions', sortable: false},
             ],
@@ -206,15 +206,6 @@ export default {
             }
         },
 
-        // deleteThoseGroups: async function () {
-        //     try {
-        //         let request = await axios.post(route('api.enrolls.deleteThoseGroups'));
-        //         showSnackbar(this.snackbar, 'Borrados correctamente', 'success');
-        //     } catch (e) {
-        //         showSnackbar(this.snackbar, prepareErrorText(e), 'alert');
-        //     }
-        // },
-
         getGroupsWithoutTeacher: async function () {
             try {
                 let request = await axios.get(route('api.groups.withoutTeacher'));
@@ -248,6 +239,7 @@ export default {
 
         getAllGroups: async function (showMessage = false) {
             let request = await axios.get(route('api.groups.index'));
+            console.log(request.data, 'groups');
             this.groups = request.data;
             if (showMessage) {
                 showSnackbar(this.snackbar, 'Se han cargado todos los grupos', 'success')

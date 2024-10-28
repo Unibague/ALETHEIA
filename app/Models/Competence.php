@@ -12,4 +12,7 @@ class Competence extends Model
     ];
 
     use HasFactory;
+
+
+
 }
