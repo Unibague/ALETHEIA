@@ -5,7 +5,8 @@
 
         <v-container fluid>
             <div class="d-flex flex-column align-end mb-2" id="malparido">
-                <h2 class="align-self-start">Reportes por área de servicio / grupo</h2>
+                <h2 class="align-self-start" v-if="serviceAreaResults">Reportes por área de servicio</h2>
+                <h2 class="align-self-start" v-else> Reportes por grupo </h2>
             </div>
 
             <v-container class="d-flex flex-column align-end mr-5">
@@ -14,8 +15,8 @@
                     class="white--text"
                     @click="switchResults()"
                 >
-                 <span v-if="serviceAreaResults">Visualizar resultados por grupo</span>
-                 <span v-else> Visualizar resultados por área de servicio</span>
+                    <span v-if="serviceAreaResults">Visualizar resultados por grupo</span>
+                    <span v-else> Visualizar resultados por área de servicio</span>
                 </v-btn>
             </v-container>
 
@@ -26,7 +27,7 @@
                 height="auto"
             >
                 <v-row class="py-3">
-                    <v-col cols="3" >
+                    <v-col cols="3">
                         <v-autocomplete
                             v-model="assessmentPeriod"
                             flat
@@ -40,7 +41,7 @@
                         ></v-autocomplete>
                     </v-col>
 
-                    <v-col cols="4" >
+                    <v-col cols="4">
                         <v-autocomplete
                             v-model="serviceArea"
                             flat
@@ -67,6 +68,26 @@
                             label="Docente"
                         ></v-autocomplete>
                     </v-col>
+
+                    <v-col cols="2">
+                        <v-tooltip top>
+                            <template v-slot:activator="{ on, attrs }">
+                                <v-btn
+                                    v-on="on"
+                                    v-bind="attrs"
+                                    icon
+                                    class="mr-2 secundario--text"
+                                    @click="downloadResults"
+                                >
+                                    <v-icon>
+                                        mdi-file-excel
+                                    </v-icon>
+                                </v-btn>
+                            </template>
+                            <span>Exportar resultados actuales a Excel</span>
+                        </v-tooltip>
+                    </v-col>
+
                 </v-row>
             </v-toolbar>
 
@@ -125,10 +146,11 @@
             <!--Seccion de dialogos-->
             <v-dialog v-model="showChartDialog" max-width="710">
                 <v-card>
-                    <v-card-title class="custom-card-title" style="text-align: center">Resultados para el docente "{{this.selectedAssessment.teacher_name}}"
-                        <span> Área de servicio: "{{this.selectedAssessment.service_area_name}}"</span>
+                    <v-card-title class="custom-card-title" style="text-align: center">Resultados para el docente
+                        "{{ this.selectedAssessment.teacher_name }}"
+                        <span> Área de servicio: "{{ this.selectedAssessment.service_area_name }}"</span>
                         <template v-if="groupResults">
-                            <span class="optional-text">Asignatura: "{{ this.selectedAssessment.group_name }} | Grupo: {{this.selectedAssessment.group_number}}"</span>
+                            <span class="optional-text">Asignatura: "{{ this.selectedAssessment.group_name }} | Grupo: {{ this.selectedAssessment.group_number }}"</span>
                         </template>
                     </v-card-title>
                     <v-card-text>
@@ -159,14 +181,16 @@
                             @click="downloadPDF()"
                             :disabled="this.reportDownloading"
                         >
-                            {{ reportDownloading ? 'Descargando reporte...' : 'Descargar reporte en PDF' }}                        </v-btn>
+                            {{ reportDownloading ? 'Descargando reporte...' : 'Descargar reporte en PDF' }}
+                        </v-btn>
                         <v-btn color="primario" class="white--text" @click="showChartDialog = false">Cerrar</v-btn>
                     </v-card-actions>
                 </v-card>
             </v-dialog>
 
             <v-dialog v-model="showOpenEndedAnswersDialog">
-                <v-card v-if="selectedAssessment && selectedAssessment.open_ended_answers && serviceAreaResults" class="mt-4">
+                <v-card v-if="selectedAssessment && selectedAssessment.open_ended_answers && serviceAreaResults"
+                        class="mt-4">
                     <v-card-title>Respuestas abiertas</v-card-title>
                     <v-card-text>
                         <div v-for="(group, groupIndex) in selectedAssessment.open_ended_answers" :key="groupIndex">
@@ -174,13 +198,15 @@
                             <div v-for="(question, questionIndex) in group.questions" :key="questionIndex" class="mb-4">
                                 <h4 class="question-text mb-2"> {{ question.question }}</h4>
                                 <v-expansion-panels multiple>
-                                    <v-expansion-panel v-for="(commentType, typeIndex) in question.commentType" :key="typeIndex">
+                                    <v-expansion-panel v-for="(commentType, typeIndex) in question.commentType"
+                                                       :key="typeIndex">
                                         <v-expansion-panel-header>
                                             {{ commentType.type }} ({{ commentType.answers.length }})
                                         </v-expansion-panel-header>
                                         <v-expansion-panel-content>
                                             <ul>
-                                                <li v-for="(answer, answerIndex) in commentType.answers" :key="answerIndex">
+                                                <li v-for="(answer, answerIndex) in commentType.answers"
+                                                    :key="answerIndex">
                                                     {{ answer }}
                                                 </li>
                                             </ul>
@@ -195,24 +221,27 @@
                 <v-card v-if="selectedAssessment && selectedAssessment.open_ended_answers && groupResults" class="mt-4">
                     <v-card-title>Respuestas abiertas</v-card-title>
                     <v-card-text>
-                        <h3 class="group-name mb-3" v-if="groupResults"> {{selectedAssessment.group_name}} | Grupo: {{selectedAssessment.group_number}}</h3>
-                        <div v-for="(question, questionIndex) in selectedAssessment.open_ended_answers" :key="questionIndex" class="mb-4">
+                        <h3 class="group-name mb-3" v-if="groupResults"> {{ selectedAssessment.group_name }} | Grupo:
+                            {{ selectedAssessment.group_number }}</h3>
+                        <div v-for="(question, questionIndex) in selectedAssessment.open_ended_answers"
+                             :key="questionIndex" class="mb-4">
                             <h3 class="group-name mb-3">{{ question.question }}</h3>
-                                <v-expansion-panels multiple>
-                                    <v-expansion-panel v-for="(commentType, typeIndex) in question.commentType" :key="typeIndex">
-                                        <v-expansion-panel-header>
-                                            {{ commentType.type }} ({{ commentType.answers.length }})
-                                        </v-expansion-panel-header>
-                                        <v-expansion-panel-content>
-                                            <ul>
-                                                <li v-for="(answer, answerIndex) in commentType.answers" :key="answerIndex">
-                                                    {{ answer }}
-                                                </li>
-                                            </ul>
-                                        </v-expansion-panel-content>
-                                    </v-expansion-panel>
-                                </v-expansion-panels>
-                            </div>
+                            <v-expansion-panels multiple>
+                                <v-expansion-panel v-for="(commentType, typeIndex) in question.commentType"
+                                                   :key="typeIndex">
+                                    <v-expansion-panel-header>
+                                        {{ commentType.type }} ({{ commentType.answers.length }})
+                                    </v-expansion-panel-header>
+                                    <v-expansion-panel-content>
+                                        <ul>
+                                            <li v-for="(answer, answerIndex) in commentType.answers" :key="answerIndex">
+                                                {{ answer }}
+                                            </li>
+                                        </ul>
+                                    </v-expansion-panel-content>
+                                </v-expansion-panel>
+                            </v-expansion-panels>
+                        </div>
                     </v-card-text>
                 </v-card>
 
@@ -259,16 +288,16 @@ export default {
             search: '',
             //Display data
             assessments: [],
-            selectedAssessment:'',
+            selectedAssessment: '',
             assessmentPeriod: '',
             assessmentPeriods: [],
             serviceArea: '',
-            serviceAreas:[],
+            serviceAreas: [],
             teacher: '',
             selectedTeacher: '',
-            teachers:[],
+            teachers: [],
             selectedTeacherOpenAnswers: '',
-            finalTeachingLadders:[],
+            finalTeachingLadders: [],
             openAnswersStudents: [],
             //Snackbars
             snackbar: {
@@ -298,8 +327,8 @@ export default {
         this.isLoading = false;
     },
 
-    watch:{
-        async assessmentPeriod(){
+    watch: {
+        async assessmentPeriod() {
             await this.getServiceAreas();
             await this.getTeachers();
         }
@@ -319,7 +348,7 @@ export default {
             return finalAssessments;
         },
 
-        filteredTeachers(){
+        filteredTeachers() {
             let finalTeachers = this.teachers;
             let finalAssessments = this.assessments;
             if (this.serviceArea !== '') {
@@ -339,21 +368,20 @@ export default {
             try {
                 this.reportDownloading = true;
                 // Get references to the pie-chart components
-                this.satisfactionPieChartComponent= this.$refs.satisfactionPieChartComponent;
+                this.satisfactionPieChartComponent = this.$refs.satisfactionPieChartComponent;
                 this.overallAverageChartComponent = this.$refs.overallAverageChartComponent;
                 // Generate chart images one by one
                 const satisfactionChartImage = await this.satisfactionPieChartComponent.generateChartImage('image/jpeg', 0.9, 3);
                 const overallAverageImage = await this.overallAverageChartComponent.generateChartImage('image/jpeg', 0.9, 3);
                 let reportType = null
-                if (this.groupResults){
+                if (this.groupResults) {
                     reportType = 'group'
-                }
-                else{
+                } else {
                     reportType = 'serviceArea'
                 }
                 const response = await axios.post(route('reports.teaching.download'), {
                     assessment: this.selectedAssessment,
-                    headers:this.dynamicHeaders,
+                    headers: this.dynamicHeaders,
                     overallAverageChart: overallAverageImage,
                     satisfactionChart: satisfactionChartImage,
                     reportType: reportType
@@ -375,17 +403,45 @@ export default {
             this.reportDownloading = false;
         },
 
-        switchResults(){
-          if(this.serviceAreaResults){
-              this.serviceAreaResults = false
-              this.groupResults = true;
-              this.getAssessments();
-          }
-          else{
-              this.serviceAreaResults = true
-              this.groupResults = false;
-              this.getAssessments();
-          }
+        switchResults() {
+            if (this.serviceAreaResults) {
+                this.serviceAreaResults = false
+                this.groupResults = true;
+                this.getAssessments();
+            } else {
+                this.serviceAreaResults = true
+                this.groupResults = false;
+                this.getAssessments();
+            }
+        },
+
+        downloadResults() {
+            const excelInfo = this.filteredItems.map(item => {
+                const result = {};
+
+                const notDesiredHeaders = ['Gráfico', 'Comentarios']
+
+                this.dynamicHeaders.forEach(header => {
+                    if(!notDesiredHeaders.includes(header.text))
+                    {
+                        result[header.text] = item[header.value]
+                    }
+                })
+                return result;
+            })
+
+            let csv = Papa.unparse(excelInfo, {delimiter: ';'});
+            var csvData = new Blob(["\uFEFF" + csv], {type: 'text/csv;charset=utf-8;'});
+            var csvURL = null;
+            if (navigator.msSaveBlob) {
+                csvURL = navigator.msSaveBlob(csvData, 'ResultadosEvaluaciónDocente.csv');
+            } else {
+                csvURL = window.URL.createObjectURL(csvData);
+            }
+            var tempLink = document.createElement('a');
+            tempLink.href = csvURL;
+            tempLink.setAttribute('download', 'ResultadosEvaluaciónDocente.csv');
+            tempLink.click();
         },
 
         addAllElementSelectionItem(model, text) {
@@ -409,11 +465,11 @@ export default {
             });
         },
 
-        getServiceAreas: async function (){
+        getServiceAreas: async function () {
             let request = await axios.get(route('api.serviceAreas.index', {assessmentPeriodId: this.assessmentPeriod}));
             this.serviceAreas = this.sortArrayAlphabetically(request.data);
             console.log(this.serviceAreas, 'service areas');
-            this.serviceAreas.unshift({name: 'Todas las áreas de servicio', code:''})
+            this.serviceAreas.unshift({name: 'Todas las áreas de servicio', code: ''})
         },
 
         getTeachers: async function () {
@@ -426,17 +482,16 @@ export default {
         },
 
         async getAssessments() {
-            if(this.serviceAreaResults){
+            if (this.serviceAreaResults) {
                 let request = await axios.get(route('reports.serviceArea.results'));
                 this.dynamicHeaders = request.data.headers
                 this.assessments = request.data.items;
-            }
-            else{
+            } else {
                 let request = await axios.get(route('reports.group.results'));
                 this.dynamicHeaders = request.data.headers
                 this.assessments = request.data.items;
             }
-            console.log(this.assessments, 'assessments');
+            console.log(this.dynamicHeaders, 'Los headers');
         },
 
         getFilteredAssessmentsByServiceArea(assessments = null) {
@@ -459,30 +514,30 @@ export default {
             return this.matchProperty(assessments, 'teacher_id', this.teacher)
         },
 
-        capitalize($field){
+        capitalize($field) {
             return $field.toLowerCase().split(' ').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
         },
 
-        sortArrayAlphabetically(array){
-            return array.sort( (p1, p2) =>
+        sortArrayAlphabetically(array) {
+            return array.sort((p1, p2) =>
                 (p1.name > p2.name) ? 1 : (p1.name > p2.name) ? -1 : 0);
         },
 
-        setDialogToShowChart(assessment){
+        setDialogToShowChart(assessment) {
             this.showChartDialog = true
             console.log(assessment, 'selectedAssessment')
             this.selectedAssessment = assessment;
         },
 
-        setDialogToShowOpenEndedAnswers(assessment){
-            this.showOpenEndedAnswersDialog= true
+        setDialogToShowOpenEndedAnswers(assessment) {
+            this.showOpenEndedAnswersDialog = true
             this.selectedAssessment = assessment;
         },
 
-        setDialogToCancelOpenAnswers (){
+        setDialogToCancelOpenAnswers() {
             this.showOpenAnswersDialog = false;
             this.openAnswersColleagues = [];
-            this.openAnswersStudents= [];
+            this.openAnswersStudents = [];
         },
 
     },

@@ -39,8 +39,6 @@ class GroupController extends Controller
     public function index(GetGroupsRequest $request): JsonResponse
     {
         $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
-
-
         return  response()->json(DB::table('groups as g')->select(['g.*','u.name as teacher_name',
             'ap.name as academic_period_name','sa.name as service_area_name'])
             ->join('academic_periods as ap', 'g.academic_period_id', '=', 'ap.id')
@@ -48,14 +46,6 @@ class GroupController extends Controller
             ->join('service_areas as sa','g.service_area_code','=','sa.code')
             ->where('ap.assessment_period_id', '=', $activeAssessmentPeriodId)
             ->where('sa.assessment_period_id','=',$activeAssessmentPeriodId)
-            ->get());
-
-
-        return response()->json(Group::join('academic_periods as ap',
-            'groups.academic_period_id', '=', 'ap.id')
-            ->where('ap.assessment_period_id', '=', $activeAssessmentPeriodId)
-            ->with(['teacher:name', 'serviceArea:name', 'academicPeriod:name'])
-            ->select('groups.*', 'ap.name as academic_period_name')
             ->get());
     }
 

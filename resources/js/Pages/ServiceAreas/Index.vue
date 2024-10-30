@@ -7,6 +7,17 @@
             <div class="d-flex flex-column align-end mb-8">
                 <h2 class="align-self-start">Gestionar areas de servicio</h2>
                 <div>
+
+                    <InertiaLink class="primario--text"
+                                 :href="route('serviceAreas.manage.admins')">
+                        <v-btn
+                            color="primario"
+                            class="grey--text text--lighten-4 ml-4"
+                        >
+                            Administradores de área de servicio
+                        </v-btn>
+                    </InertiaLink>
+
                     <v-btn
                         color="primario"
                         class="grey--text text--lighten-4 ml-4"
@@ -42,24 +53,25 @@
                 >
 
                     <template v-slot:item.actions="{ item }">
-                    <v-tooltip top>
-                        <template v-slot:activator="{on,attrs}">
+                        <v-tooltip top>
+                            <template v-slot:activator="{on,attrs}">
 
-                            <InertiaLink :href="route('serviceAreas.manageServiceArea', {serviceAreaCode:item.code})">
+                                <InertiaLink
+                                    :href="route('serviceAreas.manageServiceArea', {serviceAreaCode:item.code})">
 
-                                <v-icon
-                                    v-bind="attrs"
-                                    v-on="on"
-                                    class="mr-2 primario--text"
-                                >
-                                    mdi-account-group
-                                </v-icon>
+                                    <v-icon
+                                        v-bind="attrs"
+                                        v-on="on"
+                                        class="mr-2 primario--text"
+                                    >
+                                        mdi-account-group
+                                    </v-icon>
 
-                            </InertiaLink>
+                                </InertiaLink>
 
-                        </template>
-                        <span>Gestionar Usuarios</span>
-                    </v-tooltip>
+                            </template>
+                            <span>Gestionar Usuarios</span>
+                        </v-tooltip>
                     </template>
 
                 </v-data-table>

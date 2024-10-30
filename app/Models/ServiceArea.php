@@ -61,6 +61,47 @@ class ServiceArea extends Model
         self::upsert($upsertData, ['code', 'assessment_period_id'], ['name', 'assessment_period_id','updated_at']);
     }
 
+    public static function getUsersAssignedToServiceAreas()
+    {
+        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+
+        $serviceAreasGrouped = DB::table('service_area_user')
+            ->join('service_areas', 'service_area_user.service_area_code', '=', 'service_areas.code')
+            ->join('users', 'service_area_user.user_id', '=', 'users.id') // Join with the users table
+            ->select(
+                'service_area_user.user_id',
+                'users.name as user_name',
+                'users.email as user_email',
+                'service_area_user.service_area_code',
+                'service_areas.name as service_area_name'
+            )
+            ->where('service_area_user.assessment_period_id', '=', $activeAssessmentPeriodId)
+            ->where('service_areas.assessment_period_id', '=', $activeAssessmentPeriodId)
+            ->orderBy('users.name',)
+            ->get()
+            ->groupBy('user_id');
+
+        // Transform the grouped data into the desired structure
+        $result = $serviceAreasGrouped->map(function ($serviceAreas, $userId) {
+            return [
+                'user' => [
+                    'id' => $userId,
+                    'name' => $serviceAreas[0]->user_name, // Assuming all entries for a user have the same name
+                    'email' => $serviceAreas[0]->user_email // Assuming all entries for a user have the same email
+                ],
+                'service_areas' => $serviceAreas->map(function ($area) {
+                    return [
+                        'service_area_code' => $area->service_area_code,
+                        'service_area_name' => $area->service_area_name,
+                    ];
+                })->values()->all() // Convert to array and reset keys
+            ];
+        })->values()->all(); // Convert to array and reset keys at the outer level
+
+        return $result; // Return the structured result
+    }
+
+
     public static function getServiceAreasResults(int $assessmentPeriodId = null)
     {
 
@@ -207,4 +248,11 @@ class ServiceArea extends Model
         return $this->belongsTo(AssessmentPeriod::class);
     }
 
+    public function users(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+
+        return $this->belongsToMany(User::class, 'service_area_user', 'service_area_code', 'user_id', 'code', 'id')
+            ->where('service_area_user.assessment_period_id', '=', $activeAssessmentPeriodId);
+    }
 }
