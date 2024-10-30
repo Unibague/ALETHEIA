@@ -77,9 +77,7 @@ class UnitController extends Controller
 
     public function getStaffMembersFromDB()
     {
-
         return response()->json(Unit::getStaffMembers());
-
     }
 
 

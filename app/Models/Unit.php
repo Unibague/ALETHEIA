@@ -172,10 +172,9 @@ class Unit extends Model
     public static function getStaffMembers(){
 
         $staffMemberRole = Role::getStaffMemberRoleId();
-
         return DB::table('role_user')->where('role_id', $staffMemberRole )
             ->join('users','users.id','=', 'role_user.user_id')
-            ->select('users.email','users.name','users.id')->get();
+            ->select('users.email','users.name','users.id')->orderBy('users.name','asc')->get();
     }
 
     public static function getAssignedTeachers(int $assessmentPeriodId = null){

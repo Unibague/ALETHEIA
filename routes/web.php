@@ -93,15 +93,19 @@ Route::resource('api/serviceAreas', \App\Http\Controllers\ServiceAreaController:
     'as' => 'api'
 ])->middleware('auth');
 Route::post('/api/serviceAreas/sync', [\App\Http\Controllers\ServiceAreaController::class, 'sync'])->middleware(['auth'])->name('api.serviceAreas.sync');
-
+Route::post('/api/serviceAreas/user/assign', [\App\Http\Controllers\ServiceAreaController::class, 'assignServiceAreas'])->middleware(['auth'])->name('api.serviceAreas.assign');
+Route::post
+('/api/serviceAreas/user/delete', [\App\Http\Controllers\ServiceAreaController::class, 'deleteServiceAreasFromUser'])->middleware(['auth'])->name('api.serviceAreas.deleteAssignments');
 Route::get('serviceAreas/getServiceAreasResults', [\App\Http\Controllers\ServiceAreaController::class, 'getServiceAreasResults'])->middleware(['auth'])->name('serviceAreas.getResults');
 Route::get('serviceAreas/getServiceAreasResultsPerGroup', [\App\Http\Controllers\ServiceAreaController::class, 'getServiceAreasResultsPerGroup'])->middleware(['auth'])->name('serviceAreas.getResultsPerGroup');
 Route::get('serviceAreas/getTeachersWithResults', [\App\Http\Controllers\ServiceAreaController::class, 'getServiceAreasTeachersWithResults'])
     ->middleware(['auth'])->name('serviceAreas.teachersWithResults');
+Route::get('serviceAreas/admins', [\App\Http\Controllers\ServiceAreaController::class, 'getServiceAreasAdmins'])->name('serviceAreas.admins')->middleware(['auth']);
 Route::get('/serviceAreas/{serviceAreaCode}', [\App\Http\Controllers\ServiceAreaController::class, 'edit'])->middleware(['auth', 'isAdminOrUnitAdmin'])->name('serviceAreas.manageServiceArea');
 Route::get('serviceArea/{serviceAreaCode}/admins', [\App\Http\Controllers\ServiceAreaController::class, 'getServiceAreaAdmins'])->name('serviceArea.admins')->middleware(['auth']);
 Route::post('serviceArea/assignAdmin', [\App\Http\Controllers\ServiceAreaController::class, 'assignServiceAreaAdmin'])->name('serviceArea.assignAdmin')->middleware(['auth']);
 Route::post('serviceArea/deleteAdmin', [\App\Http\Controllers\ServiceAreaController::class, 'deleteServiceAreaAdmin'])->name('serviceArea.deleteAdmin')->middleware(['auth']);
+Route::inertia('/serviceArea/admins/view', 'ServiceAreas/ManageAdmins')->middleware(['auth', 'isAdmin'])->name('serviceAreas.manage.admins');
 
 
 /* >>>>>>>>>>>>>>>>>>>>>>>>> Groups routes <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< */
@@ -986,3 +990,42 @@ Route::get('individualExcelReport', function () {
 
 });
 
+Route::get('/testRelationship', function (){
+
+    $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+
+    $serviceAreasGrouped = DB::table('service_area_user')
+        ->join('service_areas', 'service_area_user.service_area_code', '=', 'service_areas.code')
+        ->join('users', 'service_area_user.user_id', '=', 'users.id') // Unir con la tabla de usuarios
+        ->select(
+            'service_area_user.user_id',
+            'users.name as user_name',
+            'users.email as user_email',
+            'service_area_user.service_area_code',
+            'service_areas.name as service_area_name'
+        )
+        ->where('service_area_user.assessment_period_id', '=', $activeAssessmentPeriodId)
+        ->where('service_areas.assessment_period_id','=',$activeAssessmentPeriodId)
+        ->get()
+        ->groupBy('user_id')
+        ->map(function ($items) {
+            // Obtenemos el primer elemento para obtener la información del usuario
+            $userInfo = $items->first();
+            return [
+                'user' => [ // Cambiamos la estructura aquí
+                    'id' => $userInfo->user_id,
+                    'name' => $userInfo->user_name,
+                    'email' => $userInfo->user_email,
+                ],
+                'service_areas' => $items->map(function ($item) {
+                    return [
+                        'service_area_code' => $item->service_area_code,
+                        'service_area_name' => $item->service_area_name,
+                    ];
+                })->toArray(),
+            ];
+        });
+
+// $serviceAreasGrouped contendrá un arreglo de usuarios con su respectiva información y áreas de servicio
+   return response()->json($serviceAreasGrouped);
+});

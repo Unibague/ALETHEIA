@@ -253,4 +253,13 @@ class User extends Authenticatable
     {
         return $this->hasMany(Group::class, 'teacher_id', 'id');
     }
+
+    public function serviceAreas(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        return $this->belongsToMany(ServiceArea::class, 'service_area_user', 'user_id', 'service_area_code', 'id', 'code')
+            ->where('service_area_user.assessment_period_id', '=', $activeAssessmentPeriodId);
+    }
+
+
 }
