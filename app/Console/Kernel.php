@@ -25,12 +25,10 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // First command
-        $schedule->command('reports:group-results-update')->cron('4 * * * *');
 
-        $schedule->command('reports:teacher-service-area-results-update')->cron('6 * * * *');
+        $schedule->command('reports:update-results')->cron('5 * * * *');
 
-        $schedule->command('reports:teacher-student-perspective-results-update')->cron('14 * * * *');
+        //TODO: Dejar arreglados los cronjobs de enviar recordatorio a estudiantes.
 
 
 //        //Check if today is the day to send a reminder that assessment period starts

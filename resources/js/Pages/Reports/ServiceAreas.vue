@@ -319,7 +319,13 @@ export default {
         }
     },
 
+    props: {
+      serviceAreasFromProps: Array,
+      token: String
+    },
+
     async created() {
+        console.log(this.serviceAreasFromProps, "These are the service areas")
         await this.getAssessmentPeriods();
         await this.getServiceAreas();
         await this.getTeachers();
@@ -466,10 +472,16 @@ export default {
         },
 
         getServiceAreas: async function () {
-            let request = await axios.get(route('api.serviceAreas.index', {assessmentPeriodId: this.assessmentPeriod}));
-            this.serviceAreas = this.sortArrayAlphabetically(request.data);
-            console.log(this.serviceAreas, 'service areas');
-            this.serviceAreas.unshift({name: 'Todas las áreas de servicio', code: ''})
+
+            if (this.serviceAreasFromProps == undefined){
+                let request = await axios.get(route('api.serviceAreas.index', {assessmentPeriodId: this.assessmentPeriod}));
+                this.serviceAreas = this.sortArrayAlphabetically(request.data);
+                console.log(this.serviceAreas, 'service areas');
+                this.serviceAreas.unshift({name: 'Todas las áreas de servicio', code: ''})
+                return;
+            }
+
+            this.serviceAreas = this.serviceAreasFromProps;
         },
 
         getTeachers: async function () {
@@ -482,6 +494,10 @@ export default {
         },
 
         async getAssessments() {
+
+
+            console.log(this.serviceAreas, 'Las areas de servicio')
+
             if (this.serviceAreaResults) {
                 let request = await axios.get(route('reports.serviceArea.results'));
                 this.dynamicHeaders = request.data.headers
@@ -491,7 +507,6 @@ export default {
                 this.dynamicHeaders = request.data.headers
                 this.assessments = request.data.items;
             }
-            console.log(this.dynamicHeaders, 'Los headers');
         },
 
         getFilteredAssessmentsByServiceArea(assessments = null) {

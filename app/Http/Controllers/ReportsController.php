@@ -71,6 +71,12 @@ class ReportsController extends Controller
 
     public function getServiceAreaResults(Request $request){
         $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+
+
+        $serviceAreas = $request->input('serviceAreas');
+
+
+
         $serviceAreaResults = DB::table('teachers_service_areas_results as tsar')
             ->select(['u.name as teacher_name', 'sa.name as service_area_name', 'sa.code as service_area_code',
                 'tsar.assessment_period_id',
@@ -257,27 +263,28 @@ class ReportsController extends Controller
         }
     }
 
-    public function showServiceAreasAssessment(){
+    public function indexServiceAreaResults(){
+
+        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
 
         $user = auth()->user();
         $token = csrf_token();
 
-        if($user->hasRole("administrador")){
-            return Inertia::render('Reports/CompleteServiceAreasResults', ['token' => $token]);
+        if($user->role()->name === "administrador"){
+            return Inertia::render('Reports/ServiceAreas', ['token' => $token]);
         }
 
         if($user->role()->name == "Jefe de Área de Servicio") {
             $userId = auth()->user()->id;
-            $serviceAreasArray = [];
-            $serviceAreas = DB::table('service_area_user')->where('user_id', '=', $userId)->get();
+            $serviceAreas = DB::table('service_area_user')->where('user_id', '=', $userId)
+                ->where('service_area_user.assessment_period_id','=', $activeAssessmentPeriodId)
+                ->where('service_areas.assessment_period_id','=', $activeAssessmentPeriodId)
+                ->join('service_areas','service_area_user.service_area_code','=','service_areas.code')->get();
 
             if(count($serviceAreas) > 0){
-                foreach ($serviceAreas as $serviceArea){
-                    $serviceAreasArray [] = $serviceArea->service_area_code;
-                }
-                return Inertia::render('Reports/CompleteServiceAreasResults', ['propsServiceAreas' => $serviceAreasArray]);
+                return Inertia::render('Reports/ServiceAreas', ['serviceAreasFromProps' => $serviceAreas]);
             }
-            return Inertia::render('Reports/CompleteServiceAreasResults', ['propsServiceAreas'=> []]);
+            return Inertia::render('Reports/ServiceAreas', ['serviceAreas'=> []]);
         }
     }
 
