@@ -150,13 +150,11 @@ Route::get('/reports/results/serviceArea', [\App\Http\Controllers\ReportsControl
 Route::get('/reports/results/finalTeaching', [\App\Http\Controllers\ReportsController::class, 'getFinalTeachingResults'])->middleware(['auth'])->name('reports.finalTeaching.results');
 
 
-/*Route::get('/reports/showCompleteServiceAreas', [\App\Http\Controllers\ReportsController::class, 'index'])->middleware(['auth', 'isAdmin'])->name('reports.showCompleteServiceAreas');*/
-/*Route::inertia('/reports/showComplete360', 'Reports/Complete360AssessmentResults')->middleware(['auth'])->name('reports.showComplete360');*/
 Route::get('/reports/show360Assessment', [\App\Http\Controllers\ReportsController::class, 'show360Assessment'])->middleware(['auth'])->name('reports.show360Assessment');
 Route::get('/reports/showServiceAreasAssessment', [\App\Http\Controllers\ReportsController::class, 'showServiceAreasAssessment'])->middleware(['auth'])->name('reports.showServiceAreasAssessment');
 
-Route::inertia('/reports/serviceArea', 'Reports/ServiceAreas')->middleware(['auth', 'isAdmin'])->name('reports.serviceArea');
-Route::inertia('/reports/overallTeaching', 'Reports/OverallTeaching')->middleware(['auth', 'isAdmin'])->name('reports.overallTeaching');
+Route::get('/reports/serviceArea', [\App\Http\Controllers\ReportsController::class, 'indexServiceAreaResults'])->middleware(['auth', ])->name('reports.serviceArea');
+Route::inertia('/reports/overallTeaching', 'Reports/OverallTeaching')->middleware(['auth', ])->name('reports.overallTeaching');
 
 
 

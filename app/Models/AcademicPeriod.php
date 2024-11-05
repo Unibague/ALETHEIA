@@ -81,7 +81,7 @@ class AcademicPeriod extends Model
 
     public static function isStudentsAssessmentDateFinished(AcademicPeriod $academicPeriod): bool
     {
-        return $academicPeriod->students_end_date > Carbon::now()->toDateTimeString();
+        return $academicPeriod->students_end_date < Carbon::now()->toDateTimeString();
     }
 
     public static function getCurrentAcademicPeriodIds(): array

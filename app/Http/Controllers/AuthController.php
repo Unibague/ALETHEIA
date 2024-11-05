@@ -40,7 +40,7 @@ class AuthController extends Controller
         }
 
         if ($user->role()->name == "Jefe de Área de Servicio") {
-            return redirect()->route('reports.showServiceAreasAssessment');
+            return redirect()->route('reports.serviceArea');
         }
 
         if ($user->isAdmin()) {
