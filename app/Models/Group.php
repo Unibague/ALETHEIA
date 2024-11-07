@@ -108,19 +108,12 @@ class Group extends Model
         $upsertData = [];
 
         foreach ($groups as $group) {
-
-            if(!Group::isSuitableGroup($group['name']) || $group['degree_code'] === ""){
-                continue;
-            }
-
             if($group['hour_type'] === 'Normal'){
                 $group['hour_type'] = 'normal';
             }
-
             else{
                 $group['hour_type'] = 'cátedra';
             }
-
             $upsertData[] = [
                 'group_id' => (int)$group['group_id'],
                 'academic_period_id' => $academicPeriodNameAndId[$group['academic_period_name']],
@@ -129,7 +122,7 @@ class Group extends Model
                 'class_code' => $group['class_code'],
                 'degree' => strtolower($group['degree_code']),
                 'service_area_code' => $group['service_area_code'],
-                'teacher_id' => $teacherAreaNameAndId[$group['teacher_email']] ?? null,
+                'teacher_id' => $teacherAreaNameAndId[$group['teacher_email']],
                 'hour_type' => $group['hour_type'],
             ];
         }
@@ -142,33 +135,33 @@ class Group extends Model
         $userId = auth()->user()->id;
         $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
 
-        $totalGroups = \DB::table('group_user as gu')
+        $academicPeriodsForUser = \DB::table('group_user as gu')
             ->where('gu.user_id', $userId)
             ->join('academic_periods as ap', 'gu.academic_period_id', '=', 'ap.id')
             ->where('ap.assessment_period_id', '=', $activeAssessmentPeriodId)
+            ->join('groups as g', 'gu.group_id', '=', 'g.group_id')
+            ->where('g.teacher_id','!=',null)
             ->get();
 
-        $groupsAcademicPeriodsId = array_unique(array_column($totalGroups->toArray(),'academic_period_id'));
+        $academicPeriodsId  = array_unique(array_column($academicPeriodsForUser ->toArray(),'academic_period_id'));
 
-        foreach ($groupsAcademicPeriodsId as $academicPeriodId){
+        foreach ($academicPeriodsId as $academicPeriodId){
 
             $totalGroups = \DB::table('group_user as gu')
                 ->where('gu.user_id', $userId)
                 ->where('gu.academic_period_id', '=', $academicPeriodId)
-                ->count();
+                ->join('groups as g', 'gu.group_id', '=', 'g.group_id')
+                ->where('g.teacher_id','!=',null)->get()->toArray();
 
-            $answeredGroups = \DB::table('group_user as gu')
-                ->where('gu.user_id', $userId)
-                ->where('gu.has_answer', 1)
-                ->where('gu.academic_period_id', '=', $academicPeriodId)
-                ->count();
+            $answeredGroups = array_filter($totalGroups, function ($group) {
+                return $group->has_answer === 1;
+            });
 
             $academicPeriod = AcademicPeriod::findOrFail($academicPeriodId);
             $userName = explode('@', auth()->user()->email)[0];
 
             //Validation to check if totalGroups is same as answeredGroups...
-
-                if($answeredGroups === $totalGroups){
+                if(count($answeredGroups) === count($totalGroups)){
                     AtlanteProvider::get('grades/enable', [
                         'academic_period' => $academicPeriod->name,
                         'user_name' => $userName

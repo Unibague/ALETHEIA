@@ -59,6 +59,15 @@ Route::resource('api/competences', \App\Http\Controllers\CompetenceController::c
 ])->middleware('auth');
 
 
+/* >>>>>>>>>>>>>>>>>>>>> Faculties routes <<<<<<<<<<<<<<<<<<<< */
+Route::resource('api/faculties', \App\Http\Controllers\FacultyController::class, [
+    'as' => 'api'
+])->middleware('auth');
+Route::inertia('/faculties', 'Faculties/Index')->middleware(['auth', 'isAdmin'])->name('faculties.index.view');
+
+
+
+
 
 /* >>>>>>>>>>>>>>>>>>>>> Forms routes <<<<<<<<<<<<<<<<<<<< */
 Route::get('api/forms/withoutQuestions', [\App\Http\Controllers\FormController::class, 'getWithoutQuestions'])->name('api.forms.withoutQuestions')->middleware(['auth', 'isAdmin']);
@@ -278,6 +287,260 @@ Route::patch('/api/users/{user}/roles', [\App\Http\Controllers\Users\ApiUserCont
 Route::get('/api/users/{user}/roles', [\App\Http\Controllers\Users\ApiUserController::class, 'getUserRoles'])->middleware('auth')->name('api.users.roles.show');
 Route::post('/api/roles/select', [\App\Http\Controllers\Users\ApiUserController::class, 'selectRole'])->middleware('auth')->name('api.roles.selectRole');
 
+
+
+Route::get('/updateServiceAreasResultsTable', function () {
+
+    $activeAssessmentPeriodId = \App\Models\AssessmentPeriod::getActiveAssessmentPeriod()->id;
+
+    // Retrieve unique service area codes for the active assessment period
+    $serviceAreaCodes = DB::table('teachers_service_areas_results as tsar')
+        ->select('tsar.service_area_code')
+        ->where('tsar.assessment_period_id', '=', $activeAssessmentPeriodId)
+        ->pluck('tsar.service_area_code')
+        ->unique();
+
+    // Define hour types to loop through
+    $hourTypes = ['normal', 'cátedra', 'total'];
+
+    // Loop through each service area code and hour type
+    foreach ($serviceAreaCodes as $serviceAreaCode) {
+        foreach ($hourTypes as $hourType) {
+            $studentsWithAnswer = 0;
+            $studentsEnrolled = 0;
+            $competencesData = [];
+            $overallAverage = 0;
+            $openEndedAnswers = [];
+
+            // Get all results for the current service area code and hour type
+            $results = DB::table('teachers_service_areas_results as tsar')
+                ->where('tsar.service_area_code', '=', $serviceAreaCode)
+                ->where('tsar.assessment_period_id', '=', $activeAssessmentPeriodId)
+                ->where('tsar.hour_type', '=', $hourType)
+                ->join('users','tsar.teacher_id','=','users.id')
+                ->get();
+
+            $resultsCount = $results->count();
+
+            foreach ($results as $result) {
+                $openEndedAnswers[] = [
+                    'answers' => json_decode($result->open_ended_answers, true),
+                    'teacher_name' => $result->name,
+                ];
+
+                $competencesAverage = json_decode($result->competences_average, true);
+                $overallAverage += $result->overall_average;
+                $studentsWithAnswer += $result->aggregate_students_amount_reviewers;
+                $studentsEnrolled += $result->aggregate_students_amount_on_service_area;
+
+                foreach ($competencesAverage as $competence) {
+                    $competenceId = $competence['id'];
+                    if (!isset($competencesData[$competenceId])) {
+                        $competencesData[$competenceId] = [
+                            'id' => $competenceId,
+                            'name' => $competence['name'],
+                            'attributes' => [],
+                            'overall_sum' => 0,
+                            'overall_count' => 0,
+                        ];
+                    }
+
+                    $competencesData[$competenceId]['overall_sum'] += $competence['overall_average'];
+                    $competencesData[$competenceId]['overall_count']++;
+
+                    foreach ($competence['attributes'] as $attributeValue) {
+                        $attributeName = $attributeValue['name'];
+                        if (!isset($competencesData[$competenceId]['attributes'][$attributeName])) {
+                            $competencesData[$competenceId]['attributes'][$attributeName] = [
+                                'name' => $attributeName,
+                                'sum' => 0,
+                                'count' => 0,
+                            ];
+                        }
+                        if (isset($attributeValue['overall_average'])) {
+                            $competencesData[$competenceId]['attributes'][$attributeName]['sum'] += $attributeValue['overall_average'];
+                            $competencesData[$competenceId]['attributes'][$attributeName]['count']++;
+                        }
+                    }
+                }
+            }
+
+            // Calculate the final averages for competences
+            $finalCompetencesData = [];
+            $overallAverage = $resultsCount > 0 ? $overallAverage / $resultsCount : 0;
+
+            foreach ($competencesData as $competence) {
+                $finalCompetence = [
+                    'id' => $competence['id'],
+                    'name' => $competence['name'],
+                    'attributes' => [],
+                    'overall_average' => round($competence['overall_sum'] / $competence['overall_count'], 2),
+                ];
+
+                foreach ($competence['attributes'] as $attributeName => $attributeData) {
+                    if ($attributeData['count'] > 0) {
+                        $finalCompetence['attributes'][] = [
+                            'name' => $attributeName,
+                            'overall_average' => round($attributeData['sum'] / $attributeData['count'], 2),
+                        ];
+                    }
+                }
+                $finalCompetencesData[] = $finalCompetence;
+            }
+
+            // Insert or update the service area result
+            if ($resultsCount > 0) {
+                DB::table('service_area_results')->updateOrInsert(
+                    [
+                        'service_area_code' => $serviceAreaCode,
+                        'assessment_period_id' => $activeAssessmentPeriodId,
+                        'hour_type' => $hourType,
+                    ],
+                    [
+                        'competences_average' => json_encode($finalCompetencesData, JSON_UNESCAPED_UNICODE),
+                        'overall_average' => round($overallAverage, 2),
+                        'open_ended_answers' => json_encode($openEndedAnswers, JSON_UNESCAPED_UNICODE),
+                        'students_reviewers' => $studentsWithAnswer,
+                        'students_enrolled' => $studentsEnrolled,
+                        'created_at' => Carbon::now()->toDateTimeString(),
+                        'updated_at' => Carbon::now()->toDateTimeString()
+                    ]
+                );
+            }
+        }
+    }
+
+});
+
+
+Route::get('/updateFacultiesResultsTable', function(){
+
+
+    // Obtain the active assessment period ID
+    $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+
+    // Retrieve all faculties with their service areas for the active assessment period
+    $faculties = \App\Models\Faculty::with('serviceAreas')->get();
+
+    // Define the hour types to iterate over
+    $hourTypes = ['normal', 'cátedra', 'total'];
+
+    // Loop through each faculty
+    foreach ($faculties as $faculty) {
+        foreach ($hourTypes as $hourType) {
+            $studentsWithAnswer = 0;
+            $studentsEnrolled = 0;
+            $competencesData = [];
+            $overallAverage = 0;
+
+            // Loop through each service area in the faculty
+            foreach ($faculty->serviceAreas as $serviceArea) {
+
+                // Retrieve service area results for the specific hour type
+                $serviceAreaResults = DB::table('service_area_results')
+                    ->where('service_area_code', $serviceArea->code)
+                    ->where('assessment_period_id', $activeAssessmentPeriodId)
+                    ->where('hour_type', $hourType)
+                    ->get();
+
+                // If there are no results, skip this iteration
+                if ($serviceAreaResults->isEmpty()) {
+                    continue;
+                }
+
+                // Aggregate the results
+                foreach ($serviceAreaResults as $result) {
+                    $overallAverage += $result->overall_average;
+                    $studentsWithAnswer += $result->students_reviewers;
+                    $studentsEnrolled += $result->students_enrolled;
+
+                    // Decode the competences average data
+                    $competencesAverage = json_decode($result->competences_average, true);
+                    foreach ($competencesAverage as $competence) {
+                        $competenceId = $competence['id'];
+
+                        // Initialize competence data if not already set
+                        if (!isset($competencesData[$competenceId])) {
+                            $competencesData[$competenceId] = [
+                                'id' => $competenceId,
+                                'name' => $competence['name'],
+                                'overall_sum' => 0,
+                                'overall_count' => 0,
+                                'attributes' => []
+                            ];
+                        }
+
+                        // Aggregate overall competence averages
+                        $competencesData[$competenceId]['overall_sum'] += $competence['overall_average'];
+                        $competencesData[$competenceId]['overall_count']++;
+
+                        // Loop through each attribute in the competence
+                        foreach ($competence['attributes'] as $attribute) {
+                            $attributeName = $attribute['name'];
+
+                            // Initialize attribute data if not already set
+                            if (!isset($competencesData[$competenceId]['attributes'][$attributeName])) {
+                                $competencesData[$competenceId]['attributes'][$attributeName] = [
+                                    'name' => $attributeName,
+                                    'sum' => 0,
+                                    'count' => 0
+                                ];
+                            }
+
+                            // Aggregate attribute average
+                            if (isset($attribute['overall_average'])) {
+                                $competencesData[$competenceId]['attributes'][$attributeName]['sum'] += $attribute['overall_average'];
+                                $competencesData[$competenceId]['attributes'][$attributeName]['count']++;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Calculate final averages for each competence and its attributes
+            $finalCompetencesData = [];
+            $overallAverage = $faculty->serviceAreas->count() > 0 ? $overallAverage / $faculty->serviceAreas->count() : 0;
+
+            foreach ($competencesData as $competence) {
+                $finalCompetence = [
+                    'id' => $competence['id'],
+                    'name' => $competence['name'],
+                    'overall_average' => round($competence['overall_sum'] / $competence['overall_count'], 2),
+                    'attributes' => []
+                ];
+
+                foreach ($competence['attributes'] as $attributeName => $attributeData) {
+                    if ($attributeData['count'] > 0) {
+                        $finalCompetence['attributes'][] = [
+                            'name' => $attributeName,
+                            'overall_average' => round($attributeData['sum'] / $attributeData['count'], 2),
+                        ];
+                    }
+                }
+                $finalCompetencesData[] = $finalCompetence;
+            }
+            if (!empty($finalCompetencesData)) {
+                // Insert or update the results in the `faculties_results` table
+                DB::table('faculty_results')->updateOrInsert(
+                    [
+                        'faculty_id' => $faculty->id,
+                        'assessment_period_id' => $activeAssessmentPeriodId,
+                        'hour_type' => $hourType,
+                    ],
+                    [
+                        'overall_average' => round($overallAverage, 2),
+                        'students_enrolled' => $studentsEnrolled,
+                        'students_reviewers' => $studentsWithAnswer,
+                        'competences_average' => json_encode($finalCompetencesData, JSON_UNESCAPED_UNICODE),
+                        'created_at' => Carbon::now('GMT-5')->toDateTimeString(),
+                        'updated_at' => Carbon::now('GMT-5')->toDateTimeString()
+                    ]
+                );
+            }
+
+        }
+    }
+});
 
 Route::get('/fulfillServiceAreasResultsTable', function () {
 
@@ -615,189 +878,6 @@ Route::get('/migrateLegacyRecordsServiceAreasTable', function () {
 
 
 //
-//        //Now, we are going to calculate the final results on groups for teachers, this is, only taking into account groups with hour_type = normal
-//        $finalResultsFromTeachersOnGroups = DB::table('group_results as gr')->select(['gr.teacher_id'])
-//            ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->get()->toArray();
-//
-//        $uniqueTeachers = array_column($finalResultsFromTeachersOnGroups, 'teacher_id');
-//
-//        $uniqueTeachers = array_unique($uniqueTeachers);
-//
-//        foreach ($uniqueTeachers as $uniqueTeacher) {
-//
-//            $finalResultsFromTeacherOnGroups = DB::table('group_results as gr')->where('teacher_id', '=', $uniqueTeacher)
-//                ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->get();
-//
-//            $groupsAmount = count($finalResultsFromTeacherOnGroups);
-//
-//            $aggregateTotalStudentsReviewersOnGroups = 0;
-//            $aggregateTotalStudentsEnrolledOnGroups = 0;
-//
-//            $final_first_aggregate_competence_average = 0;
-//            $final_second_aggregate_competence_average = 0;
-//            $final_third_aggregate_competence_average = 0;
-//            $final_fourth_aggregate_competence_average = 0;
-//            $final_fifth_aggregate_competence_average = 0;
-//            $final_sixth_aggregate_competence_average = 0;
-//            /*
-//                        if ($uniqueTeacher == 181){
-//                            dd($finalResultsFromTeacherOnGroups);
-//                        }*/
-//            foreach ($finalResultsFromTeacherOnGroups as $key => $finalResultsFromTeacherOnGroup) {
-//
-//                $aggregateTotalStudentsReviewersOnGroups += $finalResultsFromTeacherOnGroups[$key]->students_amount_reviewers;
-//                $aggregateTotalStudentsEnrolledOnGroups += $finalResultsFromTeacherOnGroups[$key]->students_amount_on_group;
-//
-//                $final_first_aggregate_competence_average += $finalResultsFromTeacherOnGroup->first_final_competence_average;
-//                $final_second_aggregate_competence_average += $finalResultsFromTeacherOnGroup->second_final_competence_average;
-//                $final_third_aggregate_competence_average += $finalResultsFromTeacherOnGroup->third_final_competence_average;
-//                $final_fourth_aggregate_competence_average += $finalResultsFromTeacherOnGroup->fourth_final_competence_average;
-//                $final_fifth_aggregate_competence_average += $finalResultsFromTeacherOnGroup->fifth_final_competence_average;
-//                $final_sixth_aggregate_competence_average += $finalResultsFromTeacherOnGroup->sixth_final_competence_average;
-//
-//            }
-//
-//            $final_first_aggregate_competence_average /= $groupsAmount;
-//            $final_second_aggregate_competence_average /= $groupsAmount;
-//            $final_third_aggregate_competence_average /= $groupsAmount;
-//            $final_fourth_aggregate_competence_average /= $groupsAmount;
-//            $final_fifth_aggregate_competence_average /= $groupsAmount;
-//            $final_sixth_aggregate_competence_average /= $groupsAmount;
-//
-//            $final_first_aggregate_competence_average = number_format($final_first_aggregate_competence_average, 1);
-//            $final_second_aggregate_competence_average = number_format($final_second_aggregate_competence_average, 1);
-//            $final_third_aggregate_competence_average = number_format($final_third_aggregate_competence_average, 1);
-//            $final_fourth_aggregate_competence_average = number_format($final_fourth_aggregate_competence_average, 1);
-//            $final_fifth_aggregate_competence_average = number_format($final_fifth_aggregate_competence_average, 1);
-//            $final_sixth_aggregate_competence_average = number_format($final_sixth_aggregate_competence_average, 1);
-//
-//
-//            DB::table('teachers_students_perspectives')->updateOrInsert(['teacher_id' => $uniqueTeacher, 'assessment_period_id' => $activeAssessmentPeriodId],
-//                ['first_final_aggregate_competence_average' => $final_first_aggregate_competence_average,
-//                    'second_final_aggregate_competence_average' => $final_second_aggregate_competence_average,
-//                    'third_final_aggregate_competence_average' => $final_third_aggregate_competence_average,
-//                    'fourth_final_aggregate_competence_average' => $final_fourth_aggregate_competence_average,
-//                    'fifth_final_aggregate_competence_average' => $final_fifth_aggregate_competence_average,
-//                    'sixth_final_aggregate_competence_average' => $final_sixth_aggregate_competence_average,
-//                    'groups_amount' => $groupsAmount,
-//                    'aggregate_students_amount_reviewers' => $aggregateTotalStudentsReviewersOnGroups,
-//                    'aggregate_students_amount_on_360_groups' => $aggregateTotalStudentsEnrolledOnGroups,
-//                    'created_at' => Carbon::now('GMT-5')->toDateTimeString(),
-//                    'updated_at' => Carbon::now('GMT-5')->toDateTimeString()]);
-//        }
-//
-//        //Now, we are going to calculate the final results on groups for the teacher regarding only students assessments. This is, the results for the service_area report
-//        $teachers = DB::table('group_results')->select(['teacher_id'])->where('assessment_period_id', '=', $activeAssessmentPeriodId)->get()->toArray();
-//        $uniqueTeachers = array_column($teachers, 'teacher_id');
-//        $uniqueTeachersId = array_unique($uniqueTeachers);
-//
-//        foreach ($uniqueTeachersId as $uniqueTeacherId) {
-//
-//            $serviceAreaCodesFromTeacher = DB::table('group_results')->select(['service_area_code'])->where('teacher_id', '=', $uniqueTeacherId)
-//                ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->get()->toArray();
-//            $uniqueServiceAreaCodes = array_column($serviceAreaCodesFromTeacher, 'service_area_code');
-//            $uniqueServiceAreaCodes = array_unique($uniqueServiceAreaCodes);
-//
-//            foreach ($uniqueServiceAreaCodes as $uniqueServiceAreaCode) {
-//
-//                $groupsFromServiceAreaCode = DB::table('group_results')->where('service_area_code', '=', $uniqueServiceAreaCode)
-//                    ->where('assessment_period_id', '=', $activeAssessmentPeriodId)
-//                    ->where('teacher_id', '=', $uniqueTeacherId)->get();
-//
-//                $groupsAmountFromServiceAreaCode = count($groupsFromServiceAreaCode);
-//                $aggregateTotalStudentsReviewersOnServiceArea = 0;
-//                $aggregateTotalStudentsEnrolledOnServiceArea = 0;
-//
-//                $final_first_aggregate_competence_average = 0;
-//                $final_second_aggregate_competence_average = 0;
-//                $final_third_aggregate_competence_average = 0;
-//                $final_fourth_aggregate_competence_average = 0;
-//                $final_fifth_aggregate_competence_average = 0;
-//                $final_sixth_aggregate_competence_average = 0;
-//
-//                foreach ($groupsFromServiceAreaCode as $key => $groupFromServiceAreaCode) {
-//
-//                    $aggregateTotalStudentsReviewersOnServiceArea += $groupsFromServiceAreaCode[$key]->students_amount_reviewers;
-//                    $aggregateTotalStudentsEnrolledOnServiceArea += $groupsFromServiceAreaCode[$key]->students_amount_on_group;
-//
-//                    $final_first_aggregate_competence_average += $groupFromServiceAreaCode->first_final_competence_average;
-//                    $final_second_aggregate_competence_average += $groupFromServiceAreaCode->second_final_competence_average;
-//                    $final_third_aggregate_competence_average += $groupFromServiceAreaCode->third_final_competence_average;
-//                    $final_fourth_aggregate_competence_average += $groupFromServiceAreaCode->fourth_final_competence_average;
-//                    $final_fifth_aggregate_competence_average += $groupFromServiceAreaCode->fifth_final_competence_average;
-//                    $final_sixth_aggregate_competence_average += $groupFromServiceAreaCode->sixth_final_competence_average;
-//                }
-//
-//                $final_first_aggregate_competence_average /= $groupsAmountFromServiceAreaCode;
-//                $final_second_aggregate_competence_average /= $groupsAmountFromServiceAreaCode;
-//                $final_third_aggregate_competence_average /= $groupsAmountFromServiceAreaCode;
-//                $final_fourth_aggregate_competence_average /= $groupsAmountFromServiceAreaCode;
-//                $final_fifth_aggregate_competence_average /= $groupsAmountFromServiceAreaCode;
-//                $final_sixth_aggregate_competence_average /= $groupsAmountFromServiceAreaCode;
-//
-//                $final_first_aggregate_competence_average = number_format($final_first_aggregate_competence_average, 1);
-//                $final_second_aggregate_competence_average = number_format($final_second_aggregate_competence_average, 1);
-//                $final_third_aggregate_competence_average = number_format($final_third_aggregate_competence_average, 1);
-//                $final_fourth_aggregate_competence_average = number_format($final_fourth_aggregate_competence_average, 1);
-//                $final_fifth_aggregate_competence_average = number_format($final_fifth_aggregate_competence_average, 1);
-//                $final_sixth_aggregate_competence_average = number_format($final_sixth_aggregate_competence_average, 1);
-//
-//                DB::table('teachers_service_areas_results')->updateOrInsert(['teacher_id' => $uniqueTeacherId, 'service_area_code' => $uniqueServiceAreaCode, 'assessment_period_id' => $activeAssessmentPeriodId],
-//                    ['first_final_aggregate_competence_average' => $final_first_aggregate_competence_average,
-//                        'second_final_aggregate_competence_average' => $final_second_aggregate_competence_average,
-//                        'third_final_aggregate_competence_average' => $final_third_aggregate_competence_average,
-//                        'fourth_final_aggregate_competence_average' => $final_fourth_aggregate_competence_average,
-//                        'fifth_final_aggregate_competence_average' => $final_fifth_aggregate_competence_average,
-//                        'sixth_final_aggregate_competence_average' => $final_sixth_aggregate_competence_average,
-//                        'aggregate_students_amount_reviewers' => $aggregateTotalStudentsReviewersOnServiceArea,
-//                        'aggregate_students_amount_on_service_area' => $aggregateTotalStudentsEnrolledOnServiceArea,
-//                        'created_at' => Carbon::now('GMT-5')->toDateTimeString(),
-//                        'updated_at' => Carbon::now('GMT-5')->toDateTimeString()]);
-//            }
-//
-//        }
-//        $teacherRoleId = Role::getTeacherRoleId();
-//        $teachersFrom360 = DB::table('teachers_students_perspectives as tsp')->select(['teacher_id'])
-//            ->join('v2_unit_user', 'tsp.teacher_id', '=', 'v2_unit_user.user_id')
-//            ->where('v2_unit_user.role_id', '=', $teacherRoleId)->where('assessment_period_id', '=', $activeAssessmentPeriodId)
-//            ->get()->toArray();
-//
-//        $uniqueTeachers = array_column($teachersFrom360, 'teacher_id');
-//        $uniqueTeachersId = array_unique($uniqueTeachers);
-//
-//        foreach ($uniqueTeachersId as $uniqueTeacherId) {
-//
-//            $allAssessments = [];
-//            DB::table('assessment_weights')->get();
-//
-//            $peerPercentage = 0.15;
-//            $autoPercentage = 0.15;
-//            $bossPercentage = 0.35;
-//            $studentsPercentage = 0.35;
-//
-//            $firstCompetenceTotal = 0;
-//            $secondCompetenceTotal = 0;
-//            $thirdCompetenceTotal = 0;
-//            $fourthCompetenceTotal = 0;
-//            $fifthCompetenceTotal = 0;
-//            $sixthCompetenceTotal = 0;
-//
-//            $peerBossAutoAssessmentAnswers = DB::table('form_answers as fa')
-//                ->select(['u.name', 'f.unit_role', 'fa.first_competence_average', 'fa.second_competence_average', 'fa.third_competence_average',
-//                    'fa.fourth_competence_average', 'fa.fifth_competence_average', 'fa.sixth_competence_average', 'u.id as teacherId', 'v2_unit_user.unit_identifier',
-//                    'v2_units.name as unitName', 'fa.submitted_at'])
-//                ->join('forms as f', 'f.id', '=', 'fa.form_id')
-//                ->join('users as u', 'u.id', '=', 'fa.teacher_id')
-//                ->join('teachers_students_perspectives as tsp', 'tsp.teacher_id', '=', 'u.id')
-//                ->join('v2_unit_user', 'v2_unit_user.user_id', '=', 'tsp.teacher_id')
-//                ->join('v2_units', 'v2_unit_user.unit_identifier', '=', 'v2_units.identifier')
-//                ->where('f.assessment_period_id', '=', $activeAssessmentPeriodId)->where('f.type', '=', 'otros')
-//                ->where('u.id', '=', $uniqueTeacherId)
-//                ->where('tsp.assessment_period_id', '=', $activeAssessmentPeriodId)
-//                ->where('v2_unit_user.role_id', '=', $teacherRoleId)
-//                ->where('v2_units.assessment_period_id', '=', $activeAssessmentPeriodId)
-//                ->where('fa.assessment_period_id', '=', $activeAssessmentPeriodId)->get();
-//
 //
 ////            if($uniqueTeacherId === 144){
 ////                dd($peerBossAutoAssessmentAnswers);
@@ -866,18 +946,6 @@ Route::get('/migrateLegacyRecordsServiceAreasTable', function () {
 //                }
 //
 //            }
-//
-//            DB::table('teachers_360_final_average')->updateOrInsert(
-//                ['teacher_id' => $uniqueTeacherId, 'assessment_period_id' => $activeAssessmentPeriodId],
-//                ['first_final_aggregate_competence_average' => $firstCompetenceTotal,
-//                    'second_final_aggregate_competence_average' => $secondCompetenceTotal,
-//                    'third_final_aggregate_competence_average' => $thirdCompetenceTotal,
-//                    'fourth_final_aggregate_competence_average' => $fourthCompetenceTotal,
-//                    'fifth_final_aggregate_competence_average' => $fifthCompetenceTotal,
-//                    'sixth_final_aggregate_competence_average' => $sixthCompetenceTotal,
-//                    'involved_actors' => $involvedActors,
-//                    'total_actors' => $totalActors]);
-//
 //            /*       dd($firstCompetenceTotal,$secondCompetenceTotal,$thirdCompetenceTotal,$fourthCompetenceTotal,$fifthCompetenceTotal,$sixthCompetenceTotal);*/
 //
 //            /*        dd($allAssessments);*/

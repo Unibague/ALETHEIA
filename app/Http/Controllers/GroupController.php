@@ -57,11 +57,10 @@ class GroupController extends Controller
                 'periods' => $namesSeparatedByCommas,
             ], true);
 
-            foreach ($groups as $key => $group) {
-                if ($groups[$key]['teacher_email'] == "") {
-                    $groups[$key]['teacher_email'] = null;
-                }
-            }
+            $groups = array_filter($groups, function ($group){
+                return $group['teacher_email'] !== "" && $group['degree_code'] !== "" && Group::isSuitableGroup($group['name']);
+            });
+
             Group::createOrUpdateFromArray($groups, explode(',', $namesSeparatedByCommas));
         } catch (\JsonException $e) {
             return response()->json(['message' => 'Ha ocurrido un error con la fuente de datos: ' . $e->getMessage()]);
