@@ -763,6 +763,7 @@ class FormAnswers extends Model
         self::updateResponseStatusToAnswered($request->input('groupId'), auth()->user()->id);
         //Check if user already answered every test
         Group::allGroupsAnswered();
+
     }
 
     public static function updateResponseStatusToAnswered($groupId, $userId): void

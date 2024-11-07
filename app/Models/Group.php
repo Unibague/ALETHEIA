@@ -162,10 +162,23 @@ class Group extends Model
 
             //Validation to check if totalGroups is same as answeredGroups...
                 if(count($answeredGroups) === count($totalGroups)){
-                    AtlanteProvider::get('grades/enable', [
+
+                    $response = AtlanteProvider::get('grades/enable', [
                         'academic_period' => $academicPeriod->name,
                         'user_name' => $userName
-                    ]);
+                    ])[0];
+
+                    $now = Carbon::now()->toDateTimeString();
+
+                    try {
+                        DB::table('students_completed_assessment_audit')->updateOrInsert(['user_id'=> $userId,
+                            'academic_period_id'=> $academicPeriod->id],
+                            ['assessment_period_id'=> $activeAssessmentPeriodId, 'message' => $response->status,
+                                'created_at' => $now, 'updated_at' => $now]);
+                    } catch (\Throwable $th) {
+                        dd($th->getMessage());
+                    }
+
                 }
         }
     }
