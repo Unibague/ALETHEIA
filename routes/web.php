@@ -532,14 +532,57 @@ Route::get('/updateFacultiesResultsTable', function(){
                         'students_enrolled' => $studentsEnrolled,
                         'students_reviewers' => $studentsWithAnswer,
                         'competences_average' => json_encode($finalCompetencesData, JSON_UNESCAPED_UNICODE),
-                        'created_at' => Carbon::now('GMT-5')->toDateTimeString(),
-                        'updated_at' => Carbon::now('GMT-5')->toDateTimeString()
+                        'created_at' => Carbon::now()->toDateTimeString(),
+                        'updated_at' => Carbon::now()->toDateTimeString()
                     ]
                 );
             }
 
         }
     }
+});
+
+Route::get('/jajaja', function () {
+
+    $results = DB::table('group_user as gu')
+        ->selectRaw('
+        gu.user_id,
+        u.name,
+        (
+            SELECT MAX(fa.submitted_at)
+            FROM form_answers fa
+            WHERE fa.user_id = gu.user_id
+            AND fa.assessment_period_id = 6
+        ) AS latest_submitted_at
+    ')
+        ->join('users as u', 'u.id', '=', 'gu.user_id')
+        ->where('gu.academic_period_id', 35)
+        ->whereIn('gu.user_id', function ($query) {
+            $query->select('user_id')
+                ->from('group_user')
+                ->where('academic_period_id', 35)
+                ->groupBy('user_id')
+                ->havingRaw('COUNT(*) = SUM(CASE WHEN has_answer = 1 THEN 1 ELSE 0 END)');
+        })
+        ->groupBy('gu.user_id', 'u.name')
+        ->orderBy('latest_submitted_at', 'ASC')
+        ->get()->map(function ($item) {
+            return [
+                'user_id' => $item->user_id,
+                'academic_period_id' => 35,
+                'assessment_period_id' => 6,
+                'message' => "Desbloqueado",
+                'created_at' => $item->latest_submitted_at,
+                'updated_at' => $item->latest_submitted_at,
+            ];
+        })->toArray();
+
+    DB::table('students_completed_assessment_audit')->insert($results);
+
+
+
+
+
 });
 
 Route::get('/fulfillServiceAreasResultsTable', function () {
