@@ -760,9 +760,7 @@ class FormAnswers extends Model
         if ($alreadyAnswered) {
             return;
         }
-
         self::updateResponseStatusToAnswered($request->input('groupId'), auth()->user()->id);
-
         //Check if user already answered every test
         Group::allGroupsAnswered();
     }

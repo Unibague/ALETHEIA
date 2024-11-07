@@ -473,7 +473,7 @@ export default {
 
         getServiceAreas: async function () {
 
-            if (this.serviceAreasFromProps == undefined){
+            if (this.serviceAreasFromProps === undefined){
                 let request = await axios.get(route('api.serviceAreas.index', {assessmentPeriodId: this.assessmentPeriod}));
                 this.serviceAreas = this.sortArrayAlphabetically(request.data);
                 console.log(this.serviceAreas, 'service areas');
@@ -494,16 +494,14 @@ export default {
         },
 
         async getAssessments() {
-
-
             console.log(this.serviceAreas, 'Las areas de servicio')
-
+            let data = {serviceAreas: this.serviceAreas};
             if (this.serviceAreaResults) {
-                let request = await axios.get(route('reports.serviceArea.results'));
+                let request = await axios.get(route('reports.serviceArea.results', data));
                 this.dynamicHeaders = request.data.headers
                 this.assessments = request.data.items;
             } else {
-                let request = await axios.get(route('reports.group.results'));
+                let request = await axios.get(route('reports.group.results', data));
                 this.dynamicHeaders = request.data.headers
                 this.assessments = request.data.items;
             }

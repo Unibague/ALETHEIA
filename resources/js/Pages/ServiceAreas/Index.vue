@@ -52,27 +52,27 @@
                     class="elevation-1"
                 >
 
-                    <template v-slot:item.actions="{ item }">
-                        <v-tooltip top>
-                            <template v-slot:activator="{on,attrs}">
+<!--                    <template v-slot:item.actions="{ item }">-->
+<!--                        <v-tooltip top>-->
+<!--                            <template v-slot:activator="{on,attrs}">-->
 
-                                <InertiaLink
-                                    :href="route('serviceAreas.manageServiceArea', {serviceAreaCode:item.code})">
+<!--                                <InertiaLink-->
+<!--                                    :href="route('serviceAreas.manageServiceArea', {serviceAreaCode:item.code})">-->
 
-                                    <v-icon
-                                        v-bind="attrs"
-                                        v-on="on"
-                                        class="mr-2 primario--text"
-                                    >
-                                        mdi-account-group
-                                    </v-icon>
+<!--                                    <v-icon-->
+<!--                                        v-bind="attrs"-->
+<!--                                        v-on="on"-->
+<!--                                        class="mr-2 primario&#45;&#45;text"-->
+<!--                                    >-->
+<!--                                        mdi-account-group-->
+<!--                                    </v-icon>-->
 
-                                </InertiaLink>
+<!--                                </InertiaLink>-->
 
-                            </template>
-                            <span>Gestionar Usuarios</span>
-                        </v-tooltip>
-                    </template>
+<!--                            </template>-->
+<!--                            <span>Gestionar Usuarios</span>-->
+<!--                        </v-tooltip>-->
+<!--                    </template>-->
 
                 </v-data-table>
             </v-card>
@@ -98,7 +98,6 @@ export default {
             headers: [
                 {text: 'Nombre', value: 'name'},
                 {text: 'Código', value: 'code'},
-                {text: 'Gestionar', value: 'actions'},
             ],
             serviceAreas: [],
             //Snackbars

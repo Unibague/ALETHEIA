@@ -337,12 +337,6 @@ export default {
                         role: 10,
                         icon: 'mdi-account-cog'
                     },
-                   {
-                        name: 'Ideales de respuesta',
-                        href: route('responseIdeals.index.view'),
-                        role: 10,
-                        icon: 'mdi-account-cog'
-                    },
                     {
                         name: 'Ponderaciones de evaluación',
                         href: route('assessmentWeights.index.view'),

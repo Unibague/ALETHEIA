@@ -255,4 +255,10 @@ class ServiceArea extends Model
         return $this->belongsToMany(User::class, 'service_area_user', 'service_area_code', 'user_id', 'code', 'id')
             ->where('service_area_user.assessment_period_id', '=', $activeAssessmentPeriodId);
     }
+
+    public function faculties()
+    {
+        return $this->belongsToMany(Faculty::class, 'faculty_service_area', 'service_area_code', 'faculty_id');
+    }
+
 }
