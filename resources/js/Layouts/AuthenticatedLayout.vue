@@ -313,6 +313,14 @@ export default {
                         role: 10,
                         icon: 'mdi-account-cog'
                     },
+
+                    {
+                        name: 'Facultades',
+                        href: route('faculties.index.view'),
+                        role: 10,
+                        icon: 'mdi-account-cog'
+                    },
+
                     {
                         name: 'Docentes',
                         href: route('teachers.index.view'),
@@ -388,6 +396,14 @@ export default {
                         role: 10,
                         icon: 'mdi-cog-box'
                     },
+
+                    {
+                        name: 'Históricos',
+                        href: route('reports.legacy.view'),
+                        role: 10,
+                        icon: 'mdi-cog-box'
+                    },
+
                 ]
             },
 
