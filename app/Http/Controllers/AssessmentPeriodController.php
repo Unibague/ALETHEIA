@@ -11,6 +11,7 @@ use App\Models\Group;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 
 class  AssessmentPeriodController extends Controller
 {
@@ -23,6 +24,17 @@ class  AssessmentPeriodController extends Controller
     {
         return response()->json(AssessmentPeriod::all());
     }
+
+    public function getLegacyAssessmentPeriods(): JsonResponse
+    {
+        return response()->json(DB::table('assessment_periods')->where('id','<', 6)->get());
+    }
+
+    public function getNotLegacyAssessmentPeriods(): JsonResponse
+    {
+        return response()->json(DB::table('assessment_periods')->where('id','>=', 6)->get());
+    }
+
 
     public function setActive(SetActiveAssessmentPeriodRequest $request, AssessmentPeriod $assessmentPeriod): JsonResponse
     {

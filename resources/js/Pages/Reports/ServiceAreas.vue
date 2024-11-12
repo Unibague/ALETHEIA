@@ -465,7 +465,7 @@ export default {
         },
 
         getAssessmentPeriods: async function () {
-            let request = await axios.get(route('api.assessmentPeriods.index'));
+            let request = await axios.get(route('api.assessmentPeriods.notLegacy'));
             this.assessmentPeriods = request.data;
         },
 
