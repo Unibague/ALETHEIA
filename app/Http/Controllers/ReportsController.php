@@ -47,7 +47,9 @@ class ReportsController extends Controller
 
     public function getGroupResults(Request $request)
     {
-        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        $assessmentPeriodId = $request->input('assessmentPeriodId');
+        $areLegacyResults = false;
+
         $groupResults = DB::table('group_results as gr')
             ->select(['u.name as teacher_name', 'u.id as teacher_id',
                 'gr.assessment_period_id',
@@ -57,8 +59,8 @@ class ReportsController extends Controller
             ->join('users as u', 'gr.teacher_id', '=', 'u.id')
             ->join('groups as g', 'gr.group_id', '=', 'g.group_id')
             ->join('service_areas as sa', 'gr.service_area_code', '=', 'sa.code')
-            ->where('gr.assessment_period_id', '=', $activeAssessmentPeriodId)
-            ->where('sa.assessment_period_id', '=', $activeAssessmentPeriodId)
+            ->where('gr.assessment_period_id', '=', $assessmentPeriodId)
+            ->where('sa.assessment_period_id', '=', $assessmentPeriodId)
             ->get();
         // Manually decode the JSON columns
         $groupResults = $groupResults->map(function ($result) {
@@ -66,13 +68,24 @@ class ReportsController extends Controller
             $result->open_ended_answers = json_decode($result->open_ended_answers);
             return $result;
         });
-        $groupResults = Reports::mapGroupsResultsToFrontEndStructure($groupResults);
+
+        if($assessmentPeriodId < 6){
+            $areLegacyResults = true;
+        }
+
+        $groupResults = Reports::mapGroupsResultsToFrontEndStructure($groupResults, $areLegacyResults);
+
+
+
         return response()->json($groupResults);
     }
 
     public function getServiceAreaResults(Request $request)
     {
-        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        $assessmentPeriodId = $request->input('assessmentPeriodId');
+        $areLegacyResults = false;
+
+
         $serviceAreas = $request->input('serviceAreas');
         $serviceAreasId = [];
 
@@ -89,9 +102,9 @@ class ReportsController extends Controller
                 'u.id as teacher_id'])
             ->join('users as u', 'tsar.teacher_id', '=', 'u.id')
             ->join('service_areas as sa', 'tsar.service_area_code', '=', 'sa.code')
-            ->where('sa.assessment_period_id', '=', $activeAssessmentPeriodId)
+            ->where('sa.assessment_period_id', '=', $assessmentPeriodId)
             ->where('tsar.hour_type', '=', 'total')
-            ->where('tsar.assessment_period_id', '=', $activeAssessmentPeriodId)
+            ->where('tsar.assessment_period_id', '=', $assessmentPeriodId)
             ->whereIn('sa.code', $serviceAreasId)
             ->get();
 
@@ -102,7 +115,11 @@ class ReportsController extends Controller
             return $result;
         });
 
-        $serviceAreaResults = Reports::mapServiceAreasResultsToFrontEndStructure($serviceAreaResults);
+        if($assessmentPeriodId < 6){
+            $areLegacyResults = true;
+        }
+
+        $serviceAreaResults = Reports::mapServiceAreasResultsToFrontEndStructure($serviceAreaResults,  $areLegacyResults);
 
         return response()->json($serviceAreaResults);
     }

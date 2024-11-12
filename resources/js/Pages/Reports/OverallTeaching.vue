@@ -15,7 +15,7 @@
                 height="auto"
             >
                 <v-row class="py-3">
-                    <v-col cols="3" >
+                    <v-col cols="4" >
                         <v-autocomplete
                             v-model="assessmentPeriod"
                             flat
@@ -42,6 +42,26 @@
                             label="Docente"
                         ></v-autocomplete>
                     </v-col>
+
+                    <v-col cols="2">
+                        <v-tooltip top>
+                            <template v-slot:activator="{ on, attrs }">
+                                <v-btn
+                                    v-on="on"
+                                    v-bind="attrs"
+                                    icon
+                                    class="mr-2 secundario--text"
+                                    @click="downloadResults"
+                                >
+                                    <v-icon>
+                                        mdi-file-excel
+                                    </v-icon>
+                                </v-btn>
+                            </template>
+                            <span>Exportar resultados actuales a Excel</span>
+                        </v-tooltip>
+                    </v-col>
+
                 </v-row>
             </v-toolbar>
 
@@ -302,15 +322,42 @@ export default {
             }
         },
 
+        downloadResults() {
+            const excelInfo = this.filteredItems.map(item => {
+                const result = {};
+
+                const notDesiredHeaders = ['Gráfico', 'Comentarios']
+
+                this.dynamicHeaders.forEach(header => {
+                    if(!notDesiredHeaders.includes(header.text))
+                    {
+                        result[header.text] = item[header.value]
+                    }
+                })
+                return result;
+            })
+
+            let csv = Papa.unparse(excelInfo, {delimiter: ';'});
+            var csvData = new Blob(["\uFEFF" + csv], {type: 'text/csv;charset=utf-8;'});
+            var csvURL = null;
+            if (navigator.msSaveBlob) {
+                csvURL = navigator.msSaveBlob(csvData, 'ResultadosEvaluaciónDocente.csv');
+            } else {
+                csvURL = window.URL.createObjectURL(csvData);
+            }
+            var tempLink = document.createElement('a');
+            tempLink.href = csvURL;
+            tempLink.setAttribute('download', 'ResultadosEvaluaciónDocente.csv');
+            tempLink.click();
+        },
+
         addAllElementSelectionItem(model, text) {
             model.unshift({id: '', name: text});
         },
 
         getAssessmentPeriods: async function () {
             let request = await axios.get(route('api.assessmentPeriods.index'));
-            this.assessmentPeriods = request.data.filter(assessmentPeriod => {
-                return assessmentPeriod.active === 1;
-            });
+            this.assessmentPeriods = request.data
         },
 
         matchProperty: function (array, propertyPath, reference) {
