@@ -46,6 +46,11 @@ Route::resource('api/assessmentPeriods', \App\Http\Controllers\AssessmentPeriodC
 ])->middleware('auth');
 Route::post('/api/assessmentPeriods/{assessmentPeriod}/setActive', [\App\Http\Controllers\AssessmentPeriodController::class, 'setActive'])->middleware(['auth', 'isAdmin'])->name('api.assessmentPeriods.setActive');
 Route::get('/assessmentPeriods/suitableTeachingLadders', [\App\Http\Controllers\AssessmentPeriodController::class, 'getSuitableTeachingLadders'])->middleware(['auth'])->name('api.assessmentPeriods.teachingLadders');
+Route::get('/assessmentPeriods/legacy', [\App\Http\Controllers\AssessmentPeriodController::class, 'getLegacyAssessmentPeriods'])->middleware(['auth'])->name('api.assessmentPeriods.legacy');
+Route::get('/assessmentPeriods/notLegacy', [\App\Http\Controllers\AssessmentPeriodController::class, 'getNotLegacyAssessmentPeriods'])->middleware(['auth'])->name('api.assessmentPeriods.notLegacy');
+
+
+
 
 /* >>>>>>>>>>>>>>>>>>>>>>>  Assessment Ponderations >>>>>>>><<<<<< */
 Route::inertia('/assessmentWeights', 'AssessmentWeights/Index')->middleware(['auth', 'isAdmin'])->name('assessmentWeights.index.view');
@@ -142,11 +147,6 @@ Route::resource('api/enrolls', \App\Http\Controllers\EnrollController::class, [
 ])->middleware('auth');
 //Sync groups
 Route::post('/api/enrolls/sync', [\App\Http\Controllers\EnrollController::class, 'sync'])->middleware(['auth'])->name('api.enrolls.sync');
-//Route::post('/api/enrolls/deleteThoseGroups', [\App\Http\Controllers\EnrollController::class, 'deleteThoseExistingDuplicatedGroups'])->middleware(['auth'])->name('api.enrolls.deleteThoseGroups');
-
-
-/* >>>>>>>>>>>>>>>>>>>>>>>>StaffMembers routes <<<<<<<<<<<<<<<<<<<<<<<<<<<< */
-
 
 /* >>>>>>>>>>>>>>>>>>>>>>>>>>>> Reports routes <<<<<<<<<<<<<<<<<<<<<<<< */
 
@@ -162,9 +162,11 @@ Route::get('/reports/results/finalTeaching', [\App\Http\Controllers\ReportsContr
 Route::get('/reports/show360Assessment', [\App\Http\Controllers\ReportsController::class, 'show360Assessment'])->middleware(['auth'])->name('reports.show360Assessment');
 Route::get('/reports/showServiceAreasAssessment', [\App\Http\Controllers\ReportsController::class, 'showServiceAreasAssessment'])->middleware(['auth'])->name('reports.showServiceAreasAssessment');
 
-Route::get('/reports/serviceArea', [\App\Http\Controllers\ReportsController::class, 'indexServiceAreaResults'])->middleware(['auth', ])->name('reports.serviceArea');
-Route::inertia('/reports/overallTeaching', 'Reports/OverallTeaching')->middleware(['auth', ])->name('reports.overallTeaching');
+Route::get('/reports/serviceArea', [\App\Http\Controllers\ReportsController::class, 'indexServiceAreaResults'])->middleware(['auth'])->name('reports.serviceArea');
+Route::inertia('/reports/overallTeaching', 'Reports/OverallTeaching')->middleware(['auth', 'isAdmin'])->name('reports.overallTeaching');
 
+
+Route::get('/reports/legacyReports', [\App\Http\Controllers\ReportsController::class, 'indexLegacyGroupResults'])->middleware(['auth'])->name('reports.legacy.view');
 
 
 

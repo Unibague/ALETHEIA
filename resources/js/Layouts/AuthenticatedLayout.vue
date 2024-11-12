@@ -81,7 +81,7 @@
 
             <template
                 v-for="dropdown in dropdowns"
-                v-if="$page.props.user.customRoleId >= dropdown.role">
+                v-if="$page.props.user.customRoleId == dropdown.role">
                 <v-menu
                     bottom
                     origin="center center"
@@ -382,8 +382,36 @@ export default {
                         icon: 'mdi-cog-box'
                     },
 
+                    {
+                        name: 'Por facultad',
+                        href: route('reports.overallTeaching'),
+                        role: 10,
+                        icon: 'mdi-cog-box'
+                    },
                 ]
             },
+
+            {
+                name: 'Reportes',
+                role: 5, // This ensures only customRoleId 5 users see this dropdown
+                icon: 'mdi-star',
+                items: [
+                    {
+                        name: 'Por grupo / área de servicio',
+                        href: route('reports.serviceArea'),
+                        role: 5,
+                        icon: 'mdi-cog-box'
+                    },
+
+                    {
+                        name: 'Históricos',
+                        href: route('reports.legacy.view'),
+                        role: 5,
+                        icon: 'mdi-cog-box'
+                    },
+                ]
+            },
+
 
         ],
         group: null,

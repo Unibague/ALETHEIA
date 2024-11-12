@@ -49,6 +49,12 @@ class ReportsController extends Controller
     {
         $assessmentPeriodId = $request->input('assessmentPeriodId');
         $areLegacyResults = false;
+        $serviceAreas = $request->input('serviceAreas');
+        $serviceAreasId = [];
+
+        foreach ($serviceAreas as $serviceArea) {
+            $serviceAreasId[] = $serviceArea['code'];
+        }
 
         $groupResults = DB::table('group_results as gr')
             ->select(['u.name as teacher_name', 'u.id as teacher_id',
@@ -61,7 +67,9 @@ class ReportsController extends Controller
             ->join('service_areas as sa', 'gr.service_area_code', '=', 'sa.code')
             ->where('gr.assessment_period_id', '=', $assessmentPeriodId)
             ->where('sa.assessment_period_id', '=', $assessmentPeriodId)
+            ->whereIn('sa.code', $serviceAreasId)
             ->get();
+
         // Manually decode the JSON columns
         $groupResults = $groupResults->map(function ($result) {
             $result->competences_average = json_decode($result->competences_average);
@@ -153,9 +161,7 @@ class ReportsController extends Controller
 
     public function indexServiceAreaResults()
     {
-
         $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
-
         $user = auth()->user();
         $token = csrf_token();
 
@@ -174,6 +180,30 @@ class ReportsController extends Controller
                 return Inertia::render('Reports/ServiceAreas', ['serviceAreasFromProps' => $serviceAreas]);
             }
             return Inertia::render('Reports/ServiceAreas', ['serviceAreas' => []]);
+        }
+    }
+
+    public function indexLegacyGroupResults()
+    {
+        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        $user = auth()->user();
+        $token = csrf_token();
+
+        if ($user->role()->name === "administrador") {
+            return Inertia::render('Reports/LegacyReports', ['token' => $token]);
+        }
+
+        if ($user->role()->name == "Jefe de Área de Servicio") {
+            $userId = auth()->user()->id;
+            $serviceAreas = DB::table('service_area_user')->where('user_id', '=', $userId)
+                ->where('service_area_user.assessment_period_id', '=', $activeAssessmentPeriodId)
+                ->where('service_areas.assessment_period_id', '=', $activeAssessmentPeriodId)
+                ->join('service_areas', 'service_area_user.service_area_code', '=', 'service_areas.code')->get();
+
+            if (count($serviceAreas) > 0) {
+                return Inertia::render('Reports/LegacyReports', ['serviceAreasFromProps' => $serviceAreas]);
+            }
+            return Inertia::render('Reports/LegacyReports', ['serviceAreas' => []]);
         }
     }
 
