@@ -14,7 +14,7 @@ class Reports extends Model
 {
     use HasFactory;
 
-    public static function mapGroupsResultsToFrontEndStructure($groupsResults)
+    public static function mapGroupsResultsToFrontEndStructure($groupsResults, $areLegacyResults)
     {
 
         $headers =
@@ -43,16 +43,31 @@ class Reports extends Model
                 'open_ended_answers' => $result->open_ended_answers
             ];
 
-            foreach ($result->competences_average as $competence) {
-                foreach ($competence->attributes as $attribute) {
-                    $attributeName = $attribute->name;
-                    if (!in_array($attributeName, $attributeNames)) {
-                        $attributeNames[] = $attributeName;
-                        $headers[] = ['text' => $attributeName, 'value' => $attributeName];
+            if($result->competences_average != null ){
+                foreach ($result->competences_average as $competence) {
+
+                    if(!$areLegacyResults){
+                        foreach ($competence->attributes as $attribute) {
+                            $attributeName = $attribute->name;
+                            if (!in_array($attributeName, $attributeNames)) {
+                                $attributeNames[] = $attributeName;
+                                $headers[] = ['text' => $attributeName, 'value' => $attributeName];
+                            }
+                            $item[$attributeName] = $attribute->overall_average;
+                        }
                     }
-                    $item[$attributeName] = $attribute->overall_average;
+
+                    else{
+                        $attributeName = $competence->name;
+                        if (!in_array($attributeName, $attributeNames)) {
+                            $attributeNames[] = $attributeName;
+                            $headers[] = ['text' => $attributeName, 'value' => $attributeName];
+                        }
+                        $item[$attributeName] = $competence->overall_average;
+                    }
                 }
             }
+
             $items[] = $item;
         }
 
@@ -62,7 +77,6 @@ class Reports extends Model
         $headers [] = ['text' => 'Gráfico', 'value' => 'graph'];
         $headers [] = ['text' => 'Comentarios', 'value' => 'open_ended_answers'];
 
-
         return [
             'headers' => $headers,
             'items' => $items,
@@ -70,7 +84,7 @@ class Reports extends Model
     }
 
 
-    public static function mapServiceAreasResultsToFrontEndStructure($serviceAreasResults)
+    public static function mapServiceAreasResultsToFrontEndStructure($serviceAreasResults, $areLegacyResults)
     {
 
         $headers =
@@ -95,14 +109,28 @@ class Reports extends Model
                 'open_ended_answers' => $result->open_ended_answers
             ];
 
-            foreach ($result->competences_average as $competence) {
-                foreach ($competence->attributes as $attribute) {
-                    $attributeName = $attribute->name;
-                    if (!in_array($attributeName, $attributeNames)) {
-                        $attributeNames[] = $attributeName;
-                        $headers[] = ['text' => $attributeName, 'value' => $attributeName];
+            if($result->competences_average != null ){
+                foreach ($result->competences_average as $competence) {
+
+                    if(!$areLegacyResults){
+                        foreach ($competence->attributes as $attribute) {
+                            $attributeName = $attribute->name;
+                            if (!in_array($attributeName, $attributeNames)) {
+                                $attributeNames[] = $attributeName;
+                                $headers[] = ['text' => $attributeName, 'value' => $attributeName];
+                            }
+                            $item[$attributeName] = $attribute->overall_average;
+                        }
                     }
-                    $item[$attributeName] = $attribute->overall_average;
+
+                    else{
+                        $attributeName = $competence->name;
+                        if (!in_array($attributeName, $attributeNames)) {
+                            $attributeNames[] = $attributeName;
+                            $headers[] = ['text' => $attributeName, 'value' => $attributeName];
+                        }
+                        $item[$attributeName] = $competence->overall_average;
+                    }
                 }
             }
             $items[] = $item;

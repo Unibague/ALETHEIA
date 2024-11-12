@@ -50,7 +50,7 @@
         </td>
         <td style="width: 70%; vertical-align: top">
             <p style="font-size: 15px"><strong>Percepción de la docencia</strong></p>
-            <p style="font-size: 15px; margin-top: 0"><strong>{{ $assessmentPeriodName }}</strong></p>
+            <p style="font-size: 15px; margin-top: 0"> Periodo de evaluación: <strong>{{ $assessmentPeriodName }}</strong></p>
         </td>
     </tr>
 </table>
@@ -64,7 +64,7 @@
 {{--</div>--}}
 
 @if($reportType === 'group')
-    <p><strong>Reporte por grupo</strong></p>
+    <p><strong>Reporte por grupo: {{$assessment['group_name']}} | {{$assessment['group_number']}}</strong></p>
 @endif
 
 @if($reportType === 'serviceArea')
@@ -77,18 +77,21 @@
 
 <p>Visualizando al docente: <strong>{{ ucwords($teacherName) }}</strong></p>
 
-<table style="width: 100%; table-layout: fixed; margin-top: 19px;">
+<table style="width: 100%; table-layout: fixed; margin-top: 19px; margin-bottom: 30px">
     <tr>
-        <td style="width: 50%; text-align: center; vertical-align: middle; padding: 10px;">
+        <td :style="{ width: satisfactionChart ? '50%' : '100%', textAlign: 'center', verticalAlign: 'middle', padding: '10px' }">
             <div class="chart-container">
                 <img src="{{ $overallAverageChart }}" alt="Gráfica promedio general" class="chart-image">
             </div>
         </td>
-        <td style="width: 50%; text-align: center; vertical-align: middle; padding: 10px;">
-            <div class="chart-container">
-                <img src="{{ $satisfactionChart }}" alt="Gráfica satisfacción" class="chart-image">
-            </div>
-        </td>
+        <!-- Only display the second chart if `satisfactionChart` is not null -->
+        @if($satisfactionChart)
+            <td style="width: 50%; text-align: center; vertical-align: middle; padding: 10px;">
+                <div class="chart-container">
+                    <img src="{{ $satisfactionChart }}" alt="Gráfica satisfacción" class="chart-image">
+                </div>
+            </td>
+        @endif
     </tr>
 </table>
 
@@ -115,8 +118,11 @@
 </table>
 </div>
 
+
+
+<div style="page-break-before: always;">
 @if(in_array($reportType, ['overallTeaching', 'serviceArea', 'group']))
-    <div style="margin-top: 100px">
+    <div>
         <p style="font-weight: bold">Comentarios de la evaluación</p>
         @if($reportType === 'overallTeaching')
             @foreach ($openEndedAnswers as $serviceArea)
@@ -136,6 +142,7 @@
         @endif
     </div>
 @endif
+</div>
 
 <p style="margin-top: 40px; font-weight: bold">Reporte generado en: {{ \Carbon\Carbon::now() }}</p>
 

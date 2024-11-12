@@ -154,20 +154,20 @@
                         </template>
                     </v-card-title>
                     <v-card-text>
-                        <v-row>
-                            <v-col cols="12" sm="6">
-                                <pie-chart
-                                    ref="satisfactionPieChartComponent"
-                                    :value="selectedAssessment['Satisfacción']"
-                                    title="¿Qué tan satisfecho estoy con el desempeño del profesor(a)?."
-                                    :max="5"
-                                />
-                            </v-col>
-                            <v-col cols="12" sm="6">
+                        <v-row style="text-align: center">
+                            <v-col :cols="selectedAssessment['Satisfacción'] !== undefined ? 6 : 12">
                                 <pie-chart
                                     ref="overallAverageChartComponent"
                                     :value="selectedAssessment.overall_average"
                                     title="Promedio general del periodo de evaluación"
+                                    :max="5"
+                                />
+                            </v-col>
+                            <v-col cols="12" sm="6" v-if="selectedAssessment['Satisfacción'] !== undefined">
+                                <pie-chart
+                                    ref="satisfactionPieChartComponent"
+                                    :value="selectedAssessment['Satisfacción']"
+                                    title="¿Qué tan satisfecho estoy con el desempeño del profesor(a)?."
                                     :max="5"
                                 />
                             </v-col>
@@ -223,7 +223,10 @@
                     <v-card-text>
                         <h3 class="group-name mb-3" v-if="groupResults"> {{ selectedAssessment.group_name }} | Grupo:
                             {{ selectedAssessment.group_number }}</h3>
-                        <div v-for="(question, questionIndex) in selectedAssessment.open_ended_answers"
+
+
+                        <div v-if="selectedAssessment.open_ended_answers.length === 0" style="color: black"> Este grupo no posee preguntas abiertas </div>
+                        <div v-else v-for="(question, questionIndex) in selectedAssessment.open_ended_answers"
                              :key="questionIndex" class="mb-4">
                             <h3 class="group-name mb-3">{{ question.question }}</h3>
                             <v-expansion-panels multiple>
@@ -313,8 +316,8 @@ export default {
             isLoading: true,
             noDataText: 'Para comenzar, selecciona un periodo de evaluación',
             //Booleans
-            groupResults: false,
-            serviceAreaResults: true,
+            groupResults: true,
+            serviceAreaResults: false,
             reportDownloading: false,
         }
     },
@@ -337,6 +340,7 @@ export default {
         async assessmentPeriod() {
             await this.getServiceAreas();
             await this.getTeachers();
+            await this.getAssessments();
         }
     },
 
@@ -374,11 +378,17 @@ export default {
             try {
                 this.reportDownloading = true;
                 // Get references to the pie-chart components
-                this.satisfactionPieChartComponent = this.$refs.satisfactionPieChartComponent;
                 this.overallAverageChartComponent = this.$refs.overallAverageChartComponent;
-                // Generate chart images one by one
-                const satisfactionChartImage = await this.satisfactionPieChartComponent.generateChartImage('image/jpeg', 0.9, 3);
                 const overallAverageImage = await this.overallAverageChartComponent.generateChartImage('image/jpeg', 0.9, 3);
+
+
+                let satisfactionChartImage = null
+
+                if(this.$refs.satisfactionPieChartComponent !== undefined){
+                    this.satisfactionPieChartComponent = this.$refs.satisfactionPieChartComponent;
+                    satisfactionChartImage = await this.satisfactionPieChartComponent.generateChartImage('image/jpeg', 0.9, 3);
+                }
+
                 let reportType = null
                 if (this.groupResults) {
                     reportType = 'group'
@@ -456,9 +466,7 @@ export default {
 
         getAssessmentPeriods: async function () {
             let request = await axios.get(route('api.assessmentPeriods.index'));
-            this.assessmentPeriods = request.data.filter(assessmentPeriod => {
-                return assessmentPeriod.active === 1;
-            });
+            this.assessmentPeriods = request.data;
         },
 
         matchProperty: function (array, propertyPath, reference) {
@@ -494,16 +502,17 @@ export default {
         },
 
         async getAssessments() {
-            console.log(this.serviceAreas, 'Las areas de servicio')
-            let data = {serviceAreas: this.serviceAreas};
-            if (this.serviceAreaResults) {
-                let request = await axios.get(route('reports.serviceArea.results', data));
-                this.dynamicHeaders = request.data.headers
-                this.assessments = request.data.items;
-            } else {
-                let request = await axios.get(route('reports.group.results', data));
-                this.dynamicHeaders = request.data.headers
-                this.assessments = request.data.items;
+            if(this.assessmentPeriod !== ''){
+                let data = {serviceAreas: this.serviceAreas, assessmentPeriodId: this.assessmentPeriod};
+                if (this.serviceAreaResults) {
+                    let request = await axios.post(route('reports.serviceArea.results'), data);
+                    this.dynamicHeaders = request.data.headers
+                    this.assessments = request.data.items;
+                } else {
+                    let request = await axios.post(route('reports.group.results'), data);
+                    this.dynamicHeaders = request.data.headers
+                    this.assessments = request.data.items;
+                }
             }
         },
 
