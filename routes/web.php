@@ -152,6 +152,8 @@ Route::post('/api/enrolls/sync', [\App\Http\Controllers\EnrollController::class,
 
 Route::post('/reports/pdf/serviceArea', [\App\Http\Controllers\ReportsController::class, 'downloadTeachingPDF'])->middleware(['auth'])->name('reports.teaching.download');
 
+Route::post('/reports/pdf/faculty', [\App\Http\Controllers\ReportsController::class, 'downloadFacultyPDF'])->middleware(['auth'])->name('reports.faculty.download');
+
 
 Route::get('/reports/index', [\App\Http\Controllers\ReportsController::class, 'show360Assessment'])->middleware(['auth'])->name('reports.show360Assessment');
 Route::post('/reports/results/group', [\App\Http\Controllers\ReportsController::class, 'getGroupResults'])->middleware(['auth'])->name('reports.group.results');

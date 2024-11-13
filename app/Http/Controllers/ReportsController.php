@@ -45,6 +45,30 @@ class ReportsController extends Controller
     }
 
 
+    public function downloadFacultyPDF(Request $request)
+    {
+        $data = $request->all();
+        $faculty = $data["faculty"];
+        $headers = $data["headers"];
+        $overallAverageChart = $data['overallAverageChart'];
+        $satisfactionChart = $data['satisfactionChart'];
+        $assessmentPeriodName = AssessmentPeriod::select(['name'])->where('id', '=', $faculty['assessment_period_id'])->first()->name;
+
+        dd($headers);
+
+        $pdf = Pdf::loadView('facultyReport', [
+            'faculty' => $faculty,
+            'facultyName' => $faculty["faculty_name"],
+            'headers' => $headers,
+            'overallAverageChart' => $overallAverageChart,
+            'satisfactionChart' => $satisfactionChart,
+            'assessmentPeriodName' => $assessmentPeriodName,
+        ])->setPaper('a4', 'landscape'); // Here you set the paper size and orientation to landscape.
+
+        return $pdf->download('aletheia_reporte_docencia_' . Carbon::now()->toDateTimeString() . '.pdf');
+    }
+
+
     public function getGroupResults(Request $request)
     {
         $assessmentPeriodId = $request->input('assessmentPeriodId');
