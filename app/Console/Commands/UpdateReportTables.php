@@ -55,6 +55,8 @@ class UpdateReportTables extends Command
                 Reports::updateGroupResults($academicPeriod);
                 Reports::updateTeacherServiceAreaResults();
                 Reports::updateTeacherStudentPerspectiveResultsTable();
+                Reports::updateServiceAreaResults();
+                Reports::updateFacultyResults();
             } catch (\Exception $exception){
                 \Log::error($exception->getMessage() . Carbon::now()->toDateTimeString());
             }

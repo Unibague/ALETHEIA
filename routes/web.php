@@ -157,6 +157,10 @@ Route::get('/reports/index', [\App\Http\Controllers\ReportsController::class, 's
 Route::post('/reports/results/group', [\App\Http\Controllers\ReportsController::class, 'getGroupResults'])->middleware(['auth'])->name('reports.group.results');
 Route::post('/reports/results/serviceArea', [\App\Http\Controllers\ReportsController::class, 'getServiceAreaResults'])->middleware(['auth'])->name('reports.serviceArea.results');
 Route::get('/reports/results/finalTeaching', [\App\Http\Controllers\ReportsController::class, 'getFinalTeachingResults'])->middleware(['auth'])->name('reports.finalTeaching.results');
+Route::post('/reports/results/faculties', [\App\Http\Controllers\ReportsController::class, 'getFacultyResults'])->middleware(['auth'])->name('reports.faculty.results');
+
+
+
 
 
 Route::get('/reports/show360Assessment', [\App\Http\Controllers\ReportsController::class, 'show360Assessment'])->middleware(['auth'])->name('reports.show360Assessment');
@@ -165,9 +169,9 @@ Route::get('/reports/showServiceAreasAssessment', [\App\Http\Controllers\Reports
 Route::get('/reports/serviceArea', [\App\Http\Controllers\ReportsController::class, 'indexServiceAreaResults'])->middleware(['auth'])->name('reports.serviceArea');
 Route::inertia('/reports/overallTeaching', 'Reports/OverallTeaching')->middleware(['auth', 'isAdmin'])->name('reports.overallTeaching');
 
-
 Route::get('/reports/legacyReports', [\App\Http\Controllers\ReportsController::class, 'indexLegacyGroupResults'])->middleware(['auth'])->name('reports.legacy.view');
 
+Route::inertia('/reports/faculties', 'Reports/Faculties')->middleware(['auth', 'isAdmin'])->name('reports.faculties.view');
 
 
 Route::get('/reports/showServiceArea', [\App\Http\Controllers\ReportsController::class, 'showServiceArea'])->middleware(['auth'])->name('reports.showServiceArea');
