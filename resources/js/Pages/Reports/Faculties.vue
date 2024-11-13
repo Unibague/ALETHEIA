@@ -44,6 +44,18 @@
                         ></v-autocomplete>
                     </v-col>
 
+                    <v-col cols="3">
+                        <v-autocomplete
+                            v-model="hourType"
+                            flat
+                            solo-inverted
+                            hide-details
+                            :items="hourTypes"
+                            prepend-inner-icon="mdi-account-search"
+                            label="Tipo de hora"
+                        ></v-autocomplete>
+                    </v-col>
+
                     <v-col cols="1">
                         <v-tooltip top>
                             <template v-slot:activator="{ on, attrs }">
@@ -204,6 +216,8 @@ export default {
             selectedAssessment: '',
             assessmentPeriod: '',
             assessmentPeriods: [],
+            hourType: '',
+            hourTypes: ['normal', 'cátedra', 'total'],
             faculty: '',
             faculties: [],
             serviceArea: '',
@@ -260,6 +274,10 @@ export default {
 
             if (this.faculty !== '') {
                 finalAssessments = this.getFilteredAssessmentsByFaculty(finalAssessments);
+            }
+
+            if(this.hourType !== ''){
+                finalAssessments = this.getFilteredAssessmentsByHourType(finalAssessments);
             }
 
             return finalAssessments;
@@ -371,7 +389,6 @@ export default {
             }
 
             console.log(this.assessments);
-
         },
 
         getFilteredAssessmentsByFaculty(assessments = null) {
@@ -379,6 +396,13 @@ export default {
                 assessments = this.assessments;
             }
             return this.matchProperty(assessments, 'faculty_id', this.faculty)
+        },
+
+        getFilteredAssessmentsByHourType(assessments = null) {
+            if (assessments === null) {
+                assessments = this.assessments;
+            }
+            return this.matchProperty(assessments, 'hour_type', this.hourType)
         },
 
         capitalize($field) {

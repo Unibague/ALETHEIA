@@ -158,7 +158,7 @@ Route::post('/reports/pdf/faculty', [\App\Http\Controllers\ReportsController::cl
 Route::get('/reports/index', [\App\Http\Controllers\ReportsController::class, 'show360Assessment'])->middleware(['auth'])->name('reports.show360Assessment');
 Route::post('/reports/results/group', [\App\Http\Controllers\ReportsController::class, 'getGroupResults'])->middleware(['auth'])->name('reports.group.results');
 Route::post('/reports/results/serviceArea', [\App\Http\Controllers\ReportsController::class, 'getServiceAreaResults'])->middleware(['auth'])->name('reports.serviceArea.results');
-Route::get('/reports/results/finalTeaching', [\App\Http\Controllers\ReportsController::class, 'getFinalTeachingResults'])->middleware(['auth'])->name('reports.finalTeaching.results');
+Route::post('/reports/results/finalTeaching', [\App\Http\Controllers\ReportsController::class, 'getFinalTeachingResults'])->middleware(['auth'])->name('reports.finalTeaching.results');
 Route::post('/reports/results/faculties', [\App\Http\Controllers\ReportsController::class, 'getFacultyResults'])->middleware(['auth'])->name('reports.faculty.results');
 
 

@@ -15,7 +15,7 @@
                 height="auto"
             >
                 <v-row class="py-3">
-                    <v-col cols="3">
+                    <v-col cols="2">
                         <v-autocomplete
                             v-model="assessmentPeriod"
                             flat
@@ -29,7 +29,7 @@
                         ></v-autocomplete>
                     </v-col>
 
-                    <v-col cols="4">
+                    <v-col cols="3">
                         <v-autocomplete
                             v-model="serviceArea"
                             flat
@@ -57,7 +57,19 @@
                         ></v-autocomplete>
                     </v-col>
 
-                    <v-col cols="2">
+                    <v-col cols="3">
+                        <v-autocomplete
+                            v-model="hourType"
+                            flat
+                            solo-inverted
+                            hide-details
+                            :items="hourTypes"
+                            prepend-inner-icon="mdi-account-search"
+                            label="Tipo de hora"
+                        ></v-autocomplete>
+                    </v-col>
+
+                    <v-col cols="1">
                         <v-tooltip top>
                             <template v-slot:activator="{ on, attrs }">
                                 <v-btn
@@ -280,6 +292,8 @@ export default {
             //Display data
             assessments: [],
             selectedAssessment: '',
+            hourType: '',
+            hourTypes: ['normal', 'cátedra'],
             assessmentPeriod: '',
             assessmentPeriods: [],
             serviceArea: '',
@@ -343,6 +357,11 @@ export default {
                 console.log(this.teacher, 'Teacher seleccionado');
                 finalAssessments = this.getFilteredAssessmentsByTeacher(finalAssessments);
             }
+
+            if(this.hourType !== ''){
+                finalAssessments = this.getFilteredAssessmentsByHourType(finalAssessments);
+            }
+
             return finalAssessments;
         },
 
@@ -508,6 +527,13 @@ export default {
                 assessments = this.assessments;
             }
             return this.matchProperty(assessments, 'teacher_id', this.teacher)
+        },
+
+        getFilteredAssessmentsByHourType(assessments = null) {
+            if (assessments === null) {
+                assessments = this.assessments;
+            }
+            return this.matchProperty(assessments, 'hour_type', this.hourType)
         },
 
         capitalize($field) {

@@ -22,7 +22,8 @@ class Reports extends Model
                 ['text' => 'Docente', 'value' => 'teacher_name'],
                 ['text' => 'Área de servicio', 'value' => 'service_area_name'],
                 ['text' => 'Asignatura', 'value' => 'group_name'],
-                ['text' => 'Número de Grupo', 'value' => 'group_number'],
+                ['text' => '# Grupo', 'value' => 'group_number'],
+                ['text' => 'Tipo hora', 'value' => 'hour_type']
             ];
 
         $attributeNames = [];
@@ -37,6 +38,7 @@ class Reports extends Model
                 'assessment_period_id' => $result->assessment_period_id,
                 'group_name' => $result->group_name,
                 'group_number' => $result->group_number,
+                'hour_type' => $result->hour_type,
                 'reviewers' => $result->reviewers,
                 'total_students' => $result->total_students,
                 'overall_average' => $result->overall_average,
@@ -89,6 +91,7 @@ class Reports extends Model
             [
                 ['text' => 'Docente', 'value' => 'teacher_name'],
                 ['text' => 'Área de servicio', 'value' => 'service_area_name'],
+                ['text' => 'Tipo hora', 'value' => 'hour_type']
             ];
 
         $attributeNames = [];
@@ -101,6 +104,7 @@ class Reports extends Model
                 'assessment_period_id' => $result->assessment_period_id,
                 'service_area_name' => $result->service_area_name,
                 'service_area_code' => $result->service_area_code,
+                'hour_type' => $result->hour_type,
                 'reviewers' => $result->reviewers,
                 'total_students' => $result->total_students,
                 'overall_average' => $result->overall_average,
@@ -151,6 +155,7 @@ class Reports extends Model
         $headers =
             [
                 ['text' => 'Docente', 'value' => 'teacher_name'],
+                ['text' => 'Tipo hora', 'value' => 'hour_type']
             ];
 
         $attributeNames = [];
@@ -160,6 +165,7 @@ class Reports extends Model
             $item = [
                 'teacher_name' => $result->teacher_name,
                 'teacher_id' => $result->teacher_id,
+                'hour_type' => $result->hour_type,
                 'assessment_period_id' => $result->assessment_period_id,
                 'reviewers' => $result->reviewers,
                 'total_students' => $result->total_students,
@@ -195,13 +201,17 @@ class Reports extends Model
     public static function mapFacultiesResultsToFrontEndStructure($facultiesResults)
     {
 
-        $headers = [['text' => 'Facultad', 'value' => 'faculty_name']];
+        $headers = [
+            ['text' => 'Facultad', 'value' => 'faculty_name'],
+            ['text' => 'Tipo hora', 'value' => 'hour_type']
+        ];
         $attributeNames = [];
         $items = [];
 
         foreach ($facultiesResults as $result) {
             $item = [
                 'faculty_name' => $result->faculty_name,
+                'hour_type'=> $result->hour_type,
                 'faculty_id' => $result->faculty_id,
                 'assessment_period_id' => $result->assessment_period_id,
                 'reviewers' => $result->reviewers,
@@ -225,13 +235,11 @@ class Reports extends Model
         $headers [] = ['text' => 'Promedio General', 'value' => 'overall_average'];
         $headers [] = ['text' => 'Evaluadores', 'value' => 'reviewers'];
         $headers [] = ['text' => 'Total Estudiantes', 'value' => 'total_students'];
-        $headers [] = ['text' => 'Gráfico', 'value' => 'graph'];
 
         return [
             'headers' => $headers,
             'items' => $items,
         ];
-
 
     }
 
