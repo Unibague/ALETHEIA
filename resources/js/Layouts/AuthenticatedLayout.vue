@@ -392,7 +392,7 @@ export default {
 
                     {
                         name: 'Por facultad',
-                        href: route('reports.overallTeaching'),
+                        href: route('reports.faculties.view'),
                         role: 10,
                         icon: 'mdi-cog-box'
                     },

@@ -159,6 +159,36 @@ class ReportsController extends Controller
         return response()->json($finalTeachingResults);
     }
 
+    public function getFacultyResults(Request $request){
+
+        $assessmentPeriodId = $request->input('assessmentPeriodId');
+        $areLegacyResults = false;
+
+        $facultiesResults = DB::table('faculty_results as fr')
+            ->select(['f.name as faculty_name','f.id as faculty_id',
+                'fr.assessment_period_id',
+                'fr.competences_average',
+                'fr.overall_average', 'fr.students_reviewers as reviewers',
+                'fr.students_enrolled as total_students'])
+            ->join('faculties as f', 'fr.faculty_id', '=', 'f.id')
+            ->where('fr.hour_type', '=', 'total')
+            ->where('fr.assessment_period_id', '=', $assessmentPeriodId)
+            ->get();
+
+        // Manually decode the JSON columns
+        $facultiesResults = $facultiesResults->map(function ($result) {
+            $result->competences_average = json_decode($result->competences_average);
+            return $result;
+        });
+
+        if($assessmentPeriodId < 6){
+            $areLegacyResults = true;
+        }
+
+        $facultiesResults = Reports::mapFacultiesResultsToFrontEndStructure($facultiesResults,  $areLegacyResults);
+        return response()->json($facultiesResults);
+    }
+
     public function indexServiceAreaResults()
     {
         $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
