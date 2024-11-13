@@ -82,22 +82,22 @@
                     class="elevation-1"
                 >
 
-                    <template v-slot:item.graph="{ item }">
-                        <v-tooltip top
-                        >
-                            <template v-slot:activator="{on,attrs}">
-                                <v-icon
-                                    v-bind="attrs"
-                                    v-on="on"
-                                    class="mr-2 primario--text"
-                                    @click="setDialogToShowChart(item)"
-                                >
-                                    mdi-chart-line
-                                </v-icon>
-                            </template>
-                            <span>Graficar resultados</span>
-                        </v-tooltip>
-                    </template>
+<!--                    <template v-slot:item.graph="{ item }">-->
+<!--                        <v-tooltip top-->
+<!--                        >-->
+<!--                            <template v-slot:activator="{on,attrs}">-->
+<!--                                <v-icon-->
+<!--                                    v-bind="attrs"-->
+<!--                                    v-on="on"-->
+<!--                                    class="mr-2 primario&#45;&#45;text"-->
+<!--                                    @click="setDialogToShowChart(item)"-->
+<!--                                >-->
+<!--                                    mdi-chart-line-->
+<!--                                </v-icon>-->
+<!--                            </template>-->
+<!--                            <span>Graficar resultados</span>-->
+<!--                        </v-tooltip>-->
+<!--                    </template>-->
 
                     <!--                    <template v-slot:item.open_ended_answers="{ item }">-->
                     <!--                        <v-tooltip top-->
@@ -268,50 +268,45 @@ export default {
 
     methods: {
 
-        // async downloadPDF() {
-        //     try {
-        //         this.reportDownloading = true;
-        //         // Get references to the pie-chart components
-        //         this.overallAverageChartComponent = this.$refs.overallAverageChartComponent;
-        //         const overallAverageImage = await this.overallAverageChartComponent.generateChartImage('image/jpeg', 0.9, 3);
-        //
-        //
-        //         let satisfactionChartImage = null
-        //
-        //         if(this.$refs.satisfactionPieChartComponent !== undefined){
-        //             this.satisfactionPieChartComponent = this.$refs.satisfactionPieChartComponent;
-        //             satisfactionChartImage = await this.satisfactionPieChartComponent.generateChartImage('image/jpeg', 0.9, 3);
-        //         }
-        //
-        //         let reportType = null
-        //         if (this.groupResults) {
-        //             reportType = 'group'
-        //         } else {
-        //             reportType = 'serviceArea'
-        //         }
-        //         const response = await axios.post(route('reports.teaching.download'), {
-        //             assessment: this.selectedAssessment,
-        //             headers: this.dynamicHeaders,
-        //             overallAverageChart: overallAverageImage,
-        //             satisfactionChart: satisfactionChartImage,
-        //             reportType: reportType
-        //         }, {
-        //             responseType: 'blob' // This tells Axios to expect a binary response
-        //         });
-        //         // Create a download link and trigger the download
-        //         const url = window.URL.createObjectURL(new Blob([response.data]));
-        //         const link = document.createElement('a');
-        //         link.href = url;
-        //         link.setAttribute('download', 'report.pdf');
-        //         document.body.appendChild(link);
-        //         link.click();
-        //         link.remove();
-        //     } catch (error) {
-        //         console.error('Error downloading the PDF', error);
-        //     }
-        //
-        //     this.reportDownloading = false;
-        // },
+        async downloadPDF() {
+            try {
+                this.reportDownloading = true;
+                // Get references to the pie-chart components
+                this.overallAverageChartComponent = this.$refs.overallAverageChartComponent;
+                const overallAverageImage = await this.overallAverageChartComponent.generateChartImage('image/jpeg', 0.9, 3);
+
+
+                let satisfactionChartImage = null
+
+                if(this.$refs.satisfactionPieChartComponent !== undefined){
+                    this.satisfactionPieChartComponent = this.$refs.satisfactionPieChartComponent;
+                    satisfactionChartImage = await this.satisfactionPieChartComponent.generateChartImage('image/jpeg', 0.9, 3);
+                }
+
+                let reportType = null
+
+                const response = await axios.post(route('reports.faculty.download'), {
+                    faculty: this.selectedFaculty,
+                    headers: this.dynamicHeaders,
+                    overallAverageChart: overallAverageImage,
+                    satisfactionChart: satisfactionChartImage,
+                }, {
+                    responseType: 'blob' // This tells Axios to expect a binary response
+                });
+                // Create a download link and trigger the download
+                const url = window.URL.createObjectURL(new Blob([response.data]));
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', 'report.pdf');
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+            } catch (error) {
+                console.error('Error downloading the PDF', error);
+            }
+
+            this.reportDownloading = false;
+        },
 
         downloadResults() {
             const excelInfo = this.filteredItems.map(item => {

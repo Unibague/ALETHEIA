@@ -14,14 +14,12 @@
         table {
             font-size: 12px;
             margin: 5px 0;
-            font-weight: lighter;
         }
 
         table th, table td {
             white-space: normal;
             word-break: normal;
             overflow: hidden;
-            font-weight: lighter;
         }
 
         .no-break-table {
@@ -65,19 +63,10 @@
 {{--    </div>--}}
 {{--</div>--}}
 
-@if($reportType === 'group')
-    <p><strong>Reporte por grupo: {{$assessment['group_name']}} | {{$assessment['group_number']}}</strong></p>
-@endif
+    <p><strong>Reporte por facultad</strong></p>
 
-@if($reportType === 'serviceArea')
-    <p><strong>Reporte por área de servicio</strong></p>
-@endif
 
-@if($reportType === 'overallTeaching')
-    <p><strong>Reporte por docencia general</strong></p>
-@endif
-
-<p>Visualizando al docente: <strong>{{ ucwords($teacherName) }}</strong></p>
+<p>Visualizando a la facultad: <strong>{{ ucwords($facultyName) }}</strong></p>
 
 <table style="width: 100%; table-layout: fixed; margin-top: 19px; margin-bottom: 30px">
     <tr>
@@ -96,59 +85,6 @@
         @endif
     </tr>
 </table>
-
-<div class="no-break-table">
-<table class="table">
-    <thead>
-    <tr>
-        @foreach($headers as $header)
-            @if(!in_array($header['value'], ['graph', 'open_ended_answers', 'report', 'teacher_name']))
-                <th scope="col" style="{{ in_array($header['value'],
-['Promedio General', 'Diseño de experiencias y contextos ampliados de aprendizaje', 'Espacios amables para el aprendizaje',
-'Medición y aseguramiento del aprendizaje','Satisfacción','overall_average']) ? 'font-weight: bolder;' : '' }}">
-                    {{ $header['text'] }}
-                </th>
-            @endif
-        @endforeach
-    </tr>
-    </thead>
-    <tbody>
-    <tr>
-        @foreach($headers as $header)
-            @if(!in_array($header['value'], ['graph', 'open_ended_answers', 'report', 'teacher_name']))
-                <td>{{ $assessment[$header['value']] ?? 'N/A' }}</td>
-            @endif
-        @endforeach
-    </tr>
-    </tbody>
-</table>
-</div>
-
-
-
-<div style="page-break-before: always;">
-@if(in_array($reportType, ['overallTeaching', 'serviceArea', 'group']))
-    <div>
-        <p style="font-weight: bold">Comentarios de la evaluación</p>
-        @if($reportType === 'overallTeaching')
-            @foreach ($openEndedAnswers as $serviceArea)
-                <p class="mb-2" style="font-weight: bold; margin-left: 5px">Área: {{ $serviceArea["service_area_name"] }}</p>
-                @foreach ($serviceArea['groups'] as $group)
-                    <p class="mb-2" style="font-weight: bold; margin-left: 20px">Asignatura: {{ $group["group_name"] }}</p>
-                    @include('comment-block', ['questions' => $group['questions']])
-                @endforeach
-            @endforeach
-        @elseif($reportType === 'serviceArea')
-            @foreach ($openEndedAnswers as $group)
-                <p class="mb-2" style="font-weight: bold; margin-left: 20px">Asignatura: {{ $group["group_name"] }}</p>
-                @include('comment-block', ['questions' => $group['questions']])
-            @endforeach
-        @elseif($reportType === 'group')
-            @include('comment-block', ['questions' => $openEndedAnswers])
-        @endif
-    </div>
-@endif
-</div>
 
 <p style="margin-top: 40px; font-weight: bold">Reporte generado en: {{ \Carbon\Carbon::now() }}</p>
 
