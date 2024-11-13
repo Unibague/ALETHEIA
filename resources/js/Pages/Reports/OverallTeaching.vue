@@ -44,6 +44,18 @@
                     </v-col>
 
                     <v-col cols="2">
+                        <v-autocomplete
+                            v-model="hourType"
+                            flat
+                            solo-inverted
+                            hide-details
+                            :items="hourTypes"
+                            prepend-inner-icon="mdi-account-search"
+                            label="Tipo de hora"
+                        ></v-autocomplete>
+                    </v-col>
+
+                    <v-col cols="2">
                         <v-tooltip top>
                             <template v-slot:activator="{ on, attrs }">
                                 <v-btn
@@ -235,6 +247,8 @@ export default {
             serviceAreas:[],
             teacher: '',
             selectedTeacher: '',
+            hourType: '',
+            hourTypes: ['normal', 'cátedra', 'total'],
             teachers:[],
             selectedTeacherOpenAnswers: '',
             finalTeachingLadders:[],
@@ -268,17 +282,23 @@ export default {
     watch:{
         async assessmentPeriod(){
             await this.getTeachers();
+            await this.getAssessments()
         }
     },
 
     computed: {
 
+
         filteredItems() {
             let finalAssessments = this.assessments;
             if (this.teacher !== '') {
-                console.log(this.teacher, 'Teacher seleccionado');
                 finalAssessments = this.getFilteredAssessmentsByTeacher(finalAssessments);
             }
+
+            if(this.hourType !== ''){
+                finalAssessments = this.getFilteredAssessmentsByHourType(finalAssessments);
+            }
+
             return finalAssessments;
         },
 
@@ -373,17 +393,18 @@ export default {
         getTeachers: async function () {
             let request = await axios.get(route('serviceAreas.teachersWithResults', {assessmentPeriodId: this.assessmentPeriod}));
             this.teachers = request.data
-            console.log(this.teachers, 'Teachers to be selected')
             this.teachers.forEach(teacher => {
                 teacher.name = this.capitalize(teacher.name)
             })
         },
 
         async getAssessments() {
-            let request = await axios.get(route('reports.finalTeaching.results'));
-            this.dynamicHeaders = request.data.headers
-            this.assessments = request.data.items;
-            console.log(this.assessments, 'assessments');
+            if(this.assessmentPeriod !== ''){
+                let request = await axios.post(route('reports.finalTeaching.results'), {assessmentPeriodId: this.assessmentPeriod});
+                this.dynamicHeaders = request.data.headers
+                this.assessments = request.data.items;
+                console.log(this.assessments, 'assessments');
+            }
         },
 
         getFilteredAssessmentsByTeacher(assessments = null) {
@@ -391,6 +412,13 @@ export default {
                 assessments = this.assessments;
             }
             return this.matchProperty(assessments, 'teacher_id', this.teacher)
+        },
+
+        getFilteredAssessmentsByHourType(assessments = null) {
+            if (assessments === null) {
+                assessments = this.assessments;
+            }
+            return this.matchProperty(assessments, 'hour_type', this.hourType)
         },
 
         capitalize($field){

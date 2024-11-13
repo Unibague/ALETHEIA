@@ -82,7 +82,7 @@ class ReportsController extends Controller
 
         $groupResults = DB::table('group_results as gr')
             ->select(['u.name as teacher_name', 'u.id as teacher_id',
-                'gr.assessment_period_id',
+                'gr.assessment_period_id', 'gr.hour_type',
                 'g.name as group_name', 'g.group as group_number', 'sa.name as service_area_name', 'sa.code as service_area_code',
                 'gr.competences_average', 'gr.open_ended_answers',
                 'gr.overall_average', 'gr.students_amount_reviewers as reviewers', 'gr.students_amount_on_group as total_students'])
@@ -127,7 +127,7 @@ class ReportsController extends Controller
 
         $serviceAreaResults = DB::table('teachers_service_areas_results as tsar')
             ->select(['u.name as teacher_name', 'sa.name as service_area_name', 'sa.code as service_area_code',
-                'tsar.assessment_period_id',
+                'tsar.assessment_period_id', 'tsar.hour_type',
                 'tsar.competences_average', 'tsar.open_ended_answers',
                 'tsar.overall_average', 'tsar.aggregate_students_amount_reviewers as reviewers',
                 'tsar.aggregate_students_amount_on_service_area as total_students',
@@ -135,7 +135,6 @@ class ReportsController extends Controller
             ->join('users as u', 'tsar.teacher_id', '=', 'u.id')
             ->join('service_areas as sa', 'tsar.service_area_code', '=', 'sa.code')
             ->where('sa.assessment_period_id', '=', $assessmentPeriodId)
-            ->where('tsar.hour_type', '=', 'total')
             ->where('tsar.assessment_period_id', '=', $assessmentPeriodId)
             ->whereIn('sa.code', $serviceAreasId)
             ->get();
@@ -159,16 +158,15 @@ class ReportsController extends Controller
 
     public function getFinalTeachingResults(Request $request)
     {
-        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        $assessmentPeriodId = $request->input('assessmentPeriodId');
         $finalTeachingResults = DB::table('teachers_students_perspectives as tsp')
-            ->select(['u.name as teacher_name',
+            ->select(['u.name as teacher_name', 'tsp.hour_type',
                 'tsp.assessment_period_id', 'tsp.open_ended_answers',
                 'tsp.competences_average', 'tsp.overall_average', 'tsp.aggregate_students_amount_reviewers as reviewers',
                 'tsp.aggregate_students_amount_on_360_groups as total_students',
                 'u.id as teacher_id'])
             ->join('users as u', 'tsp.teacher_id', '=', 'u.id')
-            ->where('tsp.hour_type', '=', 'total')
-            ->where('tsp.assessment_period_id', '=', $activeAssessmentPeriodId)
+            ->where('tsp.assessment_period_id', '=', $assessmentPeriodId)
             ->get();
 
         // Manually decode the JSON columns
@@ -192,10 +190,10 @@ class ReportsController extends Controller
             ->select(['f.name as faculty_name','f.id as faculty_id',
                 'fr.assessment_period_id',
                 'fr.competences_average',
+                'fr.hour_type',
                 'fr.overall_average', 'fr.students_reviewers as reviewers',
                 'fr.students_enrolled as total_students'])
             ->join('faculties as f', 'fr.faculty_id', '=', 'f.id')
-            ->where('fr.hour_type', '=', 'total')
             ->where('fr.assessment_period_id', '=', $assessmentPeriodId)
             ->get();
 
@@ -210,6 +208,7 @@ class ReportsController extends Controller
         }
 
         $facultiesResults = Reports::mapFacultiesResultsToFrontEndStructure($facultiesResults,  $areLegacyResults);
+
         return response()->json($facultiesResults);
     }
 

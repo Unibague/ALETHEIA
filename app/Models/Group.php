@@ -189,7 +189,7 @@ class Group extends Model
         $upperString = strtoupper($classCode);
 
         // Define the undesired groups to check for
-        $phrases = ['TRABAJO DE GRADO', 'CONSULTORIO JURIDICO', 'PRACTICA EMPRESARIAL'];
+        $phrases = ['TRABAJO DE GRADO', 'CONSULTORIO JURIDICO', 'PRACTICA EMPRESARIAL', 'PRACTICA PROFESIONAL'];
 
         // Loop through the undesired groups and check if any of them are present in the string
         foreach ($phrases as $phrase) {
