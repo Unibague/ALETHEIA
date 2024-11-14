@@ -266,7 +266,7 @@ class Reports extends Model
             foreach ($teacherIds as $teacherId) {
                 $groups = DB::table('groups as g')->where('g.teacher_id', '=', $teacherId)
                     ->join('academic_periods as ap', 'g.academic_period_id', '=', 'ap.id')
-                    ->where('ap.assessment_period_id', '=', 6)->get();
+                    ->where('ap.assessment_period_id', '=', $activeAssessmentPeriodId)->get();
 
                 //Now that we have the groups info for the teacher, we can proceed and do the calculations
                 foreach ($groups as $group) {
@@ -365,6 +365,18 @@ class Reports extends Model
                         $overallAverage /= $competencesPresent;
                     }
 
+                    $teacherProfile = DB::table('v2_teacher_profiles')->where('user_id','=',$teacherId)->where('assessment_period_id','=',$group->assessment_period_id)->first();
+
+                    if(!$teacherProfile){
+                        continue;
+                    }
+
+                    $hourType = 'normal';
+
+                    if($teacherProfile->employee_type !== 'DTC'){
+                        $hourType = 'cátedra';
+                    }
+
                     DB::table('group_results')->updateOrInsert
                     (
                         [
@@ -373,15 +385,15 @@ class Reports extends Model
                             'assessment_period_id' => $group->assessment_period_id
                         ],
                         [
-                            'hour_type' => $group->hour_type,
+                            'hour_type' => $hourType,
                             'service_area_code' => $group->service_area_code,
                             'students_amount_reviewers' => $studentsWithAnswer,
                             'students_amount_on_group' => $studentsEnrolled,
                             'competences_average' => json_encode($competencesAverage, JSON_UNESCAPED_UNICODE),
                             'overall_average' => round($overallAverage, 2),
                             'open_ended_answers' => json_encode($groupedOpenEndedAnswers, JSON_UNESCAPED_UNICODE),
-                            'created_at' => Carbon::now('GMT-5')->toDateTimeString(),
-                            'updated_at' => Carbon::now('GMT-5')->toDateTimeString()
+                            'created_at' => Carbon::now()->toDateTimeString(),
+                            'updated_at' => Carbon::now()->toDateTimeString()
                         ]
                     );
                 }

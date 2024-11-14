@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use mysql_xdevapi\Table;
+use Ospina\CurlCobain\CurlCobain;
 
 /**
  * App\Models\Unity
@@ -132,6 +133,14 @@ class Unit extends Model
             ->whereIn('v2_teacher_profiles.teaching_ladder', $suitableTeachingLadders)->get();
 
     }
+
+    public static function getStaffMembersFromEndpoint()
+    {
+        $url = 'https://directorio.unibague.edu.co/modules/mod_directorio/get_Funcionaries.php';
+        $curl = new CurlCobain($url);
+        return json_decode($curl->makeRequest());
+    }
+
 
     public static function createOrUpdateStaffMembersUsers($staffMembers)
     {

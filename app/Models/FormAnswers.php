@@ -826,12 +826,47 @@ class FormAnswers extends Model
         return $openAnswers;
     }
 
+    public static function groupOpenEndedAnswersLegacyGroups($openEndedAnswers) {
+
+        $groupedAnswers = [];
+        foreach ($openEndedAnswers as $answerSet) {
+            foreach ($answerSet as $answer) {
+                $question = $answer->question;
+                $commentType = $answer->commentType;
+                $answerText = $answer->answer;
+
+                if (!isset($groupedAnswers[$question])) {
+                    $groupedAnswers[$question] = [
+                        'question' => $question,
+                        'commentType' => []
+                    ];
+                }
+
+                if (!isset($groupedAnswers[$question]['commentType'][$commentType])) {
+                    $groupedAnswers[$question]['commentType'][$commentType] = [
+                        'type' => $commentType,
+                        'answers' => []
+                    ];
+                }
+
+                $groupedAnswers[$question]['commentType'][$commentType]['answers'][] = $answerText;
+            }
+        }
+
+        // Convert associative arrays to indexed arrays
+        foreach ($groupedAnswers as &$question) {
+            $question['commentType'] = array_values($question['commentType']);
+        }
+        return array_values($groupedAnswers);
+    }
+
 
     public static function groupOpenEndedAnswers($openEndedAnswers) {
 
         $groupedAnswers = [];
         foreach ($openEndedAnswers as $answerSet) {
             foreach ($answerSet as $answer) {
+
                 $question = $answer['question'];
                 $commentType = $answer['commentType'];
                 $answerText = $answer['answer'];

@@ -8,6 +8,7 @@ use App\Models\Enroll;
 
 use App\Models\Form;
 use App\Models\Group;
+use App\Models\Reports;
 use App\Models\Role;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -24,9 +25,6 @@ use App\Jobs\ProcessFormAnswersBatch;
 
 /* >>>>>>>>>>>>>>>>>>>>>>>>>>>> External routes <<<<<<<<<<<<<<<<<<<<<<<< */
 Route::get('/evaluacionDocente', [\App\Http\Controllers\AssessmentController::class, 'hasStudentFinishedAssessment'])->name('redirect');
-
-
-
 
 /* >>>>>>>>>>>>>>>>>>>>>>>>>>>> Auth routes <<<<<<<<<<<<<<<<<<<<<<<< */
 Route::get('/', [\App\Http\Controllers\AuthController::class, 'handleRoleRedirect'])->middleware(['auth'])->name('redirect');
@@ -420,6 +418,13 @@ Route::get('/updateServiceAreasResultsTable', function () {
             }
         }
     }
+});
+
+Route::get('/kfjejf',function(){
+
+   $staffMembers =  \App\Models\Unit::getStaffMembersFromEndpoint();
+
+   dd($staffMembers);
 
 });
 
@@ -700,6 +705,13 @@ Route::get('/fulfillServiceAreasResultsTable', function () {
 
 });
 
+Route::get('/checkCorrectWorkingOfNewGroupResults', function (){
+
+    $academicPeriod = DB::table('academic_periods')->where('name','=','2024B')->first();
+    Reports::updateGroupResults($academicPeriod);
+});
+
+
 
 Route::get('/migrateLegacyRecordsFormAnswersTable', function () {
     $formAnswers = DB::table('form_answers as fa')->where('assessment_period_id', '=', 5)
@@ -713,14 +725,6 @@ Route::get('/migrateLegacyRecordsFormAnswersTable', function () {
     }
 });
 
-Route::get('/testGroupResults', function (){
-
-    \App\Models\Reports::updateGroupResults();
-
-});
-
-
-
 Route::get('/migrateLegacyRecordsGroupResultsTable', function () {
 
     $legacyCompetences = [
@@ -732,10 +736,12 @@ Route::get('/migrateLegacyRecordsGroupResultsTable', function () {
         'C6' => 'Productividad académica'
     ];
 
+    $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+
     //Get the ID's from the teachers that had answers on the active assessment period id
     $teacherIds = DB::table('form_answers as fa')->select(['fa.teacher_id'])->join('forms as f', 'fa.form_id', '=', 'f.id')
         ->where('f.type', '=', 'estudiantes')
-        ->where('fa.assessment_period_id','!=',6)->pluck('fa.teacher_id')->unique();
+        ->where('fa.assessment_period_id','=',$activeAssessmentPeriodId)->pluck('fa.teacher_id')->unique();
 
 
     //First, we insert the student assessments for each teacher on each group on group_results table (updateGroupResultsFromTeacher)
@@ -743,7 +749,7 @@ Route::get('/migrateLegacyRecordsGroupResultsTable', function () {
         foreach ($teacherIds as $teacherId) {
             $groups = DB::table('groups as g')->where('g.teacher_id', '=', $teacherId)
                 ->join('academic_periods as ap', 'g.academic_period_id', '=', 'ap.id')
-                ->get();
+                ->where('ap.assessment_period_id', '=', $activeAssessmentPeriodId)->get();
 
             //Now that we have the groups info for the teacher, we can proceed and do the calculations
             foreach ($groups as $group) {
@@ -779,6 +785,12 @@ Route::get('/migrateLegacyRecordsGroupResultsTable', function () {
                     $answerFromGroup = json_decode($answerFromGroup->answers, true);
                     foreach ($answerFromGroup as $answerFromQuestion) {
                         $competenceKey = $answerFromQuestion['competence'];
+
+                        // Skip if competenceKey is not a string or integer
+                        if (!is_string($competenceKey) && !is_int($competenceKey)) {
+                            continue;
+                        }
+
                         if (isset($legacyCompetences[$competenceKey])) {
                             $score = floatval($answerFromQuestion['answer']);
                             $competencesTotalScore[$competenceKey] += $score;
@@ -787,7 +799,7 @@ Route::get('/migrateLegacyRecordsGroupResultsTable', function () {
                     }
                 }
 
-                $groupedOpenEndedAnswers = \App\Models\FormAnswers::groupOpenEndedAnswers($openEndedAnswers);
+                $groupedOpenEndedAnswers = \App\Models\FormAnswers::groupOpenEndedAnswersLegacyGroups($openEndedAnswers);
 
                 $overallAverage = 0;
                 $competencesPresent = 0;
@@ -810,6 +822,20 @@ Route::get('/migrateLegacyRecordsGroupResultsTable', function () {
                     $overallAverage /= $competencesPresent;
                 }
 
+                //Identify the hour type
+
+                $teacherProfile = DB::table('v2_teacher_profiles')->where('user_id','=',$teacherId)->where('assessment_period_id','=',$group->assessment_period_id)->first();
+
+                if(!$teacherProfile){
+                    continue;
+                }
+
+                $hourType = 'normal';
+
+                if($teacherProfile->employee_type !== 'DTC'){
+                    $hourType = 'cátedra';
+                }
+
                 DB::table('group_results')->updateOrInsert
                 (
                     [
@@ -818,24 +844,21 @@ Route::get('/migrateLegacyRecordsGroupResultsTable', function () {
                         'assessment_period_id' => $group->assessment_period_id
                     ],
                     [
-                        'hour_type' => $group->hour_type,
+                        'hour_type' => $hourType,
                         'service_area_code' => $group->service_area_code,
                         'students_amount_reviewers' => $studentsAmount,
                         'students_amount_on_group' => $totalStudentsEnrolledOnGroup,
                         'competences_average' => json_encode($competencesAverage, JSON_UNESCAPED_UNICODE),
                         'overall_average' => round($overallAverage, 2),
                         'open_ended_answers' => json_encode($groupedOpenEndedAnswers, JSON_UNESCAPED_UNICODE),
-                        'created_at' => Carbon::now('GMT-5')->toDateTimeString(),
-                        'updated_at' => Carbon::now('GMT-5')->toDateTimeString()
+                        'created_at' => Carbon::now()->toDateTimeString(),
+                        'updated_at' => Carbon::now()->toDateTimeString()
                     ]
                 );
             }
         }
     }
 });
-
-
-
 
 Route::get('/migrateLegacyRecordsGroupResultsTableeffewwefwe', function () {
 
@@ -1212,84 +1235,6 @@ Route::get('/migrateLegacyRecordsServiceAreasTable', function () {
     }
 });
 
-
-
-
-//
-//
-////            if($uniqueTeacherId === 144){
-////                dd($peerBossAutoAssessmentAnswers);
-////            }
-//
-//            if (count($peerBossAutoAssessmentAnswers) == 0) {
-//                continue;
-//            }
-//
-//            $studentsAnswers = DB::table('teachers_students_perspectives as tsp')
-//                ->select(['tsp.first_final_aggregate_competence_average as first_competence_average',
-//                    'tsp.second_final_aggregate_competence_average as second_competence_average',
-//                    'tsp.third_final_aggregate_competence_average as third_competence_average',
-//                    'tsp.fourth_final_aggregate_competence_average as fourth_competence_average',
-//                    'tsp.fifth_final_aggregate_competence_average as fifth_competence_average',
-//                    'tsp.sixth_final_aggregate_competence_average as sixth_competence_average',
-//                    'aggregate_students_amount_reviewers', 'aggregate_students_amount_on_360_groups'])
-//                ->where('teacher_id', '=', $uniqueTeacherId)->where('assessment_period_id', '=', $activeAssessmentPeriodId)->get()->first();
-//
-//            $studentsAnswers->unit_role = "estudiante";
-//            $peerBossAutoAssessmentAnswers [] = $studentsAnswers;
-//            $allAssessments = $peerBossAutoAssessmentAnswers;
-//
-//            foreach ($allAssessments as $assessment) {
-//
-//                if ($assessment->unit_role === "par") {
-//                    $firstCompetenceTotal += $assessment->first_competence_average * $peerPercentage;
-//                    $secondCompetenceTotal += $assessment->second_competence_average * $peerPercentage;
-//                    $thirdCompetenceTotal += $assessment->third_competence_average * $peerPercentage;
-//                    $fourthCompetenceTotal += $assessment->fourth_competence_average * $peerPercentage;
-//                    $fifthCompetenceTotal += $assessment->fifth_competence_average * $peerPercentage;
-//                    $sixthCompetenceTotal += $assessment->sixth_competence_average * $peerPercentage;
-//                }
-//
-//                if ($assessment->unit_role === "jefe") {
-//                    $firstCompetenceTotal += $assessment->first_competence_average * $bossPercentage;
-//                    $secondCompetenceTotal += $assessment->second_competence_average * $bossPercentage;
-//                    $thirdCompetenceTotal += $assessment->third_competence_average * $bossPercentage;
-//                    $fourthCompetenceTotal += $assessment->fourth_competence_average * $bossPercentage;
-//                    $fifthCompetenceTotal += $assessment->fifth_competence_average * $bossPercentage;
-//                    $sixthCompetenceTotal += $assessment->sixth_competence_average * $bossPercentage;
-//                }
-//
-//                if ($assessment->unit_role === "estudiante") {
-//
-//                    $firstCompetenceTotal += $assessment->first_competence_average * $studentsPercentage;
-//                    $secondCompetenceTotal += $assessment->second_competence_average * $studentsPercentage;
-//                    $thirdCompetenceTotal += $assessment->third_competence_average * $studentsPercentage;
-//                    $fourthCompetenceTotal += $assessment->fourth_competence_average * $studentsPercentage;
-//                    $fifthCompetenceTotal += $assessment->fifth_competence_average * $studentsPercentage;
-//                    $sixthCompetenceTotal += $assessment->sixth_competence_average * $studentsPercentage;
-//
-//                    $involvedActors = $assessment->aggregate_students_amount_reviewers + count($allAssessments) - 1;
-//                    $totalActors = $assessment->aggregate_students_amount_on_360_groups + count($allAssessments) - 1;
-//
-//                }
-//
-//                if ($assessment->unit_role === "autoevaluación") {
-//
-//                    $firstCompetenceTotal += $assessment->first_competence_average * $autoPercentage;
-//                    $secondCompetenceTotal += $assessment->second_competence_average * $autoPercentage;
-//                    $thirdCompetenceTotal += $assessment->third_competence_average * $autoPercentage;
-//                    $fourthCompetenceTotal += $assessment->fourth_competence_average * $autoPercentage;
-//                    $fifthCompetenceTotal += $assessment->fifth_competence_average * $autoPercentage;
-//                    $sixthCompetenceTotal += $assessment->sixth_competence_average * $autoPercentage;
-//                }
-//
-//            }
-//            /*       dd($firstCompetenceTotal,$secondCompetenceTotal,$thirdCompetenceTotal,$fourthCompetenceTotal,$fifthCompetenceTotal,$sixthCompetenceTotal);*/
-//
-//            /*        dd($allAssessments);*/
-//        }
-//    }
-//});
 
 
 Route::get('/aggregateReport', function () {
