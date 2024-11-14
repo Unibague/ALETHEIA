@@ -22,6 +22,12 @@ use App\Jobs\ProcessFormAnswersBatch;
 |--------------------------------------------------------------------------
 */
 
+/* >>>>>>>>>>>>>>>>>>>>>>>>>>>> External routes <<<<<<<<<<<<<<<<<<<<<<<< */
+Route::get('/evaluacionDocente', [\App\Http\Controllers\AssessmentController::class, 'hasStudentFinishedAssessment'])->name('redirect');
+
+
+
+
 /* >>>>>>>>>>>>>>>>>>>>>>>>>>>> Auth routes <<<<<<<<<<<<<<<<<<<<<<<< */
 Route::get('/', [\App\Http\Controllers\AuthController::class, 'handleRoleRedirect'])->middleware(['auth'])->name('redirect');
 Route::get('/login', [\App\Http\Controllers\AuthController::class, 'redirectGoogleLogin'])->name('login');
@@ -160,9 +166,6 @@ Route::post('/reports/results/group', [\App\Http\Controllers\ReportsController::
 Route::post('/reports/results/serviceArea', [\App\Http\Controllers\ReportsController::class, 'getServiceAreaResults'])->middleware(['auth'])->name('reports.serviceArea.results');
 Route::post('/reports/results/finalTeaching', [\App\Http\Controllers\ReportsController::class, 'getFinalTeachingResults'])->middleware(['auth'])->name('reports.finalTeaching.results');
 Route::post('/reports/results/faculties', [\App\Http\Controllers\ReportsController::class, 'getFacultyResults'])->middleware(['auth'])->name('reports.faculty.results');
-
-
-
 
 
 Route::get('/reports/show360Assessment', [\App\Http\Controllers\ReportsController::class, 'show360Assessment'])->middleware(['auth'])->name('reports.show360Assessment');
