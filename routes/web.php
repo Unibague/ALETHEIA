@@ -705,13 +705,6 @@ Route::get('/fulfillServiceAreasResultsTable', function () {
 
 });
 
-Route::get('/checkCorrectWorkingOfNewGroupResults', function (){
-
-    $academicPeriod = DB::table('academic_periods')->where('name','=','2024B')->first();
-    Reports::updateGroupResults($academicPeriod);
-});
-
-
 
 Route::get('/migrateLegacyRecordsFormAnswersTable', function () {
     $formAnswers = DB::table('form_answers as fa')->where('assessment_period_id', '=', 5)

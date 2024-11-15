@@ -360,7 +360,7 @@ export default {
     computed: {
 
         hourTypes() {
-            return this.serviceAreaResults ? ['normal', 'cátedra', 'total'] : ['normal', 'cátedra'];
+            return this.serviceAreaResults ? ['normal', 'cátedra'] : ['normal', 'cátedra'];
         },
 
         filteredItems() {

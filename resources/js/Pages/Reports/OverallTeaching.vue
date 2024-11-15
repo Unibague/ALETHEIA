@@ -248,7 +248,7 @@ export default {
             teacher: '',
             selectedTeacher: '',
             hourType: '',
-            hourTypes: ['normal', 'cátedra', 'total'],
+            hourTypes: ['normal', 'cátedra'],
             teachers:[],
             selectedTeacherOpenAnswers: '',
             finalTeachingLadders:[],
