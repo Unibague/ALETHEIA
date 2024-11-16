@@ -183,6 +183,24 @@ class Group extends Model
         }
     }
 
+    public static function isConsultorioJuridico($classCode): bool
+    {
+        // Convert the string to uppercase to make the check case-insensitive
+        $upperString = strtoupper($classCode);
+
+        // Define the undesired groups to check for
+        $phrases = ['CONSULTORIO JURIDICO'];
+
+        // Loop through the undesired groups and check if any of them are present in the string
+        foreach ($phrases as $phrase) {
+            if (strpos($upperString, $phrase) !== false) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public static function isSuitableGroup($classCode): bool
     {
         // Convert the string to uppercase to make the check case-insensitive

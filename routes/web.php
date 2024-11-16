@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Jobs\ProcessFormAnswersBatch;
+
 /*
 |--------------------------------------------------------------------------
 | Administrator routes
@@ -54,8 +55,6 @@ Route::get('/assessmentPeriods/legacy', [\App\Http\Controllers\AssessmentPeriodC
 Route::get('/assessmentPeriods/notLegacy', [\App\Http\Controllers\AssessmentPeriodController::class, 'getNotLegacyAssessmentPeriods'])->middleware(['auth'])->name('api.assessmentPeriods.notLegacy');
 
 
-
-
 /* >>>>>>>>>>>>>>>>>>>>>>>  Assessment Ponderations >>>>>>>><<<<<< */
 Route::inertia('/assessmentWeights', 'AssessmentWeights/Index')->middleware(['auth', 'isAdmin'])->name('assessmentWeights.index.view');
 Route::resource('api/assessmentWeights', \App\Http\Controllers\AssessmentWeightController::class, [
@@ -73,9 +72,6 @@ Route::resource('api/faculties', \App\Http\Controllers\FacultyController::class,
     'as' => 'api'
 ])->middleware('auth');
 Route::inertia('/faculties', 'Faculties/Index')->middleware(['auth', 'isAdmin'])->name('faculties.index.view');
-
-
-
 
 
 /* >>>>>>>>>>>>>>>>>>>>> Forms routes <<<<<<<<<<<<<<<<<<<< */
@@ -296,6 +292,120 @@ Route::patch('/api/users/{user}/roles', [\App\Http\Controllers\Users\ApiUserCont
 Route::get('/api/users/{user}/roles', [\App\Http\Controllers\Users\ApiUserController::class, 'getUserRoles'])->middleware('auth')->name('api.users.roles.show');
 Route::post('/api/roles/select', [\App\Http\Controllers\Users\ApiUserController::class, 'selectRole'])->middleware('auth')->name('api.roles.selectRole');
 
+Route::get('/insertConsultorioJuridicoGroupsWithEveryRequiredTeacherInGroupsTable', function () {
+
+    $groups = AtlanteProvider::get('groups', [
+        'periods' => '2024B',
+    ], true);
+
+    //Get all the groups
+
+    $consultorioJuridicoGroups = array_filter($groups, function ($group){
+        return $group['teacher_email'] !== "" && $group['degree_code'] !== "" && Group::isConsultorioJuridico($group['name']) && $group['class_code'] !== 'H5135' && $group['class_code'] !== 'H5195';
+    });
+
+    $teachersForEveryConsultorio = [
+        [
+        'class_code' => '51A41',
+        'teachers' => ['adriana.covaleda@unibague.edu.co', 'fredy.camacho@unibague.edu.co',
+            'sandra.obando@unibague.edu.co', 'sandra.munoz@unibague.edu.co']
+        ],
+
+
+        [],[]];
+
+
+    foreach ($consultorioJuridicoGroups as $group) {
+        if($group['class_code'] === '51A41'){
+
+        }
+    }
+
+});
+
+
+
+
+
+Route::get('/unlockStudentsWithNonSuitableGroups', function () {
+
+    set_time_limit(50000);
+
+    $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+    $academicPeriods = AcademicPeriod::getCurrentAcademicPeriods();
+
+    foreach ($academicPeriods as $academicPeriod) {
+
+        $groups = AtlanteProvider::get('groups', [
+            'periods' => $academicPeriod->name,
+        ], true);
+
+        $nonSuitableGroups = array_filter($groups, function ($group) {
+            return $group['teacher_email'] !== "" && $group['degree_code'] !== "" && !Group::isSuitableGroup($group['name']);
+        });
+
+        if (count($nonSuitableGroups) === 0) {
+            continue;
+        }
+
+        $groupIds = array_column($nonSuitableGroups, 'group_id');
+
+        $students = AtlanteProvider::get('enrolls', [
+            'periods' => $academicPeriod->name
+        ], true);
+
+        $studentsToUnlock = [];
+        foreach ($students as $student) {
+            $studentGroupIds = explode(',', $student['group_id']);
+            if (count(array_intersect($studentGroupIds, $groupIds)) > 0) {
+                $studentsToUnlock[] = $student;
+            }
+        }
+
+        //Now, for every student, check if the student has no other records in the group_user table.
+        //If that's the case, then the user is suitable to be sent to unlock
+
+        $studentEmails = array_unique(array_column($studentsToUnlock, 'email'));
+
+        $realStudentsToUnlock = [];
+
+        foreach ($studentEmails as $studentEmail) {
+
+            $userName = explode('@', $studentEmail)[0];
+            $user = DB::table('users')->where('email', '=', $studentEmail)->first();
+
+            if (!$user) {
+                $nonExistingStudentsInAletheia [] = $userName;
+            } else {
+                $doesStudentHaveOtherGroups = DB::table('group_user')->where('academic_period_id', '=', $academicPeriod->id)
+                    ->where('user_id', '=', $user->id)->get();
+
+                if ($doesStudentHaveOtherGroups->count() > 0) {
+                    $realStudentsToUnlock [] = ['id' => $user->id, 'name' => $userName];
+                }
+            }
+        }
+
+        foreach ($nonExistingStudentsInAletheia as $nonExistingStudent) {
+            AtlanteProvider::get('grades/enable', [
+                'academic_period' => $academicPeriod->name,
+                'user_name' => $nonExistingStudent
+            ]);
+        }
+        foreach ($realStudentsToUnlock as $student) {
+            $response = AtlanteProvider::get('grades/enable', [
+                'academic_period' => $academicPeriod->name,
+                'user_name' => $student['name']
+            ])[0];
+            $now = \Illuminate\Support\Carbon::now()->toDateTimeString();
+            DB::table('students_completed_assessment_audit')->updateOrInsert(['user_id' => $student['id'],
+                'academic_period_id' => $academicPeriod->id],
+                ['assessment_period_id' => $activeAssessmentPeriodId, 'message' => $response->status,
+                    'created_at' => $now, 'updated_at' => $now]);
+
+        }
+    }
+});
 
 
 Route::get('/updateServiceAreasResultsTable', function () {
@@ -326,7 +436,7 @@ Route::get('/updateServiceAreasResultsTable', function () {
                 ->where('tsar.service_area_code', '=', $serviceAreaCode)
                 ->where('tsar.assessment_period_id', '=', $activeAssessmentPeriodId)
                 ->where('tsar.hour_type', '=', $hourType)
-                ->join('users','tsar.teacher_id','=','users.id')
+                ->join('users', 'tsar.teacher_id', '=', 'users.id')
                 ->get();
 
             $resultsCount = $results->count();
@@ -420,16 +530,8 @@ Route::get('/updateServiceAreasResultsTable', function () {
     }
 });
 
-Route::get('/kfjejf',function(){
 
-   $staffMembers =  \App\Models\Unit::getStaffMembersFromEndpoint();
-
-   dd($staffMembers);
-
-});
-
-
-Route::get('/updateFacultiesResultsTable', function(){
+Route::get('/updateFacultiesResultsTable', function () {
 
 
     // Obtain the active assessment period ID
@@ -597,7 +699,7 @@ Route::get('/jejeje', function () {
         })->toArray();
 
 
-    foreach ($students as $student){
+    foreach ($students as $student) {
 
         $response = AtlanteProvider::get('grades/enable', [
             'academic_period' => '2024B',
@@ -605,14 +707,12 @@ Route::get('/jejeje', function () {
         ])[0];
 
 
-
-        DB::table('students_completed_assessment_audit')->updateOrInsert(['user_id'=> $student['user_id'],
-            'academic_period_id'=> 35],
-            ['assessment_period_id'=>6, 'message' => $response->status,
+        DB::table('students_completed_assessment_audit')->updateOrInsert(['user_id' => $student['user_id'],
+            'academic_period_id' => 35],
+            ['assessment_period_id' => 6, 'message' => $response->status,
                 'created_at' => $student['created_at'], 'updated_at' => $student['updated_at']]);
 
     }
-
 
 
 });
@@ -708,13 +808,13 @@ Route::get('/fulfillServiceAreasResultsTable', function () {
 
 Route::get('/migrateLegacyRecordsFormAnswersTable', function () {
     $formAnswers = DB::table('form_answers as fa')->where('assessment_period_id', '=', 5)
-        ->where('competences_average','=',null)->take(8000)->get();
+        ->where('competences_average', '=', null)->take(8000)->get();
     foreach ($formAnswers as $formAnswer) {
         $results = \App\Models\FormAnswers::getCompetencesAverage(json_decode($formAnswer->answers, JSON_THROW_ON_ERROR));
         $openEndedAnswers = \App\Models\FormAnswers::getOpenEndedAnswersFromFormAnswer(json_decode($formAnswer->answers, JSON_THROW_ON_ERROR));
         DB::table('form_answers as fa')->
-        updateOrInsert(['id'=> $formAnswer->id], ['competences_average' => $results['competences']
-        ,'overall_average' => $results['overall_average'], 'open_ended_answers' => $openEndedAnswers]);
+        updateOrInsert(['id' => $formAnswer->id], ['competences_average' => $results['competences']
+            , 'overall_average' => $results['overall_average'], 'open_ended_answers' => $openEndedAnswers]);
     }
 });
 
@@ -734,7 +834,7 @@ Route::get('/migrateLegacyRecordsGroupResultsTable', function () {
     //Get the ID's from the teachers that had answers on the active assessment period id
     $teacherIds = DB::table('form_answers as fa')->select(['fa.teacher_id'])->join('forms as f', 'fa.form_id', '=', 'f.id')
         ->where('f.type', '=', 'estudiantes')
-        ->where('fa.assessment_period_id','=',$activeAssessmentPeriodId)->pluck('fa.teacher_id')->unique();
+        ->where('fa.assessment_period_id', '=', $activeAssessmentPeriodId)->pluck('fa.teacher_id')->unique();
 
 
     //First, we insert the student assessments for each teacher on each group on group_results table (updateGroupResultsFromTeacher)
@@ -747,7 +847,7 @@ Route::get('/migrateLegacyRecordsGroupResultsTable', function () {
             //Now that we have the groups info for the teacher, we can proceed and do the calculations
             foreach ($groups as $group) {
 
-                if($group->assessment_period_id == null){
+                if ($group->assessment_period_id == null) {
                     continue;
                 }
 
@@ -817,15 +917,15 @@ Route::get('/migrateLegacyRecordsGroupResultsTable', function () {
 
                 //Identify the hour type
 
-                $teacherProfile = DB::table('v2_teacher_profiles')->where('user_id','=',$teacherId)->where('assessment_period_id','=',$group->assessment_period_id)->first();
+                $teacherProfile = DB::table('v2_teacher_profiles')->where('user_id', '=', $teacherId)->where('assessment_period_id', '=', $group->assessment_period_id)->first();
 
-                if(!$teacherProfile){
+                if (!$teacherProfile) {
                     continue;
                 }
 
                 $hourType = 'normal';
 
-                if($teacherProfile->employee_type !== 'DTC'){
+                if ($teacherProfile->employee_type !== 'DTC') {
                     $hourType = 'cátedra';
                 }
 
@@ -859,19 +959,19 @@ Route::get('/migrateLegacyRecordsGroupResultsTableeffewwefwe', function () {
     $teacherIds = DB::table('form_answers as fa')->select(['fa.teacher_id'])
         ->join('forms as f', 'fa.form_id', '=', 'f.id')
         ->where('f.type', '=', 'estudiantes')
-        ->where('fa.assessment_period_id','=', 6)->pluck('fa.teacher_id')->unique();
+        ->where('fa.assessment_period_id', '=', 6)->pluck('fa.teacher_id')->unique();
 
     //First, we insert the student assessments for each teacher on each group on group_results table (updateGroupResultsFromTeacher)
     if (count($teacherIds) > 0) {
         foreach ($teacherIds as $teacherId) {
             $groups = DB::table('groups as g')->where('g.teacher_id', '=', $teacherId)
                 ->join('academic_periods as ap', 'g.academic_period_id', '=', 'ap.id')
-                ->where('ap.assessment_period_id','=',6)->get();
+                ->where('ap.assessment_period_id', '=', 6)->get();
 
             //Now that we have the groups info for the teacher, we can proceed and do the calculations
             foreach ($groups as $group) {
 
-                if ($group->group_id === 13020 ){
+                if ($group->group_id === 13020) {
                     dd($group);
                 }
 
@@ -915,7 +1015,7 @@ Route::get('/migrateLegacyRecordsGroupResultsTableeffewwefwe', function () {
 
                         $score = floatval($competence->average);
                         $competencesData[$competenceKey]['totalScore'] += $score;
-                        $competencesData[$competenceKey]['totalAnswers'] ++;
+                        $competencesData[$competenceKey]['totalAnswers']++;
 
                         if (isset($competence->attributes) && is_array($competence->attributes)) {
                             foreach ($competence->attributes as $attribute) {
@@ -963,7 +1063,7 @@ Route::get('/migrateLegacyRecordsGroupResultsTableeffewwefwe', function () {
                             'attributes' => $attributesAverage
                         ];
 
-                        if($competenceName !== 'Satisfacción'){
+                        if ($competenceName !== 'Satisfacción') {
                             $overallAverage += $competenceAverage;
                             $competencesPresent++;
                         }
@@ -1000,17 +1100,13 @@ Route::get('/migrateLegacyRecordsGroupResultsTableeffewwefwe', function () {
 });
 
 
-
-
-
-
 Route::get('/migrateLegacyRecordsServiceAreasTable', function () {
 
     $activeAssessmentPeriodId = \App\Models\AssessmentPeriod::getActiveAssessmentPeriod()->id;
     $teacherIds = DB::table('group_results as gr')
         ->select(['gr.teacher_id'])
         ->where('gr.assessment_period_id', '=', 6)
-        ->orderBy('id','desc')
+        ->orderBy('id', 'desc')
         ->pluck('gr.teacher_id')
         ->unique();
 
@@ -1229,7 +1325,6 @@ Route::get('/migrateLegacyRecordsServiceAreasTable', function () {
 });
 
 
-
 Route::get('/aggregateReport', function () {
     $tableData = [];
 
@@ -1332,7 +1427,7 @@ Route::get('individualExcelReport', function () {
 
 });
 
-Route::get('/testRelationship', function (){
+Route::get('/testRelationship', function () {
 
     $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
 
@@ -1347,7 +1442,7 @@ Route::get('/testRelationship', function (){
             'service_areas.name as service_area_name'
         )
         ->where('service_area_user.assessment_period_id', '=', $activeAssessmentPeriodId)
-        ->where('service_areas.assessment_period_id','=',$activeAssessmentPeriodId)
+        ->where('service_areas.assessment_period_id', '=', $activeAssessmentPeriodId)
         ->get()
         ->groupBy('user_id')
         ->map(function ($items) {
@@ -1369,5 +1464,5 @@ Route::get('/testRelationship', function (){
         });
 
 // $serviceAreasGrouped contendrá un arreglo de usuarios con su respectiva información y áreas de servicio
-   return response()->json($serviceAreasGrouped);
+    return response()->json($serviceAreasGrouped);
 });
