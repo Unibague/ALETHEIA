@@ -266,6 +266,7 @@ class Reports extends Model
             foreach ($teacherIds as $teacherId) {
                 $groups = DB::table('groups as g')->where('g.teacher_id', '=', $teacherId)
                     ->join('academic_periods as ap', 'g.academic_period_id', '=', 'ap.id')
+                    ->where('g.academic_period_id','=',$academicPeriod->id)
                     ->where('ap.assessment_period_id', '=', $activeAssessmentPeriodId)->get();
 
                 //Now that we have the groups info for the teacher, we can proceed and do the calculations
