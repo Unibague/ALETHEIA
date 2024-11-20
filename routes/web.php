@@ -6,6 +6,9 @@ use App\Models\AcademicPeriod;
 use App\Models\AssessmentPeriod;
 use App\Models\Enroll;
 
+use Revolution\Google\Sheets\Facades\Sheets;
+
+
 use App\Models\Form;
 use App\Models\Group;
 use App\Models\Reports;
@@ -292,39 +295,52 @@ Route::patch('/api/users/{user}/roles', [\App\Http\Controllers\Users\ApiUserCont
 Route::get('/api/users/{user}/roles', [\App\Http\Controllers\Users\ApiUserController::class, 'getUserRoles'])->middleware('auth')->name('api.users.roles.show');
 Route::post('/api/roles/select', [\App\Http\Controllers\Users\ApiUserController::class, 'selectRole'])->middleware('auth')->name('api.roles.selectRole');
 
-Route::get('/insertConsultorioJuridicoGroupsWithEveryRequiredTeacherInGroupsTable', function () {
+
+
+Route::get('/insertConsultorioJuridicoGroupResults', function () {
 
     $groups = AtlanteProvider::get('groups', [
         'periods' => '2024B',
     ], true);
 
-    //Get all the groups
+    $enrolls = AtlanteProvider::get('enrolls', [
+        'periods' => '2024B'
+    ], true);
 
-    $consultorioJuridicoGroups = array_filter($groups, function ($group){
-        return $group['teacher_email'] !== "" && $group['degree_code'] !== "" && Group::isConsultorioJuridico($group['name']) && $group['class_code'] !== 'H5135' && $group['class_code'] !== 'H5195';
-    });
-
-    $teachersForEveryConsultorio = [
+    $consultorioCourses = [
         [
-        'class_code' => '51A41',
-        'teachers' => ['adriana.covaleda@unibague.edu.co', 'fredy.camacho@unibague.edu.co',
-            'sandra.obando@unibague.edu.co', 'sandra.munoz@unibague.edu.co']
+            'class_code' => '51A41',
+            'teachers' => ['adriana.covaleda@unibague.edu.co', 'fredy.camacho@unibague.edu.co',
+                'sandra.obando@unibague.edu.co', 'sandra.munoz@unibague.edu.co', 'mauricio.gomez@unibague.edu.co',
+                'santiago.sanchez@unibague.edu.co']
+        ],
+        [
+            'class_code' => '51A47',
+            'teachers' => ['adriana.covaleda@unibague.edu.co', 'fredy.camacho@unibague.edu.co',
+                'sandra.obando@unibague.edu.co', 'sandra.munoz@unibague.edu.co', 'mauricio.gomez@unibague.edu.co',
+                'santiago.sanchez@unibague.edu.co']
         ],
 
+        [
+            'class_code' => '51A49',
+            'teachers' => ['adriana.covaleda@unibague.edu.co', 'fredy.camacho@unibague.edu.co',
+                'mauricio.gomez@unibague.edu.co',
+                'sandra.obando@unibague.edu.co', 'sandra.munoz@unibague.edu.co','monica.cardenas@unibague.edu.co',
+                'santiago.sanchez@unibague.edu.co']
+        ]
+    ];
 
-        [],[]];
+    foreach ($consultorioCourses as $consultorioCourse) {
 
+        $consultorioGroupsFromSIGA = array_filter($groups, function ($group) use ($consultorioCourse) {
+            return $group['teacher_email'] !== "" && $group['degree_code'] !== "" && Group::isConsultorioJuridico($group['name']) && $group['class_code'] === $consultorioCourse["class_code"];
+        });
 
-    foreach ($consultorioJuridicoGroups as $group) {
-        if($group['class_code'] === '51A41'){
+        Group::createConsultorioGroups($consultorioGroupsFromSIGA, $consultorioCourse['teachers']);
 
-        }
+        Group::upsertConsultorioGroupResults($consultorioCourse['class_code'], $consultorioGroupsFromSIGA, $consultorioCourse['teachers'], $enrolls);
     }
-
 });
-
-
-
 
 
 Route::get('/unlockStudentsWithNonSuitableGroups', function () {

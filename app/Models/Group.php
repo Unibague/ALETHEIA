@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Revolution\Google\Sheets\Facades\Sheets;
 
 /**
  * App\Models\Group
@@ -108,10 +109,9 @@ class Group extends Model
         $upsertData = [];
 
         foreach ($groups as $group) {
-            if($group['hour_type'] === 'Normal'){
+            if ($group['hour_type'] === 'Normal') {
                 $group['hour_type'] = 'normal';
-            }
-            else{
+            } else {
                 $group['hour_type'] = 'cátedra';
             }
             $upsertData[] = [
@@ -140,18 +140,18 @@ class Group extends Model
             ->join('academic_periods as ap', 'gu.academic_period_id', '=', 'ap.id')
             ->where('ap.assessment_period_id', '=', $activeAssessmentPeriodId)
             ->join('groups as g', 'gu.group_id', '=', 'g.group_id')
-            ->where('g.teacher_id','!=',null)
+            ->where('g.teacher_id', '!=', null)
             ->get();
 
-        $academicPeriodsId  = array_unique(array_column($academicPeriodsForUser ->toArray(),'academic_period_id'));
+        $academicPeriodsId = array_unique(array_column($academicPeriodsForUser->toArray(), 'academic_period_id'));
 
-        foreach ($academicPeriodsId as $academicPeriodId){
+        foreach ($academicPeriodsId as $academicPeriodId) {
 
             $totalGroups = \DB::table('group_user as gu')
                 ->where('gu.user_id', $userId)
                 ->where('gu.academic_period_id', '=', $academicPeriodId)
                 ->join('groups as g', 'gu.group_id', '=', 'g.group_id')
-                ->where('g.teacher_id','!=',null)->get()->toArray();
+                ->where('g.teacher_id', '!=', null)->get()->toArray();
 
             $answeredGroups = array_filter($totalGroups, function ($group) {
                 return $group->has_answer === 1;
@@ -161,27 +161,136 @@ class Group extends Model
             $userName = explode('@', auth()->user()->email)[0];
 
             //Validation to check if totalGroups is same as answeredGroups...
-                if(count($answeredGroups) === count($totalGroups)){
+            if (count($answeredGroups) === count($totalGroups)) {
 
-                    $response = AtlanteProvider::get('grades/enable', [
-                        'academic_period' => $academicPeriod->name,
-                        'user_name' => $userName
-                    ])[0];
+                $response = AtlanteProvider::get('grades/enable', [
+                    'academic_period' => $academicPeriod->name,
+                    'user_name' => $userName
+                ])[0];
 
-                    $now = Carbon::now()->toDateTimeString();
+                $now = Carbon::now()->toDateTimeString();
 
-                    try {
-                        DB::table('students_completed_assessment_audit')->updateOrInsert(['user_id'=> $userId,
-                            'academic_period_id'=> $academicPeriod->id],
-                            ['assessment_period_id'=> $activeAssessmentPeriodId, 'message' => $response->status,
-                                'created_at' => $now, 'updated_at' => $now]);
-                    } catch (\Throwable $th) {
-                        dd($th->getMessage());
-                    }
-
+                try {
+                    DB::table('students_completed_assessment_audit')->updateOrInsert(['user_id' => $userId,
+                        'academic_period_id' => $academicPeriod->id],
+                        ['assessment_period_id' => $activeAssessmentPeriodId, 'message' => $response->status,
+                            'created_at' => $now, 'updated_at' => $now]);
+                } catch (\Throwable $th) {
+                    dd($th->getMessage());
                 }
+
+            }
         }
     }
+
+    public static function upsertConsultorioGroupResults($classCode, array $groups, array $teachers, $enrolls): void
+    {
+        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        $responsesSheet = Sheets::spreadsheet(env('POST_SPREADSHEET_ID'))->sheet($classCode)->get();
+        $header = $responsesSheet->pull(0);
+        $consultorioCourseAnswers = Sheets::collection($header, $responsesSheet);
+
+
+        foreach ($groups as $group){
+
+            //Here filter the responses depending on the logic of filter the people from the enrolls endpoint
+
+            $groupEnrolls = array_filter($enrolls, function ($enroll) use ($group) {
+                return $enroll['group_id'] === $group['group_id'];
+            });
+
+            $groupEnrollsEmails = array_column($groupEnrolls, 'email');
+
+            //Perfect, now filter the courseAnswers depending on the $groupEnrollsArray
+
+            $courseAnswers = $consultorioCourseAnswers->filter(function ($courseAnswer) use ($groupEnrollsEmails) {
+                return in_array($courseAnswer['Email address'], $groupEnrollsEmails);
+            })->values();
+
+            //Great!!! Now I have the answers for this group only.
+            $dataParser = new \App\Models\CustomGoogleFormDataParser();
+            $courseAnswers = $dataParser->transformGoogleFormData($courseAnswers, $classCode);
+
+            $teachersGroupResults = $dataParser->processTransformedAnswers($courseAnswers);
+
+            //Now insert the responses in the group_results table.
+
+            foreach ($teachersGroupResults as $teacherEmail => $teacherGroupResult) {
+
+                $competencesAverage = [];
+                foreach ($teacherGroupResult['categories'] as $category) {
+                    $competencesAverage [] = $category;
+                }
+
+                $teacherInfo = DB::table('users as u')->where('email', '=', $teacherEmail)->first();
+
+                $groupData = DB::table('groups')->where('teacher_id', '=', $teacherInfo->id)
+                    ->where('class_code', '=', $classCode)->where('group', 'like', '%' . $group['group_id'] . '%')
+                    ->first();
+
+               DB::table('group_results')->updateOrInsert(
+                   ['teacher_id' => $teacherInfo->id, 'group_id' => $groupData->group_id],[
+                       'service_area_code' => $groupData->service_area_code,
+                       'hour_type' => $groupData->hour_type,
+                       'students_amount_reviewers' => count($courseAnswers),
+                       'students_amount_on_group' => count($groupEnrolls),
+                       'assessment_period_id' => $activeAssessmentPeriodId,
+                       'created_at' => Carbon::now()->toDateTimeString(),
+                       'updated_at' => Carbon::now()->toDateTimeString(),
+                       'competences_average' => json_encode($competencesAverage, JSON_UNESCAPED_UNICODE),
+                       'overall_average'=> $teacherGroupResult['categories']['Docencia']['overall_average'],
+                       'open_ended_answers' => json_encode([$teacherGroupResult['open_ended_answers']], JSON_UNESCAPED_UNICODE),
+                    ]);
+            }
+        }
+    }
+
+
+    public static function createConsultorioGroups(array $groups, array $teachers): void
+    {
+        $activeAssessmentPeriodId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+        foreach ($groups as $group) {
+            foreach ($teachers as $index => $teacher) {
+
+                $teacherInfo = DB::table('users as u')->where('email', '=', $teacher)->first();
+
+                $hourType = 'normal';
+
+                $teacherProfile = DB::table('v2_teacher_profiles')->where('user_id', '=', $teacherInfo->id)
+                    ->where('assessment_period_id', '=', $activeAssessmentPeriodId)->first();
+
+                if (!$teacherProfile) {
+                    $hourType = 'cátedra';
+                } else {
+                    if ($teacherProfile->employee_type !== 'DTC') {
+                        $hourType = 'cátedra';
+                    }
+                }
+
+                $stringGroupId = strval($group['group_id']);
+                $stringIndex = strval($index + 1);
+                //Create an unique identifier for these groups
+                $uniqueGroupId = $stringGroupId . $stringIndex;
+
+                $academicPeriod = DB::table('academic_periods')->where('name', '=', $group['academic_period_name'])->first();
+
+                DB::table('groups')->updateOrInsert(['group_id' => $uniqueGroupId], [
+                    'name' => $group['name'],
+                    'academic_period_id' => $academicPeriod->id,
+                    'class_code' => $group['class_code'],
+                    'group' => $group['group_code'] . '-' . $group['group_id'],
+                    'degree' => $group['degree_code'],
+                    'service_area_code' => $group['service_area_code'],
+                    'teacher_id' => $teacherInfo->id,
+                    'hour_type' => $hourType,
+                    'active' => 1,
+                    'created_at' => Carbon::now()->toDateTimeString(),
+                    'updated_at' => Carbon::now()->toDateTimeString()
+                ]);
+            }
+        }
+    }
+
 
     public static function isConsultorioJuridico($classCode): bool
     {
