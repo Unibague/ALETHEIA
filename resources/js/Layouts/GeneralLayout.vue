@@ -3,7 +3,7 @@
         <v-app-bar app color="grey darken-4" class="white--text" elevate-on-scroll>
             <slot name="custom-v-app-bar-icon"></slot>
             <Link href="/" class="mr-2">
-                <v-img src="images/new_aletheia_logo.png" class="shrink-on-scroll"
+                <img src="images/new_aletheia_logo.png" class="shrink-on-scroll"
                      style="max-height: 160px; max-width:160px;"/>
 
 <!--                <img src="/images/logo.png"-->
