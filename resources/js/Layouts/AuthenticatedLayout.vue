@@ -186,7 +186,7 @@
                             v-model="dropdown.active"
                             :prepend-icon="dropdown.icon"
                             no-action
-                            v-if="$page.props.user.customRoleId >= dropdown.role"
+                            v-if="$page.props.user.customRoleId === dropdown.role"
 
                         >
                             <!-- activator -->
