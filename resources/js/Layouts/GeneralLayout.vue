@@ -3,8 +3,8 @@
         <v-app-bar app color="grey darken-4" class="white--text" elevate-on-scroll>
             <slot name="custom-v-app-bar-icon"></slot>
             <Link href="/" class="mr-2">
-                <img src="/images/new_aletheia_logo.png"
-                     style="max-height: 160px; max-width:160px;"/>
+                <img src="/finalLogo.png"
+                     style="max-height: 160px; max-width:160px;">
 
 <!--                <img src="/images/logo.png"-->
 <!--                     style="max-height: 500px; max-width:255px">-->
