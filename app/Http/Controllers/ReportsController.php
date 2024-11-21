@@ -22,6 +22,10 @@ class ReportsController extends Controller
 
     public function downloadTeachingPDF(Request $request)
     {
+        $groupResultsAssessments = null;
+        $groupResultsHeaders = null;
+
+
         $data = $request->all();
         $assessment = $data["assessment"];
         $headers = $data["headers"];
@@ -29,6 +33,13 @@ class ReportsController extends Controller
         $satisfactionChart = $data['satisfactionChart'];
         $assessmentPeriodName = AssessmentPeriod::select(['name'])->where('id', '=', $assessment['assessment_period_id'])->first()->name;
         $reportType = $data["reportType"];
+
+        if($reportType === 'overallTeaching'){
+            //Then retrieve all the group results
+            $groupResults = Reports::getGroupResultsByTeacher($assessment['assessment_period_id'], $assessment['teacher_id']);
+            $groupResultsAssessments = $groupResults['items'];
+            $groupResultsHeaders = $groupResults['headers'];
+        }
 
         $pdf = Pdf::loadView('teachingReport', [
             'assessment' => $assessment,
@@ -39,6 +50,8 @@ class ReportsController extends Controller
             'satisfactionChart' => $satisfactionChart,
             'assessmentPeriodName' => $assessmentPeriodName,
             'reportType' => $reportType,
+            'groupResultsAssessments' => $groupResultsAssessments != null ? $groupResultsAssessments  : null,
+            'groupResultsHeaders' => $groupResultsHeaders != null ? $groupResultsHeaders  : null,
         ])->setPaper('a4', 'landscape'); // Here you set the paper size and orientation to landscape.
 
         return $pdf->download('aletheia_reporte_docencia_' . Carbon::now()->toDateTimeString() . '.pdf');
@@ -54,8 +67,6 @@ class ReportsController extends Controller
         $satisfactionChart = $data['satisfactionChart'];
         $assessmentPeriodName = AssessmentPeriod::select(['name'])->where('id', '=', $faculty['assessment_period_id'])->first()->name;
 
-        dd($headers);
-
         $pdf = Pdf::loadView('facultyReport', [
             'faculty' => $faculty,
             'facultyName' => $faculty["faculty_name"],
@@ -67,6 +78,8 @@ class ReportsController extends Controller
 
         return $pdf->download('aletheia_reporte_docencia_' . Carbon::now()->toDateTimeString() . '.pdf');
     }
+
+
 
 
     public function getGroupResults(Request $request)

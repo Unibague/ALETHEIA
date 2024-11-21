@@ -98,6 +98,11 @@
 </table>
 
 <div class="no-break-table">
+
+    @if($reportType === 'overallTeaching')
+        <p><strong>Resultado general de la docencia</strong></p>
+    @endif
+
 <table class="table">
     <thead>
     <tr>
@@ -123,6 +128,42 @@
     </tbody>
 </table>
 </div>
+
+@if($reportType === 'overallTeaching')
+
+    <div class="no-break-table" style="page-break-before: always;">
+
+        <p> <strong> Desglose por grupos </strong>  </p>
+
+        <table class="table">
+            <thead>
+            <tr>
+                @foreach($groupResultsHeaders as $header)
+                    @if(!in_array($header['value'], ['graph', 'open_ended_answers', 'report', 'teacher_name']))
+                        <th scope="col" style="{{ in_array($header['value'],
+['Promedio General', 'Diseño de experiencias y contextos ampliados de aprendizaje', 'Espacios amables para el aprendizaje',
+'Medición y aseguramiento del aprendizaje','Satisfacción','overall_average']) ? 'font-weight: bolder;' : '' }}">
+                            {{ $header['text'] }}
+                        </th>
+                    @endif
+                @endforeach
+            </tr>
+            </thead>
+            <tbody>
+            @foreach($groupResultsAssessments as $assessment) <!-- Loop through all assessments -->
+            <tr>
+                @foreach($groupResultsHeaders as $header)
+                    @if(!in_array($header['value'], ['graph', 'open_ended_answers', 'report', 'teacher_name']))
+                        <td>{{ $assessment[$header['value']] ?? 'N/A' }}</td>
+                    @endif
+                @endforeach
+            </tr>
+            @endforeach
+            </tbody>
+        </table>
+    </div>
+@endif
+
 
 
 
