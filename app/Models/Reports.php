@@ -14,6 +14,40 @@ class Reports extends Model
 {
     use HasFactory;
 
+    public static function getGroupResultsByTeacher($assessmentPeriodId, $teacherId){
+
+        $areLegacyResults = false;
+
+        $groupResults = DB::table('group_results as gr')
+            ->select(['u.name as teacher_name', 'u.id as teacher_id',
+                'gr.assessment_period_id', 'gr.hour_type',
+                'g.name as group_name', 'g.group as group_number', 'sa.name as service_area_name', 'sa.code as service_area_code',
+                'gr.competences_average', 'gr.open_ended_answers',
+                'gr.overall_average', 'gr.students_amount_reviewers as reviewers', 'gr.students_amount_on_group as total_students'])
+            ->join('users as u', 'gr.teacher_id', '=', 'u.id')
+            ->join('groups as g', 'gr.group_id', '=', 'g.group_id')
+            ->join('service_areas as sa', 'gr.service_area_code', '=', 'sa.code')
+            ->where('gr.assessment_period_id', '=', $assessmentPeriodId)
+            ->where('gr.teacher_id', '=', $teacherId)
+            ->where('sa.assessment_period_id', '=', $assessmentPeriodId)
+            ->get();
+
+        // Manually decode the JSON columns
+        $groupResults = $groupResults->map(function ($result) {
+            $result->competences_average = json_decode($result->competences_average);
+            $result->open_ended_answers = json_decode($result->open_ended_answers);
+            return $result;
+        });
+
+        if($assessmentPeriodId < 6){
+            $areLegacyResults = true;
+        }
+
+        return Reports::mapGroupsResultsToFrontEndStructure($groupResults, $areLegacyResults);
+
+    }
+
+
     public static function mapGroupsResultsToFrontEndStructure($groupsResults, $areLegacyResults)
     {
 
