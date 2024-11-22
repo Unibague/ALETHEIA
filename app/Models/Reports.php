@@ -569,8 +569,8 @@ class Reports extends Model
                             'overall_average' => $result['overall_average'],
                             'aggregate_students_amount_reviewers' => $result['aggregate_students_amount_reviewers'],
                             'aggregate_students_amount_on_service_area' => $result['aggregate_students_amount_on_service_area'],
-                            'created_at' => Carbon::now('GMT-5')->toDateTimeString(),
-                            'updated_at' => Carbon::now('GMT-5')->toDateTimeString()
+                            'created_at' => Carbon::now()->toDateTimeString(),
+                            'updated_at' => Carbon::now()->toDateTimeString()
                         ]
                     );
                 }

@@ -269,7 +269,7 @@
 <script>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import {InertiaLink} from "@inertiajs/inertia-vue";
-import {prepareErrorText, showSnackbar} from "@/HelperFunctions"
+import {formatToSnakeCaseWithCaps, prepareErrorText, showSnackbar} from "@/HelperFunctions"
 import ConfirmDialog from "@/Components/ConfirmDialog";
 import Snackbar from "@/Components/Snackbar";
 import Papa from 'papaparse';
@@ -383,6 +383,9 @@ export default {
 
         async downloadPDF() {
             try {
+
+                let teacherName = formatToSnakeCaseWithCaps(this.selectedAssessment['teacher_name'])
+
                 this.reportDownloading = true;
                 // Get references to the pie-chart components
                 this.overallAverageChartComponent = this.$refs.overallAverageChartComponent;
@@ -415,7 +418,7 @@ export default {
                 const url = window.URL.createObjectURL(new Blob([response.data]));
                 const link = document.createElement('a');
                 link.href = url;
-                link.setAttribute('download', 'report.pdf');
+                link.setAttribute('download', `${teacherName}_Grupo.pdf`);
                 document.body.appendChild(link);
                 link.click();
                 link.remove();
