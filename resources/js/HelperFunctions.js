@@ -78,11 +78,21 @@ const camelToUnderscore = (key) => {
     return result.split(' ').join('_').toLowerCase();
 }
 
+const formatToSnakeCaseWithCaps = (string) => {
+    return string
+        .toLowerCase() // Convert the entire string to lowercase
+        .split(' ')    // Split the string into an array by spaces
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalize the first letter of each word
+        .join('_')   // Join the array back into a string with underscores
+}
+
+
 export {
     prepareErrorText,
     checkIfModelHasEmptyProperties,
     clearModelProperties,
     showSnackbar,
     toObjectRequest,
-    getCSRFToken
+    getCSRFToken,
+    formatToSnakeCaseWithCaps
 }

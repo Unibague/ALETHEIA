@@ -223,6 +223,7 @@ import Form from "@/models/Form";
 import Snackbar from "@/Components/Snackbar";
 import Papa from 'papaparse';
 import PieChart from '../../Components/PieChart.vue'
+import {formatToSnakeCaseWithCaps}from '@/HelperFunctions'
 
 export default {
     components: {
@@ -312,6 +313,9 @@ export default {
     methods: {
 
         async downloadPDF() {
+
+            let teacherName = formatToSnakeCaseWithCaps(this.selectedAssessment['teacher_name'])
+
             try {
                 // Get references to the pie-chart components
                 this.satisfactionPieChartComponent= this.$refs.satisfactionPieChartComponent;
@@ -333,7 +337,7 @@ export default {
                 const url = window.URL.createObjectURL(new Blob([response.data]));
                 const link = document.createElement('a');
                 link.href = url;
-                link.setAttribute('download', 'report.pdf');
+                link.setAttribute('download', `${teacherName}_Reporte_Docencia_General`);
                 document.body.appendChild(link);
                 link.click();
                 link.remove();

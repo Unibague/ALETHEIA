@@ -733,93 +733,6 @@ Route::get('/jejeje', function () {
 
 });
 
-Route::get('/fulfillServiceAreasResultsTable', function () {
-
-    $activeAssessmentPeriodId = \App\Models\AssessmentPeriod::getActiveAssessmentPeriod()->id;
-
-    $teachers = DB::table('group_results')->select(['teacher_id'])->where('assessment_period_id', '=', $activeAssessmentPeriodId)->get()->toArray();
-
-    $uniqueTeachers = array_column($teachers, 'teacher_id');
-
-    $uniqueTeachersId = array_unique($uniqueTeachers);
-
-
-    foreach ($uniqueTeachersId as $uniqueTeacherId) {
-
-        $serviceAreaCodesFromTeacher = DB::table('group_results')->select(['service_area_code'])->where('teacher_id', '=', $uniqueTeacherId)->get()->toArray();
-
-        $uniqueServiceAreaCodes = array_column($serviceAreaCodesFromTeacher, 'service_area_code');
-
-        $uniqueServiceAreaCodes = array_unique($uniqueServiceAreaCodes);
-
-
-        foreach ($uniqueServiceAreaCodes as $uniqueServiceAreaCode) {
-
-            $groupsFromServiceAreaCode = DB::table('group_results')->where('service_area_code', '=', $uniqueServiceAreaCode)
-                ->where('teacher_id', '=', $uniqueTeacherId)->get();
-
-            $groupsAmountFromServiceAreaCode = count($groupsFromServiceAreaCode);
-
-            $aggregateTotalStudentsReviewersOnServiceArea = 0;
-            $aggregateTotalStudentsEnrolledOnServiceArea = 0;
-
-
-            $final_first_aggregate_competence_average = 0;
-            $final_second_aggregate_competence_average = 0;
-            $final_third_aggregate_competence_average = 0;
-            $final_fourth_aggregate_competence_average = 0;
-            $final_fifth_aggregate_competence_average = 0;
-            $final_sixth_aggregate_competence_average = 0;
-
-
-            foreach ($groupsFromServiceAreaCode as $key => $groupFromServiceAreaCode) {
-
-                $aggregateTotalStudentsReviewersOnServiceArea += $groupsFromServiceAreaCode[$key]->students_amount_reviewers;
-                $aggregateTotalStudentsEnrolledOnServiceArea += $groupsFromServiceAreaCode[$key]->students_amount_on_group;
-
-                $final_first_aggregate_competence_average += $groupFromServiceAreaCode->first_final_competence_average;
-                $final_second_aggregate_competence_average += $groupFromServiceAreaCode->second_final_competence_average;
-                $final_third_aggregate_competence_average += $groupFromServiceAreaCode->third_final_competence_average;
-                $final_fourth_aggregate_competence_average += $groupFromServiceAreaCode->fourth_final_competence_average;
-                $final_fifth_aggregate_competence_average += $groupFromServiceAreaCode->fifth_final_competence_average;
-                $final_sixth_aggregate_competence_average += $groupFromServiceAreaCode->sixth_final_competence_average;
-
-            }
-
-
-            $final_first_aggregate_competence_average /= $groupsAmountFromServiceAreaCode;
-            $final_second_aggregate_competence_average /= $groupsAmountFromServiceAreaCode;
-            $final_third_aggregate_competence_average /= $groupsAmountFromServiceAreaCode;
-            $final_fourth_aggregate_competence_average /= $groupsAmountFromServiceAreaCode;
-            $final_fifth_aggregate_competence_average /= $groupsAmountFromServiceAreaCode;
-            $final_sixth_aggregate_competence_average /= $groupsAmountFromServiceAreaCode;
-
-            $final_first_aggregate_competence_average = number_format($final_first_aggregate_competence_average, 1);
-            $final_second_aggregate_competence_average = number_format($final_second_aggregate_competence_average, 1);
-            $final_third_aggregate_competence_average = number_format($final_third_aggregate_competence_average, 1);
-            $final_fourth_aggregate_competence_average = number_format($final_fourth_aggregate_competence_average, 1);
-            $final_fifth_aggregate_competence_average = number_format($final_fifth_aggregate_competence_average, 1);
-            $final_sixth_aggregate_competence_average = number_format($final_sixth_aggregate_competence_average, 1);
-
-
-            DB::table('teachers_service_areas_results')->updateOrInsert(['teacher_id' => $uniqueTeacherId, 'service_area_code' => $uniqueServiceAreaCode, 'assessment_period_id' => $activeAssessmentPeriodId],
-                ['first_final_aggregate_competence_average' => $final_first_aggregate_competence_average,
-                    'second_final_aggregate_competence_average' => $final_second_aggregate_competence_average,
-                    'third_final_aggregate_competence_average' => $final_third_aggregate_competence_average,
-                    'fourth_final_aggregate_competence_average' => $final_fourth_aggregate_competence_average,
-                    'fifth_final_aggregate_competence_average' => $final_fifth_aggregate_competence_average,
-                    'sixth_final_aggregate_competence_average' => $final_sixth_aggregate_competence_average,
-                    'aggregate_students_amount_reviewers' => $aggregateTotalStudentsReviewersOnServiceArea,
-                    'aggregate_students_amount_on_service_area' => $aggregateTotalStudentsEnrolledOnServiceArea,
-                    'created_at' => Carbon::now('GMT-5')->toDateTimeString(),
-                    'updated_at' => Carbon::now('GMT-5')->toDateTimeString()]);
-
-
-        }
-
-    }
-
-});
 
 
 Route::get('/migrateLegacyRecordsFormAnswersTable', function () {
@@ -1106,8 +1019,8 @@ Route::get('/migrateLegacyRecordsGroupResultsTableeffewwefwe', function () {
                         'competences_average' => json_encode($competencesAverage, JSON_UNESCAPED_UNICODE),
                         'overall_average' => round($overallAverage, 2),
                         'open_ended_answers' => json_encode($groupedOpenEndedAnswers, JSON_UNESCAPED_UNICODE),
-                        'created_at' => Carbon::now('GMT-5')->toDateTimeString(),
-                        'updated_at' => Carbon::now('GMT-5')->toDateTimeString()
+                        'created_at' => Carbon::now()->toDateTimeString(),
+                        'updated_at' => Carbon::now()->toDateTimeString()
                     ]
                 );
             }
@@ -1331,8 +1244,8 @@ Route::get('/migrateLegacyRecordsServiceAreasTable', function () {
                         'overall_average' => $result['overall_average'],
                         'aggregate_students_amount_reviewers' => $result['aggregate_students_amount_reviewers'],
                         'aggregate_students_amount_on_service_area' => $result['aggregate_students_amount_on_service_area'],
-                        'created_at' => Carbon::now('GMT-5')->toDateTimeString(),
-                        'updated_at' => Carbon::now('GMT-5')->toDateTimeString()
+                        'created_at' => Carbon::now()->toDateTimeString(),
+                        'updated_at' => Carbon::now()->toDateTimeString()
                     ]
                 );
             }

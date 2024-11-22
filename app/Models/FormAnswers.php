@@ -75,6 +75,11 @@ class FormAnswers extends Model
     public static function getCurrentFormAnswers(): array
     {
         $activeAssessmentPeriodsId = AssessmentPeriod::getActiveAssessmentPeriod()->id;
+
+        $totalInFaculty = DB::table('faculty_results')
+            ->where('hour_type', 'total')
+            ->sum('students_reviewers');
+
         $answers = DB::table('form_answers as fa')
             ->select(['fa.id', 'fa.submitted_at', 'u.name as studentName', 't.name as teacherName', 'g.name as groupName',
                 'fa.competences_average', 'fa.overall_average'])
@@ -83,7 +88,7 @@ class FormAnswers extends Model
             ->join('users as t', 'fa.teacher_id', '=', 't.id')
             ->join('groups as g', 'fa.group_id', '=', 'g.group_id')
             ->where('f.creation_assessment_period_id', '=', $activeAssessmentPeriodsId)
-            ->orderBy('fa.updated_at', 'desc')
+            ->orderBy('fa.updated_at', 'desc')->take($totalInFaculty)
             ->get();
 
         $headers = [
