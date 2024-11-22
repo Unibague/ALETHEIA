@@ -45,12 +45,10 @@ class UpdateReportTables extends Command
     public function handle()
     {
         $academicPeriods = AcademicPeriod::getCurrentAcademicPeriods();
-
         foreach ($academicPeriods as $academicPeriod) {
-            if (!AcademicPeriod::isStudentsAssessmentDateFinished($academicPeriod)) {
+            if (AcademicPeriod::isStudentsAssessmentDateFinished($academicPeriod)) {
                 continue;
             }
-
             try {
                 Reports::updateGroupResults($academicPeriod);
                 Reports::updateTeacherServiceAreaResults();
